@@ -139,7 +139,7 @@ if __name__ == '__main__':
     
     err = "You must specify a test module to run. Available test modules\nin %s:\n" % modules_path 
     
-    for module in modules:
+    for module in sorted(modules):
         err += "  %s\n" % module
         
     parser.error(err)
