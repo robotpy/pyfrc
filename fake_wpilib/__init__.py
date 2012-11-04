@@ -88,7 +88,7 @@ def load_module(calling_file, relative_module_to_load):
     
     import imp
  
-    module_filename = os.path.normpath( os.path.dirname(os.path.abspath(calling_file)) + relative_module_to_load )
+    module_filename = os.path.normpath( os.path.join(os.path.dirname(os.path.abspath(calling_file)),relative_module_to_load))
     module_name = os.path.basename( os.path.splitext(module_filename)[0] )
     return imp.load_source( module_name, module_filename )
     
