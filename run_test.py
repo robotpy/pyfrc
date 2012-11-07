@@ -93,6 +93,14 @@ def run_test( test_module_name ):
     if myrobot is None:
         sys.stderr.write("ERROR: the run() function in robot.py MUST return an instance of your robot class\n")
         exit(1)
+       
+    if not hasattr(myrobot, '_sr_initialized') or not myrobot._sr_initialized:
+        sys.stderr.write("ERROR: Your robot class must inherit from SimpleRobot and you must call SimpleRobot.__init__(self)\n")
+        exit(1)
+        
+    if not myrobot._sr_competition_started:
+        sys.stderr.write("ERROR: Your run() function must call StartCompetition() on your robot class\n")
+        exit(1)
     
     #
     # Finally, run the tests
