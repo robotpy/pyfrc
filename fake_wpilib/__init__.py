@@ -118,8 +118,13 @@ class SimpleRobot(object):
     # Arguments: time elapsed
     on_IsAutonomous = None
     on_IsOperatorControl = None
+    on_IsEnabled = lambda self: self.enabled
     
     enabled = False
+    
+    def __init__(self):
+        self._sr_initialized = True
+        self._sr_competition_started = False
     
     def IsAutonomous(self):
         if self.on_IsAutonomous is not None:
@@ -127,10 +132,10 @@ class SimpleRobot(object):
         return False
     
     def IsEnabled(self):
-        return self.enabled
+        return self.on_IsEnabled()
         
     def IsDisabled(self):
-        return not self.enabled
+        return not self.on_IsEnabled()
         
     def IsOperatorControl(self):
         if self.on_IsOperatorControl is not None:
@@ -138,7 +143,7 @@ class SimpleRobot(object):
         return False
     
     def StartCompetition(self):
-        pass
+        self._sr_competition_started = True
         
     def GetWatchdog(self):
         return Watchdog()
@@ -148,6 +153,21 @@ class SimpleRobot(object):
 # WPILib Functionality
 #
 #################################################
+
+
+class SpeedController(object):
+
+    def __init__(self):
+        pass
+    
+    def Get(self):
+        raise NotImplementedError()
+    
+    def Set(self, value, syncGroup=0):
+        raise NotImplementedError()
+        
+    def Disable(self):
+        raise NotImplementedError()
     
     
 class Accelerometer(object):
@@ -234,7 +254,7 @@ class CAN(object):
         for i,o in CAN._devices.items():
             print( "  %2d: %s" % (i,o) )
     
-class CANJaguar(object):
+class CANJaguar(SpeedController):
 
     # ControlMode
     kPercentVbus = 1
@@ -267,6 +287,7 @@ class CANJaguar(object):
     kLimitMode_SoftPositionLimits = 1
     
     def __init__(self, deviceNumber, controlMode=kPercentVbus):
+        SpeedController.__init__(self)
         CAN._add_can(deviceNumber, self)
         self.control_mode = controlMode
         self.forward_ok = True              # forward limit switch
@@ -390,7 +411,7 @@ class Compressor(object):
         return self.value
 
         
-class DigitalModule:
+class DigitalModule(object):
 
     _io = [None] * 16
     _pwm = [None] * 10
@@ -674,9 +695,10 @@ class Gyro(object):
         pass
         
         
-class Jaguar(object):
+class Jaguar(SpeedController):
 
     def __init__(self, channel):
+        SpeedController.__init__(self)
         DigitalModule._add_pwm( channel, self )
         self.value = 0
         
@@ -766,19 +788,77 @@ class RobotDrive(object):
     kRearLeftMotor = 2
     kRearRightMotor = 3 
     
-    def __init__(self, lf_motor, rf_motor):
-        self.x = 0.0
-        self.y = 0.0
+    def __init__(self, lr_motor, rr_motor, lf_motor=None, rf_motor=None):
+        self.lr_motor = lr_motor    # left rear
+        self.rr_motor = rr_motor    # right rear
+        self.lf_motor = lf_motor    # left front
+        self.rf_motor = rf_motor    # right front
         
-    def ArcadeDrive(self, y, x, tight=False):
-        self.x = x
-        self.y = y
+        self.maxOutput = 1.0
+        self.inverted = [1,1,1,1]
+        
+    def ArcadeDrive(self, moveValue, rotateValue, squaredInputs=False):
+        
+        moveValue = self._Limit(moveValue)
+        rotateValue = self._Limit(rotateValue)
+        
+        if squaredInputs:
+        
+            if moveValue >= 0.0:
+                moveValue = moveValue*moveValue
+            else:
+                moveValue = -(moveValue*moveValue)
+                
+            if rotateValue >= 0.0:
+                rotateValue = rotateValue*rotateValue
+            else:
+                rotateValue = -(rotateValue*rotateValue)
+                
+        if moveValue > 0.0:
+            if rotateValue > 0.0:
+                leftMotorOutput = moveValue - rotateValue
+                rightMotorOutput = max(moveValue, rotateValue)
+            else:
+                leftMotorOutput = max(moveValue, -rotateValue)
+                rightMotorOutput = moveValue + rotateValue
+        else:
+            if rotateValue > 0.0:
+                leftMotorOutput = -max(-moveValue, rotateValue)
+                rightMotorOutput = moveValue + rotateValue
+            else:
+                leftMotorOutput = moveValue - rotateValue
+                rightMotorOutput = -max(-moveValue, -rotateValue)
+        
+        self._SetLeftRightMotorOutputs(leftMotorOutput, rightMotorOutput)
+        
+    def SetInvertedMotor(self, motorType, isInverted):
+        if motor < 0 or motor > len(self.inverted):
+            raise ValueError("Invalid motor number")
+            
+        self.inverted[motor] = -1 if isInverted else 1
         
     def SetSafetyEnabled(self, enabled):
         pass
         
-    def SetInvertedMotor(self, motor, isInverted):
-        pass
+    #
+    # WPILib Internal functions
+    #
+    
+    def _Limit(self, num):
+        if num > 1.0:
+            return 1.0
+        elif num < -1.0:
+            return -1.0
+        return num
+        
+    def _SetLeftRightMotorOutputs(self, leftOutput, rightOutput):
+        if self.lf_motor is not None:
+            self.lf_motor.Set(self._Limit(leftOutput) * self.inverted[RobotDrive.kFrontLeftMotor] * self.maxOutput)
+        self.lr_motor.Set(self._Limit(leftOutput) * self.inverted[RobotDrive.kRearLeftMotor] * self.maxOutput)
+        
+        if self.rf_motor is not None:
+            self.rf_motor.Set(-self._Limit(rightOutput) * self.inverted[RobotDrive.kFrontRightMotor] * self.maxOutput)
+        self.rr_motor.Set(-self._Limit(rightOutput) * self.inverted[RobotDrive.kRearRightMotor] * self.maxOutput)
 
 
 class Relay(object):
@@ -850,8 +930,8 @@ class Servo(object):
     
     def __GetServoAngleRange(self):
         return Servo.kMaxServoAngle - Servo.kMinServoAngle
-
-
+        
+        
 class Solenoid(object):
     
     def __init__(self, channel):
@@ -896,9 +976,10 @@ class Ultrasonic(object):
         self.enabled = enable
     
     
-class Victor(object):
+class Victor(SpeedController):
     
     def __init__(self, channel):
+        SpeedController.__init__(self)
         DigitalModule._add_pwm( channel, self )
         self.value = 0
         
