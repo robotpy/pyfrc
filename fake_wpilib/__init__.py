@@ -49,6 +49,7 @@ __all__ = ['fake_time','pid_controller']
 
 import math
 import os
+import threading
 
 # move these into the global namespace
 from .pid_controller import PIDSource, PIDOutput, PIDController
@@ -513,9 +514,14 @@ class DriverStation(object):
         return DriverStation.instance
     
     def __init__(self):
-        
+
+        # when running multiple threads, be sure to grab this
+        # lock before modifying any of the DS internal state
+        self.lock = threading.RLock()
+    
         AnalogModule._add_channel(DriverStation.kBatteryChannel, self)
     
+        # TODO: Need to sync this with the enhanced I/O
         self.digital_in = [ False, False, False, False, False, False, False, False ]
         self.fms_attached = False
         self.enhanced_io = DriverStationEnhancedIO()
@@ -535,31 +541,37 @@ class DriverStation(object):
             self.stick_buttons.append(buttons)
     
     def GetAlliance(self):
-        return self.alliance
+        with self.lock:
+            return self.alliance
     
     def GetDigitalIn(self, number):
-        return self.digital_in[number-1]
+        with self.lock:
+            return self.digital_in[number-1]
         
     def GetEnhancedIO(self):
         return self.enhanced_io
     
     def GetStickAxis(self, stick, axis):
-        return self.sticks[stick][axis]
+        with self.lock:
+            return self.sticks[stick-1][axis]
         
     def GetStickButtons(self, stick):
-        buttons = 0
-        for i, button in enumerate(self.stick_buttons[stick]):
-            if button:
-                buttons |= (1 << i)
+        with self.lock:
+            buttons = 0
+            for i, button in enumerate(self.stick_buttons[stick-1]):
+                if button:
+                    buttons |= (1 << i)
     
         return buttons
     
     def IsFMSAttached(self):
-        return self.fms_attached 
+        with self.lock:
+            return self.fms_attached 
         
     def IsNewControlData(self):
-        new_data = self.new_control_data
-        self.new_control_data = False
+        with self.lock:
+            new_data = self.new_control_data
+            self.new_control_data = False
         return new_data
     
     def SetDigitalOut(self, number, value):
@@ -711,32 +723,46 @@ class Jaguar(SpeedController):
         
         
 class Joystick(object):
-    '''
-        Note that the values for this joystick are not currently shared with
-        the driver station, so if you ask the driver station and the joystick
-        for a button or axis value, they will differ
-    '''
-    
-    kTriggerButton = 0
-    kTopButton = 1
     
     kDefaultXAxis = 1
     kDefaultYAxis = 2
     kDefaultZAxis = 3
     kDefaultTwistAxis = 4
     kDefaultThrottleAxis = 3
+    
+    kXAxis = 0
+    kYAxis = 1
+    kZAxis = 2
+    kTwistAxis = 3
+    kThrottleAxis = 4
+    kNumAxisTypes = 5
+    
     kDefaultTriggerButton = 1
     kDefaultTopButton = 2
     
+    kTriggerButton = 0
+    kTopButton = 1
+    kNumButtonTypes = 2
+    
     def __init__(self, port):
-        self.x = 0.0
-        self.y = 0.0
-        self.z = 0.0
-        self.twist = 0.0
-        self.throttle = 0.0
+        self.port = port
+        self._ds = DriverStation.GetInstance()
         
-        # trigger, top, 3... 
-        self.buttons = [ False, False, False, False, False, False, False, False, False, False, False ]
+        self.axes = [Joystick.kDefaultXAxis, 
+                     Joystick.kDefaultYAxis, 
+                     Joystick.kDefaultZAxis, 
+                     Joystick.kDefaultTwistAxis, 
+                     Joystick.kDefaultThrottleAxis]
+                     
+        # TODO
+        #self.buttons = [Joystick.kDefaultTriggerButton,
+        #                Joystick.kDefaultTopButton]
+        
+    def GetAxis(self, axis_type):
+        return self.GetRawAxis(self.axes[axis_type])
+        
+    def GetAxisChannel(self, axis_type):
+        return self.axes[axis_type]
         
     def GetButton(self, button_type):
         if button_type == Joystick.kTriggerButton:
@@ -744,43 +770,87 @@ class Joystick(object):
         elif button_type == Joystick.kTopButton:
             return self.GetTop()
             
-        raise RuntimeError( 'Invalid button type specified' )
+        raise RuntimeError('Invalid button type specified')
     
     def GetDirectionDegrees(self):
         return (180.0/math.acos(-1.0)) * self.GetDirectionRadians()
     
     def GetDirectionRadians(self):
-        return math.atan2( self.x, -self.y )
+        return math.atan2(self.x, -self.y)
         
     def GetMagnitude(self):
-        return math.sqrt( math.pow( self.x, 2) + math.pow( self.y, 2 ) )
+        return math.sqrt(math.pow(self.x, 2) + math.pow(self.y, 2))
+        
+    def GetRawAxis(self, axis):
+        return self._ds.GetStickAxis(self.port, axis)
         
     def GetRawButton(self, number):
         return self.buttons[number-1]
         
     def GetThrottle(self):
-        return self.throttle
+        return self.GetRawAxis(self.axes[Joystick.kThrottleAxis])
         
     def GetTop(self):
-        return self.buttons[Joystick.kTopButton]
+        return self.GetRawButton(Joystick.kTopButton)
         
     def GetTrigger(self):
-        return self.buttons[Joystick.kTriggerButton]
+        return self.GetRawButton(Joystick.kTriggerButton)
         
     def GetTwist(self):
-        return self.twist
+        return self.GetRawAxis(self.axes[Joystick.kTwistAxis])
         
     def GetX(self):
-        return self.x
+        return self.GetRawAxis(self.axes[Joystick.kXAxis])
         
     def GetY(self):
-        return self.y
+        return self.GetRawAxis(self.axes[Joystick.kYAxis])
         
     def GetZ(self):
-        return self.z
+        return self.GetRawAxis(self.axes[Joystick.kZAxis])
+        
+    def SetAxisChannel(self, axis_type, channel):
+        self.axes[axis_type] = channel
+    
+    # internal API
+    def _set_x(self, value):
+        with self._ds.lock:
+            self._ds.sticks[self.port-1][self.axes[Joystick.kXAxis]] = float(value)
+        
+    def _set_y(self, value):
+        with self._ds.lock:
+            self._ds.sticks[self.port-1][self.axes[Joystick.kYAxis]] = float(value)
+            
+    def _set_z(self, value):
+        with self._ds.lock:
+            self._ds.sticks[self.port-1][self.axes[Joystick.kZAxis]] = float(value)
+            
+    def _set_twist(self, value):
+        with self._ds.lock:
+            self._ds.sticks[self.port-1][self.axes[Joystick.kTwistAxis]] = float(value)
+            
+    def _set_throttle(self, value):
+        with self._ds.lock:
+            self._ds.sticks[self.port-1][self.axes[Joystick.kThrottleAxis]] = float(value)
+    
+    def _get_buttons(self):
+        # TODO: not thread safe impl
+        raise NotImplementedError()
+        with self._ds.lock:
+            return self._ds.stick_buttons[self.port-1]
+    
+    # internal properties to make testing easier
+    # -> DO NOT USE THESE FROM ROBOT CODE
+    x = property(GetX, _set_x)
+    y = property(GetY, _set_y)
+    z = property(GetZ, _set_z)
+    twist = property(GetTwist, _set_twist)
+    throttle = property(GetThrottle, _set_throttle)
+    buttons = property(_get_buttons)
+    
     
 class KinectStick(Joystick):
     pass
+    
     
 class RobotDrive(object):
 
