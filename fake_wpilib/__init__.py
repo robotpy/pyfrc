@@ -125,6 +125,7 @@ class SimpleRobot(object):
     def __init__(self):
         self._sr_initialized = True
         self._sr_competition_started = False
+        self._watchdog = Watchdog()
     
     def IsAutonomous(self):
         if self.on_IsAutonomous is not None:
@@ -146,7 +147,7 @@ class SimpleRobot(object):
         self._sr_competition_started = True
         
     def GetWatchdog(self):
-        return Watchdog()
+        return self._watchdog
     
 #################################################
 #
@@ -992,12 +993,36 @@ class Victor(SpeedController):
     
 class Watchdog(object):
     
+    kDefaultWatchdogExpiration = 0.5
+    
+    def __init__(self):
+        self.enabled = False
+        self.expiration = Watchdog.kDefaultWatchdogExpiration
+    
     def Feed(self):
-        pass
+        return self.enabled
+    
+    def GetEnabled(self):
+        return self.enabled
+    
+    def GetExpiration(self):
+        raise self.expiration
+        
+    def GetTimer(self):
+        raise NotImplementedError()
+        
+    def IsAlive(self):
+        return True
+        
+    def IsSystemActive(self):
+        return True
+        
+    def Kill(self):
+        raise NotImplementedError()
         
     def SetEnabled(self, enable):
-        pass
+        self.enabled = bool(enable)
         
     def SetExpiration(self, period):
-        pass
+        self.expiration = float(period)
         
