@@ -359,7 +359,7 @@ class CANJaguar(SpeedController):
         return self.reverse_ok
         
     def GetPosition(self):
-        if self.control_mode != kPosition:
+        if self.control_mode != CANJaguar.kPosition:
             raise RuntimeError("Invalid control mode")
         return self.position
         
@@ -367,7 +367,7 @@ class CANJaguar(SpeedController):
         return self.speed_reference
         
     def GetSpeed(self):
-        if self.control_mode != kSpeed:
+        if self.control_mode != CANJaguar.kSpeed:
             raise RuntimeError("Invalid control mode")
         return self.speed
         
@@ -903,10 +903,10 @@ class RobotDrive(object):
         self._SetLeftRightMotorOutputs(leftMotorOutput, rightMotorOutput)
         
     def SetInvertedMotor(self, motorType, isInverted):
-        if motor < 0 or motor > len(self.inverted):
+        if motorType < 0 or motorType > len(self.inverted):
             raise ValueError("Invalid motor number")
             
-        self.inverted[motor] = -1 if isInverted else 1
+        self.inverted[motorType] = -1 if isInverted else 1
         
     def SetSafetyEnabled(self, enabled):
         pass
