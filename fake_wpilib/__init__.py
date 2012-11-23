@@ -9,7 +9,6 @@
         - robot code is in robot.py, and 'import robot' works. 
         - the 'run' function is the first thing that is called,
         and returns an object that derives from SimpleRobot
-        - fake_wpilib is placed next to robot.py
     
     This is not a complete implementation of WPILib. Add more things
     as needed, and submit patches! :) 
