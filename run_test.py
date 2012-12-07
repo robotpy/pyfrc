@@ -93,13 +93,29 @@ def run_test( test_module_name ):
     if myrobot is None:
         sys.stderr.write("ERROR: the run() function in robot.py MUST return an instance of your robot class\n")
         exit(1)
+        
+    if not isinstance(myrobot, wpilib.SimpleRobot):
+        sys.stderr.write("ERROR: the object returned from the run function MUST return an instance of a robot class that inherits from wpilib.SimpleRobot\n")
+        exit(1)
        
+    # if they forget to do this, it's an annoying problem to diagnose on the cRio... 
     if not hasattr(myrobot, '_sr_initialized') or not myrobot._sr_initialized:
-        sys.stderr.write("ERROR: Your robot class must inherit from SimpleRobot and you must call SimpleRobot.__init__(self)\n")
+        sys.stderr.write("ERROR: class '%s' must call SimpleRobot.__init__(self)\n" % \
+                         (myrobot.__class__.__name__))
         exit(1)
         
     if not myrobot._sr_competition_started:
         sys.stderr.write("ERROR: Your run() function must call StartCompetition() on your robot class\n")
+        exit(1)
+        
+    has_not = []
+    for n in ['Autonomous', 'Disabled', 'OperatorControl']:
+        if not hasattr(myrobot, n):
+            has_not.append(n)
+            
+    if len(has_not) > 0:
+        sys.stderr.write("ERROR: class '%s' does not have the following required functions: %s\n" % \
+                         (myrobot.__class__.__name__, ', '.join(has_not)))
         exit(1)
     
     #
