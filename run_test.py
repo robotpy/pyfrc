@@ -50,6 +50,10 @@ testdir_path = os.path.dirname(os.path.abspath(__file__))
 # can't import fake-wpilib without it being on the path
 sys.path.append(os.path.join(testdir_path, 'lib'))
 import fake_wpilib as wpilib
+import _wpilib.internal
+
+# initialize fake_wpilib
+_wpilib.internal.initialize_fake_wpilib()
 
 def import_robot(robot_path):
 
@@ -60,7 +64,7 @@ def import_robot(robot_path):
     # setup the robot code
     import robot
 
-    myrobot = wpilib.initialize_robot()
+    myrobot = _wpilib.internal.initialize_robot()
 
     return (robot, myrobot)
     
@@ -96,7 +100,7 @@ def run_test( test_module_name ):
         exit(1)
        
     # if they forget to do this, it's an annoying problem to diagnose on the cRio... 
-    if not hasattr(myrobot, '_sr_initialized') or not myrobot._sr_initialized:
+    if not hasattr(myrobot, 'watchdog') or not myrobot.watchdog:
         sys.stderr.write("ERROR: class '%s' must call SimpleRobot.__init__(self)\n" % \
                          (myrobot.__class__.__name__))
         exit(1)
