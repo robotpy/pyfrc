@@ -440,77 +440,78 @@ class DriverStation(object):
     kBlue = 1
     kInvalid = 2
     
-    instance = None
-    
     @staticmethod
     def GetInstance():
-        if DriverStation.instance is None:
-            DriverStation.instance = DriverStation()
-        return DriverStation.instance
+        try:
+            return DriverStation._instance
+        except AttributeError:
+            DriverStation._instance = DriverStation._inner()
+            return DriverStation._instance
     
-    def __init__(self):
-
-        # when running multiple threads, be sure to grab this
-        # lock before modifying any of the DS internal state
-        self.lock = threading.RLock()
+    class _inner:
+        def __init__(self):
     
-        AnalogModule._add_channel(DriverStation.kBatteryChannel, self)
-    
-        # TODO: Need to sync this with the enhanced I/O
-        self.digital_in = [ False, False, False, False, False, False, False, False ]
-        self.fms_attached = False
-        self.enhanced_io = DriverStationEnhancedIO()
-        self.alliance = DriverStation.kInvalid
+            # when running multiple threads, be sure to grab this
+            # lock before modifying any of the DS internal state
+            self.lock = threading.RLock()
         
-        self.new_control_data = False
+            AnalogModule._add_channel(DriverStation.kBatteryChannel, self)
         
-        # arrays of [port][axis/button]
-        self.sticks = []
-        self.stick_buttons = []
-        
-        for i in range(0, DriverStation.kJoystickPorts):
-            axes = [ 0.0 ] * DriverStation.kJoystickAxes
-            buttons = [ False ] * 16
+            # TODO: Need to sync this with the enhanced I/O
+            self.digital_in = [ False, False, False, False, False, False, False, False ]
+            self.fms_attached = False
+            self.enhanced_io = DriverStationEnhancedIO._inner()
+            self.alliance = DriverStation.kInvalid
             
-            self.sticks.append(axes)
-            self.stick_buttons.append(buttons)
-    
-    def GetAlliance(self):
-        with self.lock:
-            return self.alliance
-    
-    def GetDigitalIn(self, number):
-        with self.lock:
-            return self.digital_in[number-1]
-        
-    def GetEnhancedIO(self):
-        return self.enhanced_io
-    
-    def GetStickAxis(self, stick, axis):
-        with self.lock:
-            return self.sticks[stick-1][axis]
-        
-    def GetStickButtons(self, stick):
-        with self.lock:
-            buttons = 0
-            for i, button in enumerate(self.stick_buttons[stick-1]):
-                if button:
-                    buttons |= (1 << i)
-    
-        return buttons
-    
-    def IsFMSAttached(self):
-        with self.lock:
-            return self.fms_attached 
-        
-    def IsNewControlData(self):
-        with self.lock:
-            new_data = self.new_control_data
             self.new_control_data = False
-        return new_data
-    
-    def SetDigitalOut(self, number, value):
-        pass
+            
+            # arrays of [port][axis/button]
+            self.sticks = []
+            self.stick_buttons = []
+            
+            for i in range(0, DriverStation.kJoystickPorts):
+                axes = [ 0.0 ] * DriverStation.kJoystickAxes
+                buttons = [ False ] * 16
+                
+                self.sticks.append(axes)
+                self.stick_buttons.append(buttons)
+        
+        def GetAlliance(self):
+            with self.lock:
+                return self.alliance
+        
+        def GetDigitalIn(self, number):
+            with self.lock:
+                return self.digital_in[number-1]
+            
+        def GetEnhancedIO(self):
+            return self.enhanced_io
+        
+        def GetStickAxis(self, stick, axis):
+            with self.lock:
+                return self.sticks[stick-1][axis]
+            
+        def GetStickButtons(self, stick):
+            with self.lock:
+                buttons = 0
+                for i, button in enumerate(self.stick_buttons[stick-1]):
+                    if button:
+                        buttons |= (1 << i)
+        
+            return buttons
+        
+        def IsFMSAttached(self):
+            with self.lock:
+                return self.fms_attached 
+            
+        def IsNewControlData(self):
+            with self.lock:
+                new_data = self.new_control_data
+                self.new_control_data = False
+            return new_data
+        
+        def SetDigitalOut(self, number, value):
+            pass
         
 class DriverStationEnhancedIO(object):
     
@@ -524,54 +525,56 @@ class DriverStationEnhancedIO(object):
     
     _kInputTypes = [kInputFloating, kInputPullUp, kInputPullDown]
 
-    # don't call this directly
-    def __init__(self):
-        self.digital = [ False, False, False, False, 
-                         False, False, False, False,
-                         False, False, False, False,
-                         False, False, False, False ]
-                        
-        self.digital_config = [ None, None, None, None,
-                                None, None, None, None,
-                                None, None, None, None,
-                                None, None, None, None ]
-        
-    def GetDigital(self, channel):
-        if self.digital_config[channel-1] not in DriverStationEnhancedIO._kInputTypes:
-            raise RuntimeError( "Digital channel not configured as input, configured as %s" % self.digital_config[channel-1] )
-        return self.digital[channel-1]
-        
-    def GetDigitalConfig(self, channel):
-        config = self.digital_config[channel-1]
-        if config is None:
-            return DriverStationEnhancedIO.kUnknown
-        return config
-        
-    def SetDigitalConfig(self, channel, config):
-        if self.digital_config[channel-1] is not None:
-            raise RuntimeError( "Configured digital channel twice!" )
-        self.digital_config[channel-1] = config
-    
-    def SetDigitalOutput(self, channel, value):
-        if self.digital_config[channel-1] != DriverStationEnhancedIO.kOutput:
-            raise RuntimeError( "Digital channel not configured as output, configured as %s" % self.digital_config[channel-1] )
-        self.digital[channel-1] = bool(value)
-        
+    class _inner:
 
-    def _print_components(self):
-        '''Debugging use only'''
-        print( "DriverStationEnhancedIO:" )
-        for i,o in enumerate(self.digital_config):
-            if o is not None:
-                od = {
-                    DriverStationEnhancedIO.kUnknown: "kUnknown",
-                    DriverStationEnhancedIO.kInputFloating: "kInputFloating",
-                    DriverStationEnhancedIO.kInputPullUp: "kInputPullUp",
-                    DriverStationEnhancedIO.kInputPullDown: "kInputPullDown",
-                    DriverStationEnhancedIO.kOutput: "kOutput"
-                }
-                
-                print( "  %2d: %s" % (i+1, od[o]))
+        # don't call this directly
+        def __init__(self):
+            self.digital = [ False, False, False, False, 
+                             False, False, False, False,
+                             False, False, False, False,
+                             False, False, False, False ]
+                            
+            self.digital_config = [ None, None, None, None,
+                                    None, None, None, None,
+                                    None, None, None, None,
+                                    None, None, None, None ]
+            
+        def GetDigital(self, channel):
+            if self.digital_config[channel-1] not in DriverStationEnhancedIO._kInputTypes:
+                raise RuntimeError( "Digital channel not configured as input, configured as %s" % self.digital_config[channel-1] )
+            return self.digital[channel-1]
+            
+        def GetDigitalConfig(self, channel):
+            config = self.digital_config[channel-1]
+            if config is None:
+                return DriverStationEnhancedIO.kUnknown
+            return config
+            
+        def SetDigitalConfig(self, channel, config):
+            if self.digital_config[channel-1] is not None:
+                raise RuntimeError( "Configured digital channel twice!" )
+            self.digital_config[channel-1] = config
+        
+        def SetDigitalOutput(self, channel, value):
+            if self.digital_config[channel-1] != DriverStationEnhancedIO.kOutput:
+                raise RuntimeError( "Digital channel not configured as output, configured as %s" % self.digital_config[channel-1] )
+            self.digital[channel-1] = bool(value)
+            
+    
+        def _print_components(self):
+            '''Debugging use only'''
+            print( "DriverStationEnhancedIO:" )
+            for i,o in enumerate(self.digital_config):
+                if o is not None:
+                    od = {
+                        DriverStationEnhancedIO.kUnknown: "kUnknown",
+                        DriverStationEnhancedIO.kInputFloating: "kInputFloating",
+                        DriverStationEnhancedIO.kInputPullUp: "kInputPullUp",
+                        DriverStationEnhancedIO.kInputPullDown: "kInputPullDown",
+                        DriverStationEnhancedIO.kOutput: "kOutput"
+                    }
+                    
+                    print( "  %2d: %s" % (i+1, od[o]))
         
 class Encoder(object):
 
