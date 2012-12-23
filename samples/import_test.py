@@ -2,6 +2,8 @@
 # directory that robot.py is located, relative to this file
 robot_path = '../../source'
 
+import _wpilib
+
 class Test(object):
 
     def __init__(self, robot_module, myrobot):
@@ -31,12 +33,13 @@ def run_tests( robot_module, myrobot ):
 
     test = Test( robot_module, myrobot )
 
-    robot_module.wpilib._print_components()
+    _wpilib.internal.print_components()
+    
+    _wpilib.internal.on_IsAutonomous = test.IsAutonomous
+    _wpilib.internal.on_IsOperatorControl = test.IsOperatorControl
     
     
     myrobot.enabled = True
-    myrobot.on_IsAutonomous = test.IsAutonomous
-    myrobot.on_IsOperatorControl = test.IsOperatorControl
     
     test.Reset()
     myrobot.Autonomous()

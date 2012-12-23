@@ -33,30 +33,7 @@ import math
 import threading
 
 from .fake_time import GetClock
-
-#################################################
-#
-# Core engine that controls the robot code
-#
-#################################################    
-
-# as a shortcut, you can assign to this variable to enable/disable the
-# robot instead of overriding on_IsAutonomous
-enabled = False
-    
-# assign functions to the on_* variables below in the test program to be 
-# called when something happens in the robot code. The return value will 
-# be given to the robot code.
-
-# The 'tm' argument returns the value of GetClock(), which is the time
-# that has been elapsed
-
-on_IsAutonomous         = lambda tm: False
-on_IsOperatorControl    = lambda tm: False
-on_IsEnabled            = lambda: enabled
-
-on_IsSystemActive       = lambda: True
-on_IsNewDataAvailable   = lambda: True
+import _wpilib.internal as internal
 
 #################################################
 #
@@ -66,30 +43,28 @@ on_IsNewDataAvailable   = lambda: True
 
 
 def IsAutonomous():
-    return on_IsAutonomous(GetClock())
+    return internal.on_IsAutonomous(GetClock())
 
 def IsEnabled():
-    return on_IsEnabled()
+    return internal.on_IsEnabled()
     
 def IsDisabled():
-    return not on_IsEnabled()
+    return not internal.on_IsEnabled()
     
 def IsOperatorControl():
-    return on_IsOperatorControl(GetClock())
+    return internal.on_IsOperatorControl(GetClock())
 
 def IsNewDataAvailable():
-    return on_IsNewDataAvailable()
+    return internal.on_IsNewDataAvailable()
 
 def IsSystemActive():
-    return on_IsSystemActive()
+    return internal.on_IsSystemActive()
     
 def GetWatchdog():
     return Watchdog.GetInstance()
 
 def _StartCompetition(self):
     self._sr_competition_started = True
-
-
 
     
 class SpeedController(object):
@@ -445,10 +420,10 @@ class DriverStation(object):
         try:
             return DriverStation._instance
         except AttributeError:
-            DriverStation._instance = DriverStation._inner()
+            DriverStation._instance = DriverStation._DriverStation()
             return DriverStation._instance
     
-    class _inner:
+    class _DriverStation:
         def __init__(self):
     
             # when running multiple threads, be sure to grab this

@@ -1,4 +1,31 @@
 
+import os
+
+
+#################################################
+#
+# Core engine that controls the robot code
+#
+#################################################    
+
+# as a shortcut, you can assign to this variable to enable/disable the
+# robot instead of overriding on_IsAutonomous
+enabled = False
+    
+# assign functions to the on_* variables below in the test program to be 
+# called when something happens in the robot code. The return value will 
+# be given to the robot code.
+
+# The 'tm' argument returns the value of GetClock(), which is the time
+# that has been elapsed
+
+on_IsAutonomous         = lambda tm: False
+on_IsOperatorControl    = lambda tm: False
+on_IsEnabled            = lambda: enabled
+
+on_IsSystemActive       = lambda: True
+on_IsNewDataAvailable   = lambda: True
+
 
 #################################################
 #
@@ -9,10 +36,10 @@
 def initialize_fake_wpilib():
     
     import fake_wpilib as wpilib
-    import _wpilib
+    from .core import _StartCompetition
     
-    wpilib.IterativeRobot.StartCompetition = _wpilib.core._StartCompetition
-    wpilib.SimpleRobot.StartCompetition = _wpilib.core._StartCompetition
+    wpilib.IterativeRobot.StartCompetition = _StartCompetition
+    wpilib.SimpleRobot.StartCompetition = _StartCompetition
 
 def initialize_robot():
     '''
@@ -49,7 +76,10 @@ def print_components():
         Debugging function, prints out the components currently on the robot
     '''
     
+    from . import AnalogModule, CAN, DigitalModule, DriverStation 
+    
     AnalogModule._print_components()
     CAN._print_components()
     DigitalModule._print_components()
     DriverStation.GetInstance().GetEnhancedIO()._print_components()
+    
