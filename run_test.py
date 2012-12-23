@@ -47,12 +47,9 @@ import sys
 
 testdir_path = os.path.dirname(os.path.abspath(__file__))
 
-try:
-    import fake_wpilib as wpilib
-except ImportError:
-    sys.path.append(testdir_path)
-    import fake_wpilib as wpilib
-
+# can't import fake-wpilib without it being on the path
+sys.path.append(os.path.join(testdir_path, 'lib'))
+import fake_wpilib as wpilib
 
 def import_robot(robot_path):
 

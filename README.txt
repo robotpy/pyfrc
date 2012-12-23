@@ -27,18 +27,23 @@ test modules to reside. An example directory structure might look like this:
         test1.py
         test2.py
         
-    fake_wpilib/
-        fake_wpilib/
+    fake-wpilib/
+        lib/
+            _wpilib/
+            fake_wpilib/
+            
+        samples/
+        
         run_test.py
         
     test.sh
     test.bat
     
 In this example layout, you would need to specify the TEST_MODULES as
-'tests', and FAKE_WPILIB_DIR as 'fake_wpilib'
+'tests', and FAKE_WPILIB_DIR as 'fake-wpilib'
 
 After configuring the directories properly, you should use test.sh or
-test.bat to launch tests using fake_wpilib, instead of directly invoking
+test.bat to launch tests using fake-wpilib, instead of directly invoking
 run_test.py
 
 
@@ -88,3 +93,22 @@ running on your PC using the following command:
 Currently, this is only supported in the SVN version of SmartDashboard, and
 does not work in the binaries currently released by FRC. This should work
 in 2013 releases, however.
+
+
+Implementation Notes
+--------------------
+
+The implementation of wpilib that you can run on your computer is contained
+in the 'lib' directory. If you use the 'run_test.py' script to run your
+tests, it will automatically setup the python path correctly so that loading
+fake_wpilib will load the correct package. 
+
+The lib/fake_wpilib directory is the code for wpilib directly copied from 
+the RobotPy implementation. This code tries to load a module called '_wpilib',
+which is a binary python module on the robot. However, in lib/_wpilib there 
+is a python package which emulates a lot of the functionality found in the
+binary package for wpilib. 
+
+The StartCompetition function is monkey-patched by run_test.py so that the
+library and test runners can load properly. 
+

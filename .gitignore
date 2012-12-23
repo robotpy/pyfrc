@@ -1,2 +1,3 @@
-fake_wpilib/__pycache__/
+lib/fake_wpilib/__pycache__/
+lib/_wpilib/__pycache__/
 *.pyc
