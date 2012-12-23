@@ -39,7 +39,7 @@ def run_tests( robot_module, myrobot ):
     _wpilib.internal.on_IsOperatorControl = test.IsOperatorControl
     
     
-    myrobot.enabled = True
+    _wpilib.internal.enabled = True
     
     test.Reset()
     myrobot.Autonomous()
