@@ -129,6 +129,7 @@ class AnalogChannel(object):
     
     def __init__(self, channel):
         AnalogModule._add_channel(channel, self)
+        self.value = 0
         self.voltage = 0
         
     def GetValue(self):
