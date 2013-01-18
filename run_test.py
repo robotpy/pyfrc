@@ -41,6 +41,7 @@
 from glob import glob
 import imp
 import os
+import os.path
 from optparse import OptionParser
 import sys
 
@@ -59,6 +60,9 @@ def import_robot(robot_path):
 
     # convert \ to / or whatever, depending on the platform
     robot_path = os.path.abspath(robot_path)
+    if not os.path.exists(robot_path):
+        sys.stderr.write('Warning: "%s" does not exist\n' % robot_path)
+    
     sys.path.append(robot_path)
     
     # setup the robot code
