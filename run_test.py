@@ -60,8 +60,8 @@ def import_robot(robot_path):
 
     # convert \ to / or whatever, depending on the platform
     robot_path = os.path.abspath(robot_path)
-    if not os.path.exists(robot_path):
-        sys.stderr.write('Warning: "%s" does not exist\n' % robot_path)
+    if not os.path.isdir(robot_path):
+        sys.stderr.write('Warning: "%s" does not exist or is not a directory\n' % robot_path)
     
     sys.path.append(robot_path)
     
