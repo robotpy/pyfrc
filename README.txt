@@ -80,20 +80,23 @@ specified by the --test-modules argument to run_test.py
 See 'samples/import_test.py' for an example test program that starts the
 robot code and runs it through autonomous mode and operator mode. 
 
-SmartDashboard support
-----------------------
+SmartDashboard/NetworkTables support
+------------------------------------
 
-fake-wpilib has a fully working implementation of SmartDashboard, which is
-identical to the implementation in RobotPy that runs on the cRio. Using 
-recent versions of SmartDashboard, you can connect to the test program 
-running on your PC using the following command:
+If you have pynetworktables installed, fake_wpilib can use that for
+SmartDashboard/NetworkTables instead of the thin non-functional objects
+that come with fake_wpilib. You need to adjust your test.bat/test.sh 
+to tell fake_wpilib to use it (disabled by default), and you need to
+install pynetworktables for your python interpreter.  
+
+pynetworktables is a python module which allows the NetworkTables 
+implementation in WPILib to run on a PC. Using the current version of 
+SmartDashboard, you can connect to the test program running on your PC 
+using the following command:
 
 	C:\Program Files\SmartDashboard\SmartDashboard.jar ip 127.0.0.1
-
-Currently, this is only supported in the SVN version of SmartDashboard, and
-does not work in the binaries currently released by FRC. This should work
-in 2013 releases, however.
-
+	
+See https://github.com/robotpy/pynetworktables for more information.
 
 Implementation Notes
 --------------------

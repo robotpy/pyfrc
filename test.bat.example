@@ -6,6 +6,9 @@ set FAKE_WPILIB_DIR=
 REM location of test modules relative to this file
 set TEST_MODULES=tests
 
+REM Use pynetworktables for SmartDashboard/NetworkTables
+set PYNETWORKTABLES=False
+
 
 set ec=1
 
@@ -23,7 +26,7 @@ echo Error: Could not find python 3
 exit /b 1
 
 :python_found
-%PYTHON_BIN% -B "%~dp0\%FAKE_WPILIB_DIR%\run_test.py" --test-modules="%~dp0\%TEST_MODULES%" %*
+%PYTHON_BIN% -B "%~dp0\%FAKE_WPILIB_DIR%\run_test.py" --use-pynetworktables=%PYNETWORKTABLES% --test-modules="%~dp0\%TEST_MODULES%" %*
 
 if "%errorlevel%" == "0" set ec=0
 pause

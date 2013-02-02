@@ -54,6 +54,9 @@ def IsDisabled():
 def IsOperatorControl():
     return internal.on_IsOperatorControl(GetClock())
 
+def IsTest():
+    return True
+
 def IsNewDataAvailable():
     return internal.on_IsNewDataAvailable()
 

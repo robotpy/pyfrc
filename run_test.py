@@ -45,28 +45,31 @@ import os.path
 from optparse import OptionParser
 import sys
 
+import run_test_config
 
 testdir_path = os.path.dirname(os.path.abspath(__file__))
 
 # can't import fake-wpilib without it being on the path
 sys.path.append(os.path.join(testdir_path, 'lib'))
-import fake_wpilib as wpilib
-import _wpilib.internal
 
-# initialize fake_wpilib
-_wpilib.internal.initialize_fake_wpilib()
+# cannot initialze fake_wpilib yet until we parse the options
 
 def import_robot(robot_path):
 
     # convert \ to / or whatever, depending on the platform
     robot_path = os.path.abspath(robot_path)
     if not os.path.isdir(robot_path):
-        sys.stderr.write('Warning: "%s" does not exist or is not a directory\n' % robot_path)
+        sys.stderr.write('WARNING: "%s" does not exist or is not a directory\n' % robot_path)
     
     sys.path.append(robot_path)
     
     # setup the robot code
-    import robot
+    try:
+        import robot
+    except ImportError as e:
+        if str(e).endswith(' robot'):
+            print("WARNING: I don't appear to be able to find your robot.py file")
+        raise
 
     myrobot = _wpilib.internal.initialize_robot()
 
@@ -148,8 +151,26 @@ if __name__ == '__main__':
     parser.add_option(  '--test-modules',
                         dest='modules_path', default=None,
                         help='Directory that the test modules can be found in')
+    
+    parser.add_option(  '--use-pynetworktables', 
+                        dest='use_pynetworktables', default='false', 
+                        help='Use pynetworktables for SmartDashboard/NetworkTables support')
                         
     (options, args) = parser.parse_args()
+    
+    if options.use_pynetworktables.lower() == 'true':
+        run_test_config.use_pynetworktables = True
+    elif options.use_pynetworktables.lower() == 'false':
+        run_test_config.use_pynetworktables = False
+    else:
+        parser.error("Invalid value for --use-pynetworktables")
+    
+    # now we can initialize fake_wpilib
+    import fake_wpilib as wpilib
+    import _wpilib.internal
+    
+    # initialize fake_wpilib
+    _wpilib.internal.initialize_fake_wpilib()
     
     if options.import_dir is not None:
         import_robot(options.import_dir)
