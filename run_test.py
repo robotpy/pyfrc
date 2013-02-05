@@ -54,14 +54,15 @@ sys.path.append(os.path.join(testdir_path, 'lib'))
 
 # cannot initialze fake_wpilib yet until we parse the options
 
-def import_robot(robot_path):
-
+def set_path(robot_path):
     # convert \ to / or whatever, depending on the platform
     robot_path = os.path.abspath(robot_path)
     if not os.path.isdir(robot_path):
         sys.stderr.write('WARNING: "%s" does not exist or is not a directory\n' % robot_path)
     
     sys.path.append(robot_path)
+
+def run_robot_test():
     
     # setup the robot code
     try:
@@ -71,32 +72,7 @@ def import_robot(robot_path):
             print("WARNING: I don't appear to be able to find your robot.py file")
         raise
 
-    myrobot = _wpilib.internal.initialize_robot()
-
-    return (robot, myrobot)
-    
-    
-def run_test( test_module_name ):
-    
-    test_module_name = args[0]
-    
-    if test_module_name not in modules:
-        sys.stderr.write("Invalid module name \"%s\"\n" % test_module_name)
-        exit(1)
-        
-    # setup options
-    ds = wpilib.DriverStation.GetInstance()
-    ds.fms_attached = options.fms_attached
-
-    # import the test module
-    test_module = imp.load_source(test_module_name, os.path.join( modules_path, test_module_name + '.py'))
-    
-    # add the robot directory to the path, so it can load other things
-    if not hasattr(test_module, 'robot_path'):
-        sys.stderr.write("ERROR: the test module '%s' does not have a 'robot_path' global variable\n" % test_module_name)
-        exit(1)
-    
-    (robot, myrobot) = import_robot(os.path.join(modules_path, test_module.robot_path))
+    myrobot = wpilib.internal.initialize_robot()
     
     if myrobot is None:
         sys.stderr.write("ERROR: the run() function in robot.py MUST return an instance of your robot class\n")
@@ -132,6 +108,40 @@ def run_test( test_module_name ):
     
     test_module.run_tests( robot, myrobot )
     
+def run_test( test_module_name ):
+    
+    test_module_name = args[0]
+    
+    if test_module_name not in modules:
+        sys.stderr.write("Invalid module name \"%s\"\n" % test_module_name)
+        exit(1)
+        
+    # setup options
+    ds = wpilib.DriverStation.GetInstance()
+    ds.fms_attached = options.fms_attached
+
+    # import the test module
+    test_module = imp.load_source(test_module_name, os.path.join( modules_path, test_module_name + '.py'))
+    
+    # add the robot directory to the path, so it can load other things
+    if not hasattr(test_module, 'robot_path'):
+        sys.stderr.write("ERROR: the test module '%s' does not have a 'robot_path' global variable\n" % test_module_name)
+        exit(1)
+        
+    # set the robot path    
+    set_path(os.path.join(modules_path, test_module.robot_path))
+    
+    try:
+        if test_module.import_robot == False:
+            #no robot to import run the test
+            test_module.run_test()
+        else:
+            #run test with robot import
+            run_robot_test(os.path.join(modules_path, test_module.robot_path))
+    except AttributeError:
+            #by default run with robot import
+            run_robot_test(os.path.join(modules_path, test_module.robot_path))
+    
     print( "Test complete." )
     
     
@@ -151,7 +161,7 @@ if __name__ == '__main__':
     parser.add_option(  '--test-modules',
                         dest='modules_path', default=None,
                         help='Directory that the test modules can be found in')
-    
+                        
     parser.add_option(  '--use-pynetworktables', 
                         dest='use_pynetworktables', default='false', 
                         help='Use pynetworktables for SmartDashboard/NetworkTables support')
