@@ -273,18 +273,18 @@ class CANJaguar(SpeedController):
         return self.reverse_ok
         
     def GetPosition(self):
-        if hasattr(self, 'position_reference')
+        if hasattr(self, 'position_reference'):
             return self.speed
-        else
+        else:
             raise RuntimeError("No position reference set")
         
     def GetSpeedReference(self):
         return self.speed_reference
         
     def GetSpeed(self):
-        if hasattr(self, 'speed_reference')
+        if hasattr(self, 'speed_reference'):
             return self.speed
-        else
+        else:
             raise RuntimeError("No speed reference set")
         
     def Set(self, value, syncGroup=0):
