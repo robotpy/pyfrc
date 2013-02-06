@@ -106,7 +106,7 @@ def run_robot_test():
     # Finally, run the tests
     #
     
-    test_module.run_tests( robot, myrobot )
+    test_module.run_tests(robot, myrobot)
     
 def run_test( test_module_name ):
     
@@ -131,18 +131,13 @@ def run_test( test_module_name ):
     # set the robot path    
     set_path(os.path.join(modules_path, test_module.robot_path))
     
-    try:
-        if test_module.import_robot == false:
-            #no robot to import run the test
-            test_module.run_test()
-        else:
-            #run test with robot import
-            run_robot_test(os.path.join(modules_path, test_module.robot_path))
-    except AttributeError:
-            #by default run with robot import
-            run_robot_test(os.path.join(modules_path, test_module.robot_path))
+    if hasattr(test_module, 'import_robot') and test_module.import_robot == False:
+        # don't import the robot if they don't want it
+        test_module.run_test()
+    else:
+        run_robot_test(os.path.join(modules_path, test_module.robot_path))
     
-    print( "Test complete." )
+    print("Test complete.")
     
     
 

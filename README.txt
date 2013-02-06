@@ -77,6 +77,30 @@ Writing test programs
 All test programs should live in the test modules directory, which is 
 specified by the --test-modules argument to run_test.py
 
+Test modules must have the following required elements:
+
+	Variable:		robot_path
+	Description:	This is the directory that robot.py is located, 
+					relative to the test module's file. 
+					
+	Function:		run_tests
+	Parameters:		robot_module, myrobot
+	Description:	This function is called at the beginning of the test.
+					The first argument will be a reference to the robot.py
+					module, and the second argument will be the instance
+					of the robot class that was returned from the robot.py
+					run function.    
+
+Test modules may have the following optional elements:
+
+	Variable: 		import_robot
+	Description:	If set to False, robot.py will not be imported, but
+					the robot path details will be setup correctly. This
+					allows you to run unit tests that only involve a
+					single specific component. If False, run_tests will
+					be called with zero arguments. Default is True.
+
+
 See 'samples/import_test.py' for an example test program that starts the
 robot code and runs it through autonomous mode and operator mode. 
 
