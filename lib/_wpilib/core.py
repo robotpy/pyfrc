@@ -274,7 +274,7 @@ class CANJaguar(SpeedController):
         
     def GetPosition(self):
         if hasattr(self, 'position_reference'):
-            return self.speed
+            return self.position
         else:
             raise RuntimeError("No position reference set")
         
