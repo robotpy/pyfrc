@@ -1,3 +1,8 @@
+'''
+    Simple + dumb implementations of SmartDashboard related objects. If you
+    want a full implementation, install pynetworktables
+'''
+
 
 class SmartDashboard(object):
 
@@ -11,9 +16,7 @@ class SmartDashboard(object):
       
     @staticmethod
     def PutData(self, key, data):
-        if key in SmartDashboard.data:
-            return SmartDashboard.data[key]
-        return None
+        SmartDashboard.data[key] = data
     
     # not implemented in RobotPy
     #@staticmethod
@@ -57,3 +60,18 @@ class SmartDashboard(object):
     #def GetValue(self,key):
     #    return self.data[key]
     
+class SendableChooser(object):
+
+    def __init__(self):
+        self.choices = {}
+        self.selected = None
+
+    def AddObject(self, name, obj):
+        self.choices[name] = obj
+        
+    def AddDefault(self, name, obj):
+        self.selected = name
+        self.choices[name] = obj
+        
+    def GetSelected(self):
+        return self.choices[self.selected]
