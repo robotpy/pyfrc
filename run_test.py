@@ -54,7 +54,7 @@ sys.path.append(os.path.join(testdir_path, 'lib'))
 
 # cannot initialze fake_wpilib yet until we parse the options
 
-def set_path(robot_path):
+def setup_robot_path(robot_path):
     # convert \ to / or whatever, depending on the platform
     robot_path = os.path.abspath(robot_path)
     if not os.path.isdir(robot_path):
@@ -62,8 +62,8 @@ def set_path(robot_path):
     
     sys.path.append(robot_path)
 
-def run_robot_test():
-    
+def import_robot():
+
     # setup the robot code
     try:
         import robot
@@ -73,6 +73,12 @@ def run_robot_test():
         raise
 
     myrobot = wpilib.internal.initialize_robot()
+    
+    return robot, myrobot
+    
+def run_robot_test(test_module):
+    
+    robot, myrobot = import_robot()
     
     if myrobot is None:
         sys.stderr.write("ERROR: the run() function in robot.py MUST return an instance of your robot class\n")
@@ -129,13 +135,13 @@ def run_test( test_module_name ):
         exit(1)
         
     # set the robot path    
-    set_path(os.path.join(modules_path, test_module.robot_path))
+    setup_robot_path(os.path.join(modules_path, test_module.robot_path))
     
     if hasattr(test_module, 'import_robot') and test_module.import_robot == False:
         # don't import the robot if they don't want it
         test_module.run_test()
     else:
-        run_robot_test(os.path.join(modules_path, test_module.robot_path))
+        run_robot_test(test_module)
     
     print("Test complete.")
     
@@ -178,7 +184,8 @@ if __name__ == '__main__':
     _wpilib.internal.initialize_fake_wpilib()
     
     if options.import_dir is not None:
-        import_robot(options.import_dir)
+        setup_robot_path(options.import_dir)
+        import_robot()
         print("Import successful")
         exit(0)
     
