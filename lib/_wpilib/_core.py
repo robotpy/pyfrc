@@ -67,6 +67,8 @@ def GetWatchdog():
     return Watchdog.GetInstance()
 
 def _StartCompetition(self):
+    import _wpilib
+    _wpilib.SmartDashboard.init()
     self._sr_competition_started = True
 
     
@@ -606,6 +608,11 @@ class Encoder(object):
     def Stop(self):
         pass
 
+
+class GenericHID(object):
+    kLeftHand = 0
+    kRightHand = 1
+    
         
 class Gyro(object):
     
@@ -641,7 +648,7 @@ class Jaguar(SpeedController):
         self.value = value
         
         
-class Joystick(object):
+class Joystick(GenericHID):
     
     kDefaultXAxis = 1
     kDefaultYAxis = 2
@@ -704,7 +711,7 @@ class Joystick(object):
         return self._ds.GetStickAxis(self.port, axis)
         
     def GetRawButton(self, number):
-        return self.buttons[number-1]
+        return self._get_button(number)
         
     def GetThrottle(self):
         return self.GetRawAxis(self.axes[Joystick.kThrottleAxis])
@@ -750,12 +757,14 @@ class Joystick(object):
     def _set_throttle(self, value):
         with self._ds.lock:
             self._ds.sticks[self.port-1][self.axes[Joystick.kThrottleAxis]] = float(value)
-    
-    def _get_buttons(self):
-        # TODO: not thread safe impl
-        raise NotImplementedError()
+            
+    def _get_button(self, number):
         with self._ds.lock:
             return self._ds.stick_buttons[self.port-1]
+        
+    def _set_button(self, number, value):
+        with self._ds.lock:
+            self._ds.stick_buttons[self.port-1] = bool(value) 
     
     # internal properties to make testing easier
     # -> DO NOT USE THESE FROM ROBOT CODE
@@ -764,7 +773,6 @@ class Joystick(object):
     z = property(GetZ, _set_z)
     twist = property(GetTwist, _set_twist)
     throttle = property(GetThrottle, _set_throttle)
-    buttons = property(_get_buttons)
     
     
 class KinectStick(Joystick):
@@ -787,7 +795,60 @@ class RobotDrive(object):
         self.maxOutput = 1.0
         self.inverted = [1,1,1,1]
         
-    def ArcadeDrive(self, moveValue, rotateValue, squaredInputs=False):
+    def ArcadeDrive(self, *args, **kwargs):
+        
+        # parse the arguments first
+        # -> TODO: There has to be a better way to do this
+        squaredInputs = False
+        
+        if len(kwargs) == 1:
+            args.append(kwargs['squaredInputs'])
+        elif len(kwargs) != 0:
+            raise ValueError('RobotDrive.ArcadeDrive takes exactly one named argument')
+        
+        if len(args) == 1:
+            
+            # ArcadeDrive(GenericHID, squaredInputs)
+            if not isinstance(args[0], GenericHID):
+                raise TypeError("Invalid parameter 1")
+            
+            moveValue = args[0].GetY()
+            rotateValue = args[0].GetX()
+            
+        elif len(args) == 2:
+            
+            # ArcadeDrive(GenericHID, squaredInputs)
+            if isinstance(args[0], GenericHID) and isinstance(args[1], bool):
+                moveValue = args[0].GetY()
+                rotateValue = args[0].GetX()
+                squaredInputs = args[1]
+                
+            # ArcadeDrive(moveValue, rotateValue, squaredInputs)
+            elif isinstance(args[0], float) and isinstance(args[1], float):
+                moveValue, rotateValue = args
+                
+            else:
+                raise TypeError("Invalid parameters for RobotDrive.ArcadeDrive()")
+                
+        elif len(args) == 3:
+            
+            # ArcadeDrive(moveValue, rotateValue, squaredInputs)
+            if not isinstance(args[0], float):
+                raise TypeError("Invalid parameter 1")
+            
+            if not isinstance(args[1], float):
+                raise TypeError("Invalid parameter 2")
+            
+            if not isinstance(args[2], bool):
+                raise TypeError("Invalid parameter 3")
+            
+            moveValue, rotateValue, squaredInputs = args
+            
+        else:
+            raise TypeError("Invalid arguments")
+        
+        
+        # Actually do the function now
         
         moveValue = self._Limit(moveValue)
         rotateValue = self._Limit(rotateValue)
@@ -822,10 +883,10 @@ class RobotDrive(object):
         self._SetLeftRightMotorOutputs(leftMotorOutput, rightMotorOutput)
         
     def SetInvertedMotor(self, motorType, isInverted):
-        if motor < 0 or motor > len(self.inverted):
+        if motorType < 0 or motorType > len(self.inverted):
             raise ValueError("Invalid motor number")
             
-        self.inverted[motor] = -1 if isInverted else 1
+        self.inverted[motorType] = -1 if isInverted else 1
         
     def SetSafetyEnabled(self, enabled):
         pass

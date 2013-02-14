@@ -10,9 +10,9 @@ class SmartDashboard(object):
     
     @staticmethod
     def init():
-        if SmartDashboard.instance is not None:
+        if SmartDashboard.data is not None:
             raise RuntimeError("Only initialize this once")
-        SmartDashboard.instance = SmartDashboard()    
+        SmartDashboard.data = {}   
       
     @staticmethod
     def PutData(self, key, data):
