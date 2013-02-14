@@ -61,24 +61,28 @@ def setup_robot_path(robot_path):
         sys.stderr.write('WARNING: "%s" does not exist or is not a directory\n' % robot_path)
     
     sys.path.append(robot_path)
+    return robot_path
 
-def import_robot():
+def import_robot(robot_path):
 
     # setup the robot code
+    p = setup_robot_path(robot_path)
+    
     try:
         import robot
     except ImportError as e:
-        if str(e).endswith(' robot'):
-            print("WARNING: I don't appear to be able to find your robot.py file")
+        if str(e).endswith(" 'robot'") or str(e).endswith(' robot'):
+            print("WARNING: I don't appear to be able to find your robot.py file!")
+            print("-> Robot path: ", p)
         raise
 
     myrobot = wpilib.internal.initialize_robot()
     
     return robot, myrobot
     
-def run_robot_test(test_module):
+def run_robot_test(test_module, robot_path):
     
-    robot, myrobot = import_robot()
+    robot, myrobot = import_robot(robot_path)
     
     if myrobot is None:
         sys.stderr.write("ERROR: the run() function in robot.py MUST return an instance of your robot class\n")
@@ -114,7 +118,7 @@ def run_robot_test(test_module):
     
     test_module.run_tests(robot, myrobot)
     
-def run_test( test_module_name ):
+def run_test(test_module_name, robot_path):
     
     test_module_name = args[0]
     
@@ -134,14 +138,16 @@ def run_test( test_module_name ):
         sys.stderr.write("ERROR: the test module '%s' does not have a 'robot_path' global variable\n" % test_module_name)
         exit(1)
         
-    # set the robot path    
-    setup_robot_path(os.path.join(modules_path, test_module.robot_path))
+    # set the robot path
+    if robot_path is None:
+        robot_path = os.path.join(modules_path, test_module.robot_path)
     
     if hasattr(test_module, 'import_robot') and test_module.import_robot == False:
         # don't import the robot if they don't want it
+        setup_robot_path(robot_path)
         test_module.run_test()
     else:
-        run_robot_test(test_module)
+        run_robot_test(test_module, robot_path)
     
     print("Test complete.")
     
@@ -166,6 +172,10 @@ if __name__ == '__main__':
     parser.add_option(  '--use-pynetworktables', 
                         dest='use_pynetworktables', default='false', 
                         help='Use pynetworktables for SmartDashboard/NetworkTables support')
+    
+    parser.add_option(  '--robot-path',
+                        dest='robot_path', default=None,
+                        help='Override the path to the robot source code')
                         
     (options, args) = parser.parse_args()
     
@@ -184,8 +194,7 @@ if __name__ == '__main__':
     _wpilib.internal.initialize_fake_wpilib()
     
     if options.import_dir is not None:
-        setup_robot_path(options.import_dir)
-        import_robot()
+        import_robot(options.import_dir)
         print("Import successful")
         exit(0)
     
@@ -196,7 +205,7 @@ if __name__ == '__main__':
     modules = [ os.path.basename(module[:-3]) for module in glob(os.path.join(modules_path, '*.py')) ]
     
     if len(args) == 1:
-        run_test(args[0])
+        run_test(args[0], options.robot_path)
         exit(0)
     
     err = "You must specify a test module to run. Available test modules\nin %s:\n" % modules_path 
