@@ -36,7 +36,7 @@ on_IsNewDataAvailable   = lambda: True
 def initialize_fake_wpilib():
     
     import fake_wpilib as wpilib
-    from .core import _StartCompetition
+    from ._core import _StartCompetition
     
     wpilib.IterativeRobot.StartCompetition = _StartCompetition
     wpilib.SimpleRobot.StartCompetition = _StartCompetition

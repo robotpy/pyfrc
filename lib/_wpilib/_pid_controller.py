@@ -7,7 +7,7 @@
 '''
 
 import math
-from .fake_time import Notifier
+from ._fake_time import Notifier
 
 class PIDOutput(object):
     pass

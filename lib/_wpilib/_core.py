@@ -32,7 +32,7 @@
 import math
 import threading
 
-from .fake_time import GetClock
+from ._fake_time import GetClock
 import _wpilib.internal as internal
 
 #################################################
