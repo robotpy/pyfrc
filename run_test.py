@@ -145,6 +145,7 @@ def run_test(test_module_name, robot_path):
     if hasattr(test_module, 'import_robot') and test_module.import_robot == False:
         # don't import the robot if they don't want it
         setup_robot_path(robot_path)
+        wpilib.SmartDashboard.init()
         test_module.run_test()
     else:
         run_robot_test(test_module, robot_path)
