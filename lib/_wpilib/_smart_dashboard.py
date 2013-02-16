@@ -6,17 +6,17 @@
 
 class SmartDashboard(object):
 
-    data = None
+    _table = None
     
     @staticmethod
     def init():
-        if SmartDashboard.data is not None:
+        if SmartDashboard._table is not None:
             raise RuntimeError("Only initialize this once")
-        SmartDashboard.data = {}   
+        SmartDashboard._table = NetworkTable.GetTable("SmartDashboard")
       
     @staticmethod
     def PutData(self, key, data):
-        SmartDashboard.data[key] = data
+        SmartDashboard._table.PutData(key, data)
     
     # not implemented in RobotPy
     #@staticmethod
@@ -25,9 +25,7 @@ class SmartDashboard(object):
     
     @staticmethod
     def PutBoolean(key, value):
-        if not isinstance(value, bool):
-            raise RuntimeError("%s is not a boolean (is %s instead)" % (key, type(value)))
-        SmartDashboard.data[key] = value
+        SmartDashboard._table.PutBoolean(key, value)
         
     @staticmethod
     def GetBoolean(key):
@@ -35,30 +33,27 @@ class SmartDashboard(object):
     
     @staticmethod
     def PutNumber(key, value):
-        if not isinstance(value, (int, float)):
-            raise RuntimeError("%s is not a number (is %s instead)" % (key, type(value)))
-        SmartDashboard.data[key] = value
+        SmartDashboard._table.PutNumber(key, value)
     
     @staticmethod    
     def GetNumber(key):
-        return SmartDashboard.data[key]
+        return SmartDashboard._table.GetNumber(key)
         
     @staticmethod
     def PutString(key, value):
-        SmartDashboard.data[key] = str(value)
+        SmartDashboard._table.PutString(key, value)
     
     @staticmethod
     def GetString(key):
-        return SmartDashboard.data[key]
+        return SmartDashboard._table.GetString(key)
 
     @staticmethod
     def PutValue(key, value):
-        SmartDashboard.data[key] = value
+        SmartDashboard._table.PutValue(key, value)
     
     # not implemented in RobotPy
-    #@staticmethod
-    #def GetValue(self,key):
-    #    return self.data[key]
+    #def GetValue(self, key):
+    #    return SmartDashboard._table.GetValue(key)
     
 class SendableChooser(object):
 
@@ -75,3 +70,61 @@ class SendableChooser(object):
         
     def GetSelected(self):
         return self.choices[self.selected]
+
+class NetworkTable(object):
+
+    _tables = {}
+    
+    @staticmethod
+    def GetTable(table_name):
+        table = NetworkTable._tables.get(table_name)
+        if table is None:
+            table = NetworkTable()
+            NetworkTable._tables[table_name] = NetworkTable()
+        return table 
+        
+    def __init__(self):
+        self.data = {}
+    
+    def AddTableListener(self, name, listener, isNew):
+        pass
+    
+    def PutData(self, key, data):
+        self.data[key] = data
+    
+    # not implemented in RobotPy
+    #def GetData(self, key):
+    #    return self.data[key]
+    
+    def PutBoolean(self, key, value):
+        if not isinstance(value, bool):
+            raise RuntimeError("%s is not a boolean (is %s instead)" % (key, type(value)))
+        self.data[key] = value
+        
+    def GetBoolean(self, key):
+        return self.data[key]
+    
+    def PutNumber(self, key, value):
+        if not isinstance(value, (int, float)):
+            raise RuntimeError("%s is not a number (is %s instead)" % (key, type(value)))
+        self.data[key] = value
+      
+    def GetNumber(self, key):
+        return self.data[key]
+        
+    def PutString(self, key, value):
+        self.data[key] = str(value)
+    
+    def GetString(self, key):
+        return self.data[key]
+
+    def PutValue(self, key, value):
+        self.data[key] = value
+    
+    # not implemented in RobotPy
+    #@staticmethod
+    #def GetValue(self,key):
+    #    return self.data[key]
+    
+class ITableListener(object):
+    pass
