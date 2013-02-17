@@ -10,12 +10,10 @@ class SmartDashboard(object):
     
     @staticmethod
     def init():
-        if SmartDashboard._table is not None:
-            raise RuntimeError("Only initialize this once")
         SmartDashboard._table = NetworkTable.GetTable("SmartDashboard")
       
     @staticmethod
-    def PutData(self, key, data):
+    def PutData(key, data):
         SmartDashboard._table.PutData(key, data)
     
     # not implemented in RobotPy
@@ -69,6 +67,8 @@ class SendableChooser(object):
         self.choices[name] = obj
         
     def GetSelected(self):
+        if self.selected is None:
+            return None
         return self.choices[self.selected]
 
 class NetworkTable(object):

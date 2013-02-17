@@ -824,7 +824,7 @@ class RobotDrive(object):
                 squaredInputs = args[1]
                 
             # ArcadeDrive(moveValue, rotateValue, squaredInputs)
-            elif isinstance(args[0], float) and isinstance(args[1], float):
+            elif isinstance(args[0], (float, int)) and isinstance(args[1], (float, int)):
                 moveValue, rotateValue = args
                 
             else:
