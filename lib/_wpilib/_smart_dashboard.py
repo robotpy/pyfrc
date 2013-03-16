@@ -10,7 +10,8 @@ class SmartDashboard(object):
     
     @staticmethod
     def init():
-        SmartDashboard._table = NetworkTable.GetTable("SmartDashboard")
+        if SmartDashboard._table is None:
+            SmartDashboard._table = NetworkTable.GetTable("SmartDashboard")
       
     @staticmethod
     def PutData(key, data):
@@ -27,7 +28,7 @@ class SmartDashboard(object):
         
     @staticmethod
     def GetBoolean(key):
-        return SmartDashboard.data[key]
+        return SmartDashboard._table.GetBoolean(key)
     
     @staticmethod
     def PutNumber(key, value):
