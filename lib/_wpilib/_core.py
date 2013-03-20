@@ -810,7 +810,7 @@ class RobotDrive(object):
             
             # ArcadeDrive(GenericHID, squaredInputs)
             if not isinstance(args[0], GenericHID):
-                raise TypeError("Invalid parameter 1")
+                raise TypeError("Invalid parameter 1 (expected GenericHID, got %s)", args[0])
             
             moveValue = args[0].GetY()
             rotateValue = args[0].GetX()
@@ -834,13 +834,13 @@ class RobotDrive(object):
             
             # ArcadeDrive(moveValue, rotateValue, squaredInputs)
             if not isinstance(args[0], float):
-                raise TypeError("Invalid parameter 1")
+                raise TypeError("Invalid parameter 1: expected float, got %s" % type(args[0]))
             
             if not isinstance(args[1], float):
-                raise TypeError("Invalid parameter 2")
+                raise TypeError("Invalid parameter 2: expected float, got %s" % type(args[1]))
             
             if not isinstance(args[2], bool):
-                raise TypeError("Invalid parameter 3")
+                raise TypeError("Invalid parameter 3: expected float, got %s" % type(args[2]))
             
             moveValue, rotateValue, squaredInputs = args
             
