@@ -1,4 +1,4 @@
-from _wpilib import *
+from ._wpilib import *
 
 class RobotBase:
     def __init__(self):
