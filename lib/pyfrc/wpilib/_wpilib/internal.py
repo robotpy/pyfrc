@@ -1,4 +1,5 @@
 
+import inspect
 import os
 import sys
 
@@ -20,40 +21,66 @@ enabled = False
 # The 'tm' argument returns the value of GetClock(), which is the time
 # that has been elapsed
 
-on_IsAutonomous         = lambda tm: False
-on_IsOperatorControl    = lambda tm: False
-on_IsEnabled            = lambda: enabled
+on_IsAutonomous         = None
+on_IsOperatorControl    = None
+on_IsEnabled            = None
 
-on_IsSystemActive       = lambda: True
-on_IsNewDataAvailable   = lambda: True
+on_IsSystemActive       = None
+on_IsNewDataAvailable   = None
 
 
-def set_test_controller(controller):
+def set_test_controller(controller_cls):
     '''Shortcut to assign a single object to the above functions'''
     
     this = sys.modules[__name__]
     
+    controller = controller_cls
+    if inspect.isclass(controller_cls):
+        controller =  controller_cls()
+        
     for name in ['IsAutonomous', 'IsOperatorControl', 'IsEnabled', 'IsSystemActive', 'IsNewDataAvailable']:
         if hasattr(controller, name):
             setattr(this, 'on_%s' % name, getattr(controller, name))
 
+    return controller
 
 #################################################
 #
-# Fake WPILib specific code
+# robot testing code
 #
 #################################################  
 
-def initialize_fake_wpilib():
+def initialize_test():
+    '''Resets all wpilib globals'''
     
-    import fake_wpilib as wpilib
+    this = sys.modules[__name__]
+    
+    setattr(this, 'enabled', False)
+    
+    setattr(this, 'on_IsAutonomous',        lambda tm: False)
+    setattr(this, 'on_IsOperatorControl',   lambda tm: False)
+    setattr(this, 'on_IsEnabled',           lambda: enabled)
+    
+    setattr(this, 'on_IsSystemActive',      lambda: True)
+    setattr(this, 'on_IsNewDataAvailable',  lambda: True)
+    
     from ._core import _StartCompetition
+    from ... import wpilib
     
     wpilib.IterativeRobot.StartCompetition = _StartCompetition
     wpilib.SimpleRobot.StartCompetition = _StartCompetition
     
-    # reset on_* functions too?
+    # reset internal modules
+    for name, cls in inspect.getmembers(wpilib, inspect.isclass):
+        if hasattr(cls, '_reset'):
+            cls._reset()
     
+    
+    # reset time
+    from ._fake_time import FAKETIME
+    FAKETIME.Reset()
+
+
 def load_module(calling_file, relative_module_to_load):
     '''
         Utility function to be used to load a module that isn't in your python
