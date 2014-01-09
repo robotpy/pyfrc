@@ -1,32 +1,6 @@
 '''
-    fake_wpilib    
-    
-    This is a library designed to emulate parts of WPILib so you can
-    more easily do unit testing of your robot code. 
-    
-    Robot Code Assumptions:
-    
-        - robot code is in robot.py, and 'import robot' works. 
-        - the 'run' function is the first thing that is called,
-        and returns an object that derives from SimpleRobot
-    
     This is not a complete implementation of WPILib. Add more things
     as needed, and submit patches! :) 
-
-    Usage in robot code:
-    
-        try:
-            import wpilib
-        except ImportError:
-            import fake_wpilib as wpilib
-            
-        ...
-
-        def run():
-            robot = MyRobot()
-            robot.StartCompetition()
-            
-            return robot
 '''
 
 import math
