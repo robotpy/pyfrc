@@ -1,5 +1,6 @@
 
 import os
+import sys
 
 
 #################################################
@@ -9,7 +10,7 @@ import os
 #################################################    
 
 # as a shortcut, you can assign to this variable to enable/disable the
-# robot instead of overriding on_IsAutonomous
+# robot instead of overriding on_IsEnabled
 enabled = False
     
 # assign functions to the on_* variables below in the test program to be 
@@ -27,6 +28,16 @@ on_IsSystemActive       = lambda: True
 on_IsNewDataAvailable   = lambda: True
 
 
+def set_test_controller(controller):
+    '''Shortcut to assign a single object to the above functions'''
+    
+    this = sys.modules[__name__]
+    
+    for name in ['IsAutonomous', 'IsOperatorControl', 'IsEnabled', 'IsSystemActive', 'IsNewDataAvailable']:
+        if hasattr(controller, name):
+            setattr(this, 'on_%s' % name, getattr(controller, name))
+
+
 #################################################
 #
 # Fake WPILib specific code
@@ -40,16 +51,8 @@ def initialize_fake_wpilib():
     
     wpilib.IterativeRobot.StartCompetition = _StartCompetition
     wpilib.SimpleRobot.StartCompetition = _StartCompetition
-
-def initialize_robot():
-    '''
-        Call this function first to import the robot code and
-        start it up
-    '''
-
-    import robot
-    return robot.run()
     
+    # reset on_* functions too?
     
 def load_module(calling_file, relative_module_to_load):
     '''
