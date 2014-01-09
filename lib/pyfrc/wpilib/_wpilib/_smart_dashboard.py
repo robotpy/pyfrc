@@ -9,6 +9,10 @@ class SmartDashboard(object):
     _table = None
     
     @staticmethod
+    def _reset():
+        SmartDashboard._table = None
+    
+    @staticmethod
     def init():
         if SmartDashboard._table is None:
             SmartDashboard._table = NetworkTable.GetTable("SmartDashboard")
@@ -77,6 +81,10 @@ class NetworkTable(object):
     _tables = {}
     
     @staticmethod
+    def _reset():
+        NetworkTable._tables = {}
+    
+    @staticmethod
     def GetTable(table_name):
         table = NetworkTable._tables.get(table_name)
         if table is None:
@@ -129,3 +137,17 @@ class NetworkTable(object):
     
 class ITableListener(object):
     pass
+
+class LiveWindow(object):
+    
+    @staticmethod
+    def GetInstance():
+        try:
+            return LiveWindow._instance
+        except:
+            LiveWindow._instance = LiveWindow()
+            
+        return LiveWindow._instance
+    
+    def SetEnabled(self, enabled):
+        pass

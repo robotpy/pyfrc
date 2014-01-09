@@ -67,8 +67,8 @@ def GetWatchdog():
     return Watchdog.GetInstance()
 
 def _StartCompetition(self):
-    import _wpilib
-    _wpilib.SmartDashboard.init()
+    from .._wpilib import SmartDashboard
+    SmartDashboard.init()
     self._sr_competition_started = True
 
     
@@ -108,6 +108,10 @@ class AnalogModule(object):
     _channels = [None]*8
     
     @staticmethod
+    def _reset():
+        AnalogModule._channels = [None]*8
+    
+    @staticmethod
     def _add_channel(channel, item):
         if AnalogModule._channels[channel-1] is not None:
             raise RuntimeError( "Error inserting %s, %s already at channel %s" % 
@@ -132,6 +136,10 @@ class AnalogChannel(object):
     
     _instances = [None]*8
     
+    @staticmethod
+    def _reset():
+        AnalogChannel._instances = [None]*8
+    
     def __init__(self, channel):
         AnalogModule._add_channel(channel, self)
         self.value = 0
@@ -155,6 +163,10 @@ class AnalogChannel(object):
 class CAN(object):
 
     _devices = {}
+    
+    @staticmethod
+    def _reset():
+        CAN._devices = {}
 
     @staticmethod
     def _add_can(deviceNumber, device):
@@ -338,6 +350,12 @@ class DigitalModule(object):
     _relays = [None] * 8
     
     @staticmethod
+    def _reset():
+        DigitalModule._io = [None]*16
+        DigitalModule._pwm = [None]*10
+        DigitalModule._relays = [None]*8
+    
+    @staticmethod
     def _add_io(channel, item):
         if DigitalModule._io[channel-1] is not None:
             raise RuntimeError( "Error inserting %s, %s already at channel %s" % 
@@ -423,6 +441,11 @@ class DriverStation(object):
     kBlue = 1
     kInvalid = 2
     
+    @staticmethod
+    def _reset():
+        if hasattr(DriverStation, '_instance'):
+            delattr(DriverStation, '_instance')
+        
     @staticmethod
     def GetInstance():
         try:
@@ -1044,6 +1067,11 @@ class Victor(SpeedController):
 class Watchdog(object):
     
     kDefaultWatchdogExpiration = 0.5
+    
+    @staticmethod
+    def _reset():
+        if hasattr(Watchdog, '_instance'):
+            delattr(Watchdog, '_instance')
     
     @staticmethod
     def GetInstance():

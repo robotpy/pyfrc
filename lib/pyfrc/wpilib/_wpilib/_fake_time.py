@@ -11,6 +11,9 @@ class FakeTime(object):
     '''
 
     def __init__(self):
+        self.Reset()
+
+    def Reset(self):
         self.time = 0
         self.notifiers = []
 
