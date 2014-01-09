@@ -1,3 +1,4 @@
-lib/fake_wpilib/__pycache__/
-lib/_wpilib/__pycache__/
+build
+MANIFEST
+__pycache__
 *.pyc
