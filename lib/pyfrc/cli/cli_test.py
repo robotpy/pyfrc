@@ -6,7 +6,7 @@ from os.path import abspath, dirname, exists, join
 
 import pytest
 
-from ..wpilib import _wpilib, core
+from .. import wpilib
 
 
 # TODO: setting the plugins so that the end user can invoke py.test directly
@@ -18,7 +18,7 @@ class PyFrcPlugin(object):
         self.run_fn = run_fn
     
     def pytest_runtest_setup(self):
-        _wpilib.internal.initialize_test()
+        wpilib.internal.initialize_test()
     
     @pytest.fixture()
     def robot(self):
@@ -28,9 +28,8 @@ class PyFrcPlugin(object):
         
         if myrobot is None:
             pytest.fail("ERROR: the run() function in robot.py MUST return an instance of your robot class")
-            
-        print(dir(_wpilib))
-        if not isinstance(myrobot, core.SimpleRobot) and not isinstance(myrobot, core.IterativeRobot):
+        
+        if not isinstance(myrobot, wpilib.SimpleRobot) and not isinstance(myrobot, wpilib.IterativeRobot):
             pytest.fail("ERROR: the object returned from the run function MUST return an instance of a robot class that inherits from wpilib.SimpleRobot or wpilib.IterativeRobot")
            
         # if they forget to do this, it's an annoying problem to diagnose on the cRio... 
@@ -53,15 +52,17 @@ class PyFrcPlugin(object):
     
     @pytest.fixture()
     def wpilib(self):
-        return _wpilib.internal
+        return wpilib
+    
+    @pytest.fixture()
+    def control(self):
+        return wpilib.internal
 
 #
 # Test function
 #
 
 def run(run_fn, file_location):
-    
-
 
     # find test directory, change current directory so py.test can find the tests
     # -> assume that tests reside in tests or ../tests
@@ -82,9 +83,4 @@ def run(run_fn, file_location):
     os.chdir(test_directory)
     
     return pytest.main(sys.argv[1:], plugins=[PyFrcPlugin(run_fn)])
-    
-    # need to reset wpilib internal state inbetween each test?
-    
-    # need to setup robot/wpilib fixtures
-    
-    #
+ 
