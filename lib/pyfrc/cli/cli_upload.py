@@ -1,20 +1,90 @@
 
+import os
+from ..robotpy import install
+
+try:
+    from msvcrt import getch
+except ImportError:
+    def getch():
+        pass
+    
+def relpath(path):
+    '''Path helper, gives you a path relative to this file'''
+    return os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), path))
+
 def run(run_fn, file_location):
     
     # how to determine which files to run? 
-    
-    # append the boot.py first, so further boot.py can override it
-    
     # gather all files and such
     
-    # exclude the test directory if it exists
+    local_root = os.path.abspath(os.path.dirname(file_location))
+    remote_root = '/py'
     
-    # run the test suite too
+    # exclude the test directory if it exists
+    # exclude __pycache__ directories also
+    
+    # run the test suite before uploading
     
     # --skip-tests option
+    #raise ValueError()
+
+    team_number = None
+    team_filename = os.path.join(local_root, '.team_number')
     
-    # if no IP address is set, then use default
+    # load the team number from a file
+    try:
+        with open(team_filename, 'r') as fp:
+            team_number = int(fp.read().strip())
+            
+        print("Using team number %s loaded from %s" % (team_number, team_filename))
+    except:
+        pass
     
-    print('TODO')
+        
+    while team_number is None:
+        try:
+            team_number = int(input('Team number? '))
+        except ValueError:
+            pass
+        
+        # write the team number to a file
+        try:
+            with open(team_filename, 'w') as fp:
+                fp.write(str(team_number))
+        except:
+            pass
+
+    # determine the host name from the team number
+    robot_host = '10.%d.%d.2' % (team_number / 100, team_number % 100 )
     
-    pass
+    try:
+        server = install.RobotCodeInstaller(robot_host)
+    except Exception as e:
+        print("Error connecting to remote host: %s" % e)
+        getch()
+        return 1
+        
+    print('Beginning code installation.')
+    
+    # delete the remote directory
+    server.delete_remote(remote_root)
+    server.create_remote_directory(remote_root)
+    
+    # upload boot.py first
+    server.upload_file(remote_root, relpath('../robotpy'), 'boot.py', verbose=True)
+    server.upload_directory(remote_root, local_root, verbose=True, recursive=True, skip_special=True)
+    
+    print('Code installation complete.')
+
+    server.close()
+    
+    while True:
+        yn = str(input("Reboot robot? [y/n]")).strip().lower()
+            
+        if yn == 'y':
+            install.reboot_crio()
+            break
+        elif yn == 'n':
+            break
+    
+    return 0

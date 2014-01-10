@@ -59,6 +59,10 @@ class RobotCodeInstaller(object):
 
             installer.close()
     """
+    
+    def _remove_slash(self, path):
+        return path[:-1] if path.endswith('/') else path
+            
 
     def __init__(self, robot_host, username='FRC', password='FRC', timeout=5):
         self.ftp = ftplib.FTP(robot_host, username, password, '', timeout)
@@ -100,7 +104,7 @@ class RobotCodeInstaller(object):
             return
         
         # see if this is actually a file
-        if len(files) == 1 and files[0] == remote_item or remote_item.endswith( '/' + files[0] ):
+        if len(files) == 1 and (files[0] == remote_item or remote_item.endswith( '/' + files[0] )):
             try:
                 self.ftp.delete( remote_item )
                 if verbose:
@@ -157,6 +161,8 @@ class RobotCodeInstaller(object):
                 True if successful, False if not successful. Errors are
                 printed out to stderr
         '''
+        remote_dir = self._remove_slash(remote_dir)
+        local_dir = self._remove_slash(local_dir)
         
         lfn = os.path.join( local_dir, filename )
         rfn = remote_dir + '/' + filename.replace( '\\', '/' )
@@ -200,11 +206,12 @@ class RobotCodeInstaller(object):
                     being uploaded
 
                 skip_special:
-                    Don't upload .pyc, .git, .svn, .hg directories
+                    Don't upload __pycache__ directories or directories/files 
+                    that start with .
         '''
 
-        if remote_dir[-1] != '/':
-            remote_dir += '/'
+        remote_dir = self._remove_slash(remote_dir)
+        local_dir = self._remove_slash(local_dir)
 
         if not os.path.isdir( local_dir ):
             sys.stderr.write("ERROR: Local root directory %s does not exist\n" % local_dir )
@@ -212,12 +219,13 @@ class RobotCodeInstaller(object):
 
         for root, dirs, files in os.walk( local_dir ):
 
-            remote_root = remote_dir + root[len(local_dir)+1:].replace( '\\', '/' )
-        
+            remote_root = remote_dir + '/' + root[len(local_dir)+1:].replace( '\\', '/' )
+            remote_root = self._remove_slash(remote_root)
+            
             # skip .svn, .git, .hg directories
             if skip_special:
                 for d in dirs[:]:
-                    if d in ['.svn', '.hg', '.git']:
+                    if d.startswith('.') or d == '__pycache__':
                         dirs.remove(d)
 
             sys.stdout.write(root + ': ')
@@ -229,15 +237,16 @@ class RobotCodeInstaller(object):
                 return False
 
             # if there is a __pycache__ directory, delete it
-            if len(files) > 0:
-                self.delete_remote( remote_root + '/' + '__pycache__', verbose )
+            pycache_dir = remote_root + '/__pycache__'
+            if pycache_dir in remote_files:
+                self.delete_remote(pycache_dir, verbose)
 
             for filename in files:
 
                 r, ext = os.path.splitext( filename )
 
                 # if this accidentally got in there, don't upload it
-                if skip_special and ext == '.pyc':
+                if skip_special and ext == '.pyc' or r.startswith('.'):
                     continue
                     
                 pyc_file = remote_root + '/' + r + '.pyc'
@@ -260,6 +269,8 @@ class RobotCodeInstaller(object):
         # internal function: returns the contents of a remote
         # directory, if the directory does not exist it creates
         # the path
+    
+        rpath = self._remove_slash(rpath)
     
         try:
             files = self.ftp.nlst( rpath )
