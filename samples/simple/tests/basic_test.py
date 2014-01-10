@@ -17,7 +17,7 @@
 
 def test_autonomous(robot, wpilib):
     
-    wpilib.enabled = True
+    wpilib.internal.enabled = True
     robot.Autonomous()
 
 
