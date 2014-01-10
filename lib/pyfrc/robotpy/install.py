@@ -246,7 +246,7 @@ class RobotCodeInstaller(object):
                 r, ext = os.path.splitext( filename )
 
                 # if this accidentally got in there, don't upload it
-                if skip_special and ext == '.pyc' or r.startswith('.'):
+                if skip_special and (ext == '.pyc' or r.startswith('.')):
                     continue
                     
                 pyc_file = remote_root + '/' + r + '.pyc'
