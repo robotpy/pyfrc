@@ -6,7 +6,7 @@ from os.path import abspath, dirname, exists, join
 
 import pytest
 
-from ..wpilib import _wpilib
+from ..wpilib import _wpilib, core
 
 
 # TODO: setting the plugins so that the end user can invoke py.test directly
@@ -22,7 +22,34 @@ class PyFrcPlugin(object):
     
     @pytest.fixture()
     def robot(self):
-        return self.run_fn()
+        myrobot = self.run_fn()
+        
+        # validate robot + results
+        
+        if myrobot is None:
+            pytest.fail("ERROR: the run() function in robot.py MUST return an instance of your robot class")
+            
+        print(dir(_wpilib))
+        if not isinstance(myrobot, core.SimpleRobot) and not isinstance(myrobot, core.IterativeRobot):
+            pytest.fail("ERROR: the object returned from the run function MUST return an instance of a robot class that inherits from wpilib.SimpleRobot or wpilib.IterativeRobot")
+           
+        # if they forget to do this, it's an annoying problem to diagnose on the cRio... 
+        if not hasattr(myrobot, 'watchdog') or not myrobot.watchdog:
+            pytest.fail("ERROR: class '%s' must call super().__init__() in its constructor" % (myrobot.__class__.__name__))
+            
+        if not myrobot._sr_competition_started:
+            pytest.fail("ERROR: Your run() function must call StartCompetition() on your robot class")
+            
+        has_not = []
+        for n in ['Autonomous', 'Disabled', 'OperatorControl']:
+            if not hasattr(myrobot, n):
+                has_not.append(n)
+                
+        if len(has_not) > 0:
+            pytest.fail("ERROR: class '%s' does not have the following required functions: %s\n" % \
+                        (myrobot.__class__.__name__, ', '.join(has_not)))
+                
+        return myrobot
     
     @pytest.fixture()
     def wpilib(self):
