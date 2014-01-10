@@ -5,7 +5,7 @@
 # code and stuff
 #
 #    robot - This is whatever is returned from the run function in robot.py
-#    wpilib - This is the wpilib.internal module
+#    wpilib - This is the wpilib module
 #
 
 
