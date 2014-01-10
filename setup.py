@@ -13,16 +13,16 @@ packages = [
     'pyfrc.wpilib._wpilib',
 ]
 
-#def get_version():
-#    g = {}
-#    execfile(join(dirname(__file__), 'lib', 'pyfrc', 'version.py'), g)
-#    return g['__version__']
+def get_version():
+    g = {}
+    with open(join(dirname(__file__), 'lib', 'pyfrc', 'version.py'), 'r') as fp:
+        exec(fp.read(), g)
+    return g['__version__']
 
 install_requires=open(join(setup_dir, 'requirements.txt')).readlines()
 
 setup(name='pyfrc',
-      #version=get_version(),
-      version='2014.1-beta',
+      version=get_version(),
       description='Development tools library for python interpreter used for the FIRST Robotics Competition',
       long_description=open(join(dirname(__file__), 'README.txt'), 'r').read(),
       author='Dustin Spicuzza',

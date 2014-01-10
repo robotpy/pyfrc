@@ -23,9 +23,31 @@ This library contains a few primary parts:
 Installation
 ============
 
-You must have the following python packages installed. I recommend using
-pip to install the packages. Make sure that you install them for your
-python3 interpreter, as pyfrc only supports python 3.
+using pip to install
+--------------------
+
+The easiest installation is by using pip. On a linux/OSX system that has pip
+installed, just run the following command:
+
+	$ pip-3.2 install pyfrc
+	
+If you have python 3.3 installed, you may need to use 'pip-3.3' instead.
+
+On Windows, I recommend using pip-Win to install packages. Download it from:
+
+	https://sites.google.com/site/pydatalog/python/pip-for-windows
+	
+Once you've downloaded it, run it to install pip, and run the following
+command in its window:
+
+	pip install pyfrc
+
+
+Non-pip installation
+--------------------
+
+You must have the following python packages installed. Make sure that you
+install them for your python3 interpreter, as pyfrc only supports python 3.
 
 * py.test (http://pytest.org/)
 
