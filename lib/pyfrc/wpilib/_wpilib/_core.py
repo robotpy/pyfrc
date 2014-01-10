@@ -734,26 +734,29 @@ class Joystick(GenericHID):
     def SetAxisChannel(self, axis_type, channel):
         self.axes[axis_type] = channel
     
+    def _limit(self, value):
+        return min(max(float(value), -1.0), 1.0)
+    
     # internal API
     def _set_x(self, value):
         with self._ds.lock:
-            self._ds.sticks[self.port-1][self.axes[Joystick.kXAxis]] = float(value)
+            self._ds.sticks[self.port-1][self.axes[Joystick.kXAxis]] = self._limit(value)
         
     def _set_y(self, value):
         with self._ds.lock:
-            self._ds.sticks[self.port-1][self.axes[Joystick.kYAxis]] = float(value)
+            self._ds.sticks[self.port-1][self.axes[Joystick.kYAxis]] = self._limit(value)
             
     def _set_z(self, value):
         with self._ds.lock:
-            self._ds.sticks[self.port-1][self.axes[Joystick.kZAxis]] = float(value)
+            self._ds.sticks[self.port-1][self.axes[Joystick.kZAxis]] = self._limit(value)
             
     def _set_twist(self, value):
         with self._ds.lock:
-            self._ds.sticks[self.port-1][self.axes[Joystick.kTwistAxis]] = float(value)
+            self._ds.sticks[self.port-1][self.axes[Joystick.kTwistAxis]] = self._limit(value)
             
     def _set_throttle(self, value):
         with self._ds.lock:
-            self._ds.sticks[self.port-1][self.axes[Joystick.kThrottleAxis]] = float(value)
+            self._ds.sticks[self.port-1][self.axes[Joystick.kThrottleAxis]] = self._limit(value)
             
     def _get_button(self, number):
         with self._ds.lock:
