@@ -8,14 +8,6 @@
 #    wpilib - This is the wpilib.internal module
 #
 
-class TestController(object):
-    
-    loop_count = 0
-    
-    def IsOperatorControl(self, tm):
-        '''Continue operator control for 1000 control loops'''
-        self.loop_count += 1
-        return not self.loop_count == 1000
 
 #
 # Each of these functions is an individual test run by py.test. Global
@@ -35,8 +27,39 @@ def test_disabled(robot):
 
 def test_operator_control(robot, wpilib):
     
-    wpilib.set_test_controller(TestController)
-    wpilib.enabled = True
+    class TestController(object):
+        '''This object is only used for this test'''
+    
+        loop_count = 0
+        
+        stick_prev = 0
+        
+        def IsOperatorControl(self, tm):
+            '''
+                Continue operator control for 1000 control loops
+                
+                The idea is to change the joystick/other inputs, and see if the 
+                robot motors/etc respond the way that we expect. 
+                
+                Keep in mind that when you set a value, the robot code does not
+                see the value until after this function returns. So, when you
+                use assert to check a motor value, you have to check to see that
+                it matches the previous value that you set on the inputs, not the
+                current value.
+            '''
+            self.loop_count += 1
+            
+            # motor value is equal to the previous value of the stick
+            assert robot.motor.value == self.stick_prev
+            
+            # set the stick value based on time
+            robot.lstick.y = (tm % 2.0) - 1.0
+            self.stick_prev = robot.lstick.y
+            
+            return not self.loop_count == 1000
+    
+    wpilib.internal.set_test_controller(TestController)
+    wpilib.internal.enabled = True
     
     robot.OperatorControl()
     

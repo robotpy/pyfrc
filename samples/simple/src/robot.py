@@ -8,7 +8,7 @@ except ImportError:
 class MyRobot(wpilib.SimpleRobot):
     
     def __init__(self):
-        wpilib.SimpleRobot.__init__(self)
+        super().__init__()
         
         self.lstick = wpilib.Joystick(1)
         self.motor = wpilib.CANJaguar(8)
@@ -42,8 +42,5 @@ def run():
 
 
 if __name__ == '__main__':
-    
-    # this launches the thing... how do we autodiscover tests?
-    # ... look up a directory? or, the 'tests' directory?
     wpilib.run()
 
