@@ -62,7 +62,7 @@ class PyFrcPlugin(object):
 # Test function
 #
 
-def run(run_fn, file_location):
+def run(run_fn, file_location, ignore_missing_test=False):
 
     # find test directory, change current directory so py.test can find the tests
     # -> assume that tests reside in tests or ../tests
@@ -77,8 +77,10 @@ def run(run_fn, file_location):
             break
     
     if test_directory is None:
-        print("Could not find tests directory! Looked in %s" % try_dirs)
-        return 1
+        print("Cannot run robot tests, as test directory was not found. Looked for tests at:")
+        for d in try_dirs:
+            print('- %s' % d)
+        return 0 if ignore_missing_test else 1
     
     os.chdir(test_directory)
     

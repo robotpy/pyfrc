@@ -1,5 +1,7 @@
 
 import os
+import sys
+
 from ..robotpy import install
 
 try:
@@ -14,19 +16,19 @@ def relpath(path):
 
 def run(run_fn, file_location):
     
-    # how to determine which files to run? 
-    # gather all files and such
+    # run the test suite before uploading
+    if '--skip-tests' not in sys.argv:
+        from . import cli_test
+        retval = cli_test.run(run_fn, file_location, ignore_missing_test=True)
+        if retval != 0:
+            print("Your robot tests failed, aborting upload. Use --skip-tests if you want to upload anyways")
+            return retval
     
+    # upload all files in the robot.py source directory
     local_root = os.path.abspath(os.path.dirname(file_location))
     remote_root = '/py'
     
-    # exclude the test directory if it exists
-    # exclude __pycache__ directories also
-    
-    # run the test suite before uploading
-    
-    # --skip-tests option
-    #raise ValueError()
+    # TODO: exclude the test directory if it exists
 
     team_number = None
     team_filename = os.path.join(local_root, '.team_number')
