@@ -661,7 +661,7 @@ class Jaguar(SpeedController):
     def Get(self):
         return self.value
         
-    def Set(self, value):
+    def Set(self, value, syncGroup=0):
         self.value = value
         
         
@@ -806,6 +806,8 @@ class RobotDrive(object):
     kRearLeftMotor = 2
     kRearRightMotor = 3 
     
+    kMaxNumberOfMotors = 4
+    
     def __init__(self, lr_motor, rr_motor, lf_motor=None, rf_motor=None):
         self.lr_motor = lr_motor    # left rear
         self.rr_motor = rr_motor    # right rear
@@ -902,6 +904,59 @@ class RobotDrive(object):
         
         self._SetLeftRightMotorOutputs(leftMotorOutput, rightMotorOutput)
         
+    def MecanumDrive_Cartesian(self, x, y, rotation, gyroAngle):
+        
+        xIn = float(x)
+        yIn = float(y)
+        # Negate y for the joystick.
+        yIn = -yIn;
+        # Compenstate for gyro angle.
+        xIn, yIn = self._RotateVector(xIn, yIn, gyroAngle);
+    
+        wheelSpeeds = []*self.kMax
+        wheelSpeeds[RobotDrive.kFrontLeftMotor] = xIn + yIn + rotation
+        wheelSpeeds[RobotDrive.kFrontRightMotor] = -xIn + yIn - rotation
+        wheelSpeeds[RobotDrive.kRearLeftMotor] = -xIn + yIn + rotation
+        wheelSpeeds[RobotDrive.kRearRightMotor] = xIn + yIn - rotation
+    
+        self._Normalize(wheelSpeeds)
+    
+        syncGroup = 0x80
+    
+        self.lf_motor.Set(wheelSpeeds[RobotDrive.kFrontLeftMotor] * self.inverted[RobotDrive.kFrontLeftMotor] * self.maxOutput, syncGroup)
+        self.rf_motor.Set(wheelSpeeds[RobotDrive.kFrontRightMotor] * self.inverted[RobotDrive.kFrontRightMotor] * self.maxOutput, syncGroup)
+        self.lr_motor.Set(wheelSpeeds[RobotDrive.kRearLeftMotor] * self.inverted[RobotDrive.kRearLeftMotor] * self.maxOutput, syncGroup)
+        self.rr_motor.Set(wheelSpeeds[RobotDrive.kRearRightMotor] * self.inverted[RobotDrive.kRearRightMotor] * self.maxOutput, syncGroup)
+        
+        
+    def MecanumDrive_Polar(self, magnitude, direction, rotation):
+        
+        # Normalized for full power along the Cartesian axes.
+        magnitude = self._Limit(magnitude) * math.sqrt(2.0)
+        # The rollers are at 45 degree angles.
+        dirInRad = (direction + 45.0) * 3.14159 / 180.0
+        cosD = math.cos(dirInRad)
+        sinD = math.sin(dirInRad)
+    
+        wheelSpeeds = []*RobotDrive.kMaxNumberOfMotors
+        wheelSpeeds[RobotDrive.kFrontLeftMotor] = sinD * magnitude + rotation
+        wheelSpeeds[RobotDrive.kFrontRightMotor] = cosD * magnitude - rotation
+        wheelSpeeds[RobotDrive.kRearLeftMotor] = cosD * magnitude + rotation
+        wheelSpeeds[RobotDrive.kRearRightMotor] = sinD * magnitude - rotation
+    
+        self._Normalize(wheelSpeeds)
+    
+        syncGroup = 0x80
+    
+        self.lf_motor.Set(wheelSpeeds[RobotDrive.kFrontLeftMotor] * self.inverted[RobotDrive.kFrontLeftMotor] * self.maxOutput, syncGroup)
+        self.rf_motor.Set(wheelSpeeds[RobotDrive.kFrontRightMotor] * self.inverted[RobotDrive.kFrontRightMotor] * self.maxOutput, syncGroup)
+        self.lr_motor.Set(wheelSpeeds[RobotDrive.kRearLeftMotor] * self.inverted[RobotDrive.kRearLeftMotor] * self.maxOutput, syncGroup)
+        self.rr_motor.Set(wheelSpeeds[RobotDrive.kRearRightMotor] * self.inverted[RobotDrive.kRearRightMotor] * self.maxOutput, syncGroup)
+        
+    
+    def HolonomicDrive(self, magnitude, direction, rotation):
+        return self.MecanumDrive_Polar(magnitude, direction, rotation)
+        
     def SetInvertedMotor(self, motorType, isInverted):
         if motorType < 0 or motorType > len(self.inverted):
             raise ValueError("Invalid motor number")
@@ -921,6 +976,29 @@ class RobotDrive(object):
         elif num < -1.0:
             return -1.0
         return num
+    
+    def _Normalize(self, wheelSpeeds):
+        maxMagnitude = abs(wheelSpeeds[0])
+        
+        for speed in wheelSpeeds:
+            temp = abs(speed)
+            if maxMagnitude < temp:
+                maxMagnitude = temp
+                
+        if maxMagnitude > 1.0:
+            for i in range(0, len(wheelSpeeds)):
+                wheelSpeeds[i] = wheelSpeeds[i] / maxMagnitude
+                
+    def _RotateVector(self, x, y, angle):
+        x = float(x)
+        y = float(y)
+        angle = float(angle)
+        cosA = math.cos(angle * (3.14159 / 180.0))
+        sinA = math.sin(angle * (3.14159 / 180.0))
+        xOut = x * cosA - y * sinA
+        yOut = x * sinA + y * cosA
+
+        return xOut, yOut
         
     def _SetLeftRightMotorOutputs(self, leftOutput, rightOutput):
         if self.lf_motor is not None:
