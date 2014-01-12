@@ -48,13 +48,6 @@ def run(run_fn, file_location):
             team_number = int(input('Team number? '))
         except ValueError:
             pass
-        
-        # write the team number to a file
-        try:
-            with open(team_filename, 'w') as fp:
-                fp.write(str(team_number))
-        except:
-            pass
 
     # determine the host name from the team number
     robot_host = '10.%d.%d.2' % (team_number / 100, team_number % 100 )
@@ -79,6 +72,14 @@ def run(run_fn, file_location):
     print('Code installation complete.')
 
     server.close()
+    
+    # after we succeed, write the team number to a file
+    try:
+        if not os.path.exists(team_filename):
+            with open(team_filename, 'w') as fp:
+                fp.write(str(team_number))
+    except:
+        pass
     
     while True:
         yn = str(input("Reboot robot? [y/n]")).strip().lower()
