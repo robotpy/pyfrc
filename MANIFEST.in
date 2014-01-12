@@ -1,3 +1,4 @@
+include README.md
 include requirements.txt
 graft samples
 prune samples/iterative/src/__pycache__
