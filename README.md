@@ -127,14 +127,24 @@ in the 'lib' directory. If you use the 'run_test.py' script to run your
 tests, it will automatically setup the python path correctly so that loading
 fake_wpilib will load the correct package. 
 
-The lib/fake_wpilib directory is the code for wpilib directly copied from 
+The lib/pyfrc/wpilib directory is the code for wpilib directly copied from 
 the RobotPy implementation. This code tries to load a module called '_wpilib',
-which is a binary python module on the robot. However, in lib/_wpilib there 
-is a python package which emulates a lot of the functionality found in the
-binary package for wpilib. 
+which is a binary python module on the robot. However, in the directory 
+lib/pyfrc/wpilib/_wpilib there is a python package which emulates a lot of
+the functionality found in the binary package for wpilib. 
 
 The StartCompetition function is monkey-patched by run_test.py so that the
 library and test runners can load properly. 
+
+Contributing new changes
+========================
+
+1. Fork this git repository
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create new Pull Request on github
+
 
 Authors
 =======
