@@ -374,7 +374,7 @@ class DigitalInput(object):
 
     def __init__(self, channel):
         DigitalModule._add_io( channel, self )
-        self.value = False
+        self._value = 0
         self.channel = channel
     
     def Get(self):
@@ -383,18 +383,25 @@ class DigitalInput(object):
     def GetChannel(self):
         return self.channel
         
-    def Set(self, value):
+    # testing use only, not present on the robot
+        
+    @property
+    def value(self):
+        return self._value
+        
+    @value.setter
+    def value(self, value):
         if value:
-            self.value = True
+            self._value = 1
         else:
-            self.value = False
+            self._value = 0
      
      
 class DigitalOutput(object):
     
     def __init__(self, channel):
         DigitalModule._add_io( channel, self )
-        self.value = False
+        self._value = 0
         self.channel = channel
 
     def Get(self):
@@ -402,6 +409,19 @@ class DigitalOutput(object):
        
     def Set(self, value):
         self.value = value
+        
+    # testing use only, not present on the robot
+        
+    @property
+    def value(self):
+        return self._value
+        
+    @value.setter
+    def value(self, value):
+        if value:
+            self._value = 1
+        else:
+            self._value = 0
 
 class DriverStation(object):
     
