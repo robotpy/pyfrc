@@ -113,3 +113,49 @@ def print_components():
     DigitalModule._print_components()
     DriverStation.GetInstance().GetEnhancedIO()._print_components()
     
+    
+#
+# Utility functions for working with IterativeRobot
+#
+
+def IterativeRobotAutonomous(robot):
+    
+    from ... import wpilib
+    
+    robot.AutonomousInit()
+    
+    while robot.IsEnabled() and robot.IsAutonomous():
+        robot.AutonomousPeriodic()
+    
+    
+def IterativeRobotDisabled(robot, loops):
+    
+    from ... import wpilib
+    
+    robot.DisabledInit()
+    
+    i = 0
+    while i < loops and robot.IsDisabled():
+        i += 1
+        robot.DisabledPeriodic()
+        
+        if robot._period > 0:
+            wpilib.Wait(robot._period)
+        else:
+            wpilib.Wait(0.20)
+    
+    
+def IterativeRobotTeleop(robot):
+    
+    from ... import wpilib
+    
+    robot.TeleopInit()
+    
+    while robot.IsOperatorControl() and robot.IsEnabled():
+        robot.TeleopPeriodic()
+        
+        if robot._period > 0:
+            wpilib.Wait(robot._period)
+        else:
+            wpilib.Wait(0.20)
+
