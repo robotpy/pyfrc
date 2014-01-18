@@ -904,7 +904,7 @@ class RobotDrive(object):
         
         self._SetLeftRightMotorOutputs(leftMotorOutput, rightMotorOutput)
         
-    def MecanumDrive_Cartesian(self, x, y, rotation, gyroAngle):
+    def MecanumDrive_Cartesian(self, x, y, rotation, gyroAngle=0.0):
         
         xIn = float(x)
         yIn = float(y)
@@ -913,7 +913,7 @@ class RobotDrive(object):
         # Compenstate for gyro angle.
         xIn, yIn = self._RotateVector(xIn, yIn, gyroAngle);
     
-        wheelSpeeds = []*self.kMax
+        wheelSpeeds = [None]*self.kMaxNumberOfMotors
         wheelSpeeds[RobotDrive.kFrontLeftMotor] = xIn + yIn + rotation
         wheelSpeeds[RobotDrive.kFrontRightMotor] = -xIn + yIn - rotation
         wheelSpeeds[RobotDrive.kRearLeftMotor] = -xIn + yIn + rotation
@@ -938,7 +938,7 @@ class RobotDrive(object):
         cosD = math.cos(dirInRad)
         sinD = math.sin(dirInRad)
     
-        wheelSpeeds = []*RobotDrive.kMaxNumberOfMotors
+        wheelSpeeds = [None]*RobotDrive.kMaxNumberOfMotors
         wheelSpeeds[RobotDrive.kFrontLeftMotor] = sinD * magnitude + rotation
         wheelSpeeds[RobotDrive.kFrontRightMotor] = cosD * magnitude - rotation
         wheelSpeeds[RobotDrive.kRearLeftMotor] = cosD * magnitude + rotation
