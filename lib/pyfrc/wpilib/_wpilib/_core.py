@@ -96,7 +96,7 @@ class ADXL345_I2C(object):
             self.ZAxis = 0
         
     
-    def __init__(self, moduleNumber, range):
+    def __init__(self, moduleNumber, range=ADXL345_I2C.kRange_2G):
         self.value = ADXL345_I2C._Axes()
         
     
