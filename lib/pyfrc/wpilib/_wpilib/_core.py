@@ -3,6 +3,7 @@
     as needed, and submit patches! :) 
 '''
 
+import copy
 import math
 import threading
 
@@ -75,6 +76,42 @@ class Accelerometer(object):
         
     def SetZero(self, zero):
         pass
+
+    
+class ADXL345_I2C(object):
+    
+    kRange_2G = 0x00
+    kRange_4G = 0x01
+    kRange_8G = 0x02
+    kRange_16G = 0x03
+    
+    kAxis_X = 0x00
+    kAxis_Y = 0x02
+    kAxis_Z = 0x04
+    
+    class _Axes(object):
+        def __init__(self):
+            self.XAxis = 0
+            self.YAxis = 0
+            self.ZAxis = 0
+        
+    
+    def __init__(self, moduleNumber, range):
+        self.value = ADXL345_I2C._Axes()
+        
+    
+    def GetAcceleration(self, axis):
+        if axis == ADXL345_I2C.kAxis_X:
+            return self.value.XAxis
+        elif axis == ADXL345_I2C.kAxis_Y:
+            return self.value.YAxis
+        elif axis == ADXL345_I2C.kAxis_Z:
+            return self.value.ZAxis
+        
+        raise ValueError("Invalid axis parameter '%s' provided!" % axis)
+    
+    def GetAccelerations(self):
+        return copy.deepcopy(self.value)
 
 
 class AnalogModule(object):
