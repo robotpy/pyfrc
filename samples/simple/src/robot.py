@@ -38,6 +38,7 @@ class MyRobot(wpilib.SimpleRobot):
             wpilib.Wait(0.04)
 
 def run():
+    '''Called by RobotPy when the robot initializes'''
     
     robot = MyRobot()
     robot.StartCompetition()
