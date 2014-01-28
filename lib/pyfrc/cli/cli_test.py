@@ -14,11 +14,20 @@ from .. import wpilib
 
 class PyFrcPlugin(object):
 
-    def __init__(self, run_fn):
+    def __init__(self, file_location, run_fn):
+        self.file_location = file_location
         self.run_fn = run_fn
     
     def pytest_runtest_setup(self):
         wpilib.internal.initialize_test()
+    
+    #
+    # Fixtures
+    #
+    
+    @pytest.fixture()
+    def control(self):
+        return wpilib.internal
     
     @pytest.fixture()
     def robot(self):
@@ -41,13 +50,17 @@ class PyFrcPlugin(object):
                 
         return myrobot
     
+    @pytest.fixture
+    def robot_file(self):
+        return self.file_location
+    
+    @pytest.fixture()
+    def robot_path(self):
+        return dirname(self.file_location)
+    
     @pytest.fixture()
     def wpilib(self):
         return wpilib
-    
-    @pytest.fixture()
-    def control(self):
-        return wpilib.internal
 
 #
 # Test function
@@ -75,5 +88,5 @@ def run(run_fn, file_location, ignore_missing_test=False):
     
     os.chdir(test_directory)
     
-    return pytest.main(sys.argv[1:], plugins=[PyFrcPlugin(run_fn)])
- 
+    return pytest.main(sys.argv[1:], plugins=[PyFrcPlugin(file_location, run_fn)])
+
