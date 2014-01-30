@@ -11,6 +11,12 @@ from .sim_manager import SimManager
 
 class RobotController(object):
     
+    mode_map = {
+        SimManager.MODE_AUTONOMOUS: "Autonomous",
+        SimManager.MODE_DISABLED: "Disabled",
+        SimManager.MODE_OPERATOR_CONTROL: "OperatorControl"
+    }
+    
     def __init__(self, myrobot):
     
         self.mode = SimManager.MODE_DISABLED
@@ -27,7 +33,8 @@ class RobotController(object):
         # this since it's running in a different thread
         self._lock = threading.RLock()
         
-        self.thread = threading.Thread(target=self._robot_thread, daemon=True)
+        self.thread = threading.Thread(target=self._robot_thread)
+        self.thread.daemon = True
         
     def run(self):
         self._run_code = True
