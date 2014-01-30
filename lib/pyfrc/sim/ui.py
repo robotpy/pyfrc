@@ -71,7 +71,7 @@ class SimUI(object):
             label = tk.Label(slot, text=str(i))
             label.grid(column=0, row=i)
             
-            vw = ValueWidget(slot)
+            vw = ValueWidget(slot, clickable=True)
             vw.grid(column=1, row=i)
             self.analog.append(vw)
         
@@ -100,7 +100,7 @@ class SimUI(object):
             label = tk.Label(slot, text=str(i))
             label.grid(column=2, row=i)
             
-            pi = PanelIndicator(slot)
+            pi = PanelIndicator(slot, clickable=True)
             pi.grid(column=3, row=i)
             self.dio.append(pi)
             
@@ -108,7 +108,7 @@ class SimUI(object):
             label = tk.Label(slot, text=str(i))
             label.grid(column=4, row=i-7)
             
-            pi = PanelIndicator(slot)
+            pi = PanelIndicator(slot, clickable=True)
             pi.grid(column=5, row=i-7)
             self.dio.append(pi)
         
@@ -245,7 +245,9 @@ class SimUI(object):
                 if ch is None:
                     self.analog[i].set_disabled()
                 else:
-                    self.analog[i].set_value(ch.value)
+                    ret = self.analog[i].sync_value(ch.value)
+                    if ret is not None:
+                        ch.value = ret
             
             # digital module
             for i, ch in enumerate(_core.DigitalModule._io):
@@ -253,7 +255,9 @@ class SimUI(object):
                     self.dio[i].set_disabled()
                 else:
                     # determine which one changed, and set the appropriate one
-                    self.dio[i].set_value(ch.value)
+                    ret = self.dio[i].sync_value(ch.value)
+                    if ret is not None:
+                        ch.value = ret
             
             for i, ch in enumerate(_core.DigitalModule._pwm):
                 if ch is None:
