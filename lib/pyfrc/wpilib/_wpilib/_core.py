@@ -362,7 +362,7 @@ class DigitalModule(object):
     
     @staticmethod
     def _reset():
-        DigitalModule._io = [None]*16
+        DigitalModule._io = [None]*14
         DigitalModule._pwm = [None]*10
         DigitalModule._relays = [None]*8
     
@@ -817,7 +817,7 @@ class Joystick(GenericHID):
             
     def _get_button(self, number):
         with self._ds.lock:
-            return self._ds.stick_buttons[self.port-1]
+            return self._ds.stick_buttons[self.port-1][number]
         
     def _set_button(self, number, value):
         with self._ds.lock:
