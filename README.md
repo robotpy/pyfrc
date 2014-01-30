@@ -18,6 +18,8 @@ This library contains a few primary parts:
     
 * Integration with the py.test testing tool to allow you to easily write unit
   tests for your robot code.
+* A robot simulator tool which allows you to run your code in (vaguely) real
+  time and get simple feedback via a tk-based UI
 
 
 Installation
@@ -109,6 +111,18 @@ To run the unit tests, just run your robot.py with the following arguments:
 
 For more information on how to write py.test tests, see the documentation
 at http://pytest.org , or refer to the samples directory for examples.
+
+
+robot simulator
+===============
+
+The pyfrc robot simulator allows very simplistic simulation of your code
+in real time and displays the results in a (ugly) user interface. To run
+the simulator, run your robot.py with the following arguments:
+
+    $ python3 robot.py sim
+
+As there is interest, I will add more features to the simulator.
 
 
 Implementation Notes

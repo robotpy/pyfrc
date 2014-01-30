@@ -51,5 +51,8 @@ def run():
     elif arg1 == 'test':
         from .cli import cli_test
         cli_test.run(run_fn, file_location)
- 
         
+    elif arg1 == 'sim':
+        from .cli import cli_sim
+        cli_sim.run(run_fn, file_location)
+
