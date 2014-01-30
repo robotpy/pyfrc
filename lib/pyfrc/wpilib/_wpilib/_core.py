@@ -47,7 +47,25 @@ def _StartCompetition(self):
     self._sr_competition_started = True
 
     
-class SpeedController(object):
+class _WPILibObject(object):
+    '''
+        This class provides a mechanism that allows the simulation to
+        obtain a lock on all robot operations, so we can do atomic
+        retrievals/updates on groups of objects
+    '''
+    
+    _sim_lock = threading.RLock()
+    
+    def __setattr__(self, name, value):
+        with object.__getattribute__(self, '_sim_lock'):
+            return object.__setattr__(self, name, value)
+        
+    def __getattribute__(self, name):
+        with object.__getattribute__(self, '_sim_lock'):
+            return object.__getattribute__(self, name)
+        
+    
+class SpeedController(_WPILibObject):
 
     def __init__(self):
         pass
@@ -62,7 +80,7 @@ class SpeedController(object):
         raise NotImplementedError()
     
     
-class Accelerometer(object):
+class Accelerometer(_WPILibObject):
 
     def __init__(self, channel):
         AnalogModule._add_channel(channel, self)
@@ -78,7 +96,7 @@ class Accelerometer(object):
         pass
 
     
-class ADXL345_I2C(object):
+class ADXL345_I2C(_WPILibObject):
     
     kRange_2G = 0x00
     kRange_4G = 0x01
@@ -114,7 +132,7 @@ class ADXL345_I2C(object):
         return copy.deepcopy(self.value)
 
 
-class AnalogModule(object):
+class AnalogModule(_WPILibObject):
 
     _channels = [None]*8
     
@@ -139,17 +157,11 @@ class AnalogModule(object):
                 print( "  %2d: %s" % (i+1,o) )
         
 
-class AnalogChannel(object):
+class AnalogChannel(_WPILibObject):
 
     kAccumulatorModuleNumber = 1
     kAccumulatorNumChannels = 2
     kAccumulatorChannels = [1, 2]
-    
-    _instances = [None]*8
-    
-    @staticmethod
-    def _reset():
-        AnalogChannel._instances = [None]*8
     
     def __init__(self, channel):
         AnalogModule._add_channel(channel, self)
@@ -171,7 +183,7 @@ class AnalogChannel(object):
     # TODO: Implement a sensible implementation for this
 
 
-class CAN(object):
+class CAN(_WPILibObject):
 
     _devices = {}
     
@@ -333,7 +345,7 @@ class CANJaguar(SpeedController):
     def UpdateSyncGroup(group):
         pass
     
-class Compressor(object):
+class Compressor(_WPILibObject):
     
     def __init__(self, pressureSwitchChannel, compressorRelayChannel):
         DigitalModule._add_io( pressureSwitchChannel, self )
@@ -354,7 +366,7 @@ class Compressor(object):
         return self.value
 
         
-class DigitalModule(object):
+class DigitalModule(_WPILibObject):
 
     _io = [None] * 16
     _pwm = [None] * 10
@@ -407,7 +419,7 @@ class DigitalModule(object):
             if o is not None:
                 print( "    %2d: %s" % (i+1,o) )
     
-class DigitalInput(object):
+class DigitalInput(_WPILibObject):
 
     def __init__(self, channel):
         DigitalModule._add_io( channel, self )
@@ -434,7 +446,7 @@ class DigitalInput(object):
             self._value = 0
      
      
-class DigitalOutput(object):
+class DigitalOutput(_WPILibObject):
     
     def __init__(self, channel):
         DigitalModule._add_io( channel, self )
@@ -490,9 +502,9 @@ class DriverStation(object):
     
             # when running multiple threads, be sure to grab this
             # lock before modifying any of the DS internal state
-            self.lock = threading.RLock()
+            self.lock = _WPILibObject._sim_lock
         
-            AnalogModule._add_channel(DriverStation.kBatteryChannel, self)
+            self.battery = AnalogChannel(DriverStation.kBatteryChannel)
         
             # TODO: Need to sync this with the enhanced I/O
             self.digital_in = [ False, False, False, False, False, False, False, False ]
@@ -613,7 +625,7 @@ class DriverStationEnhancedIO(object):
                     
                     print( "  %2d: %s" % (i+1, od[o]))
         
-class Encoder(object):
+class Encoder(_WPILibObject):
 
     # encoding_type
     k1X = 1
@@ -668,7 +680,7 @@ class GenericHID(object):
     kRightHand = 1
     
         
-class Gyro(object):
+class Gyro(_WPILibObject):
     
     kSamplesPerSecond = 50.0
     kCalibrationSampleTime = 5.0
@@ -1047,7 +1059,7 @@ class RobotDrive(object):
         self.rr_motor.Set(-self._Limit(rightOutput) * self.inverted[RobotDrive.kRearRightMotor] * self.maxOutput)
 
 
-class Relay(object):
+class Relay(_WPILibObject):
     
     # Value
     kOff = 0
@@ -1082,7 +1094,7 @@ class Relay(object):
             raise RuntimeError( 'Invalid value %s passed to Relay.Set' % str(value) )
             
             
-class Servo(object):
+class Servo(_WPILibObject):
 
     kMaxServoAngle = 170.0
     kMinServoAngle = 0.0
@@ -1118,9 +1130,21 @@ class Servo(object):
         return Servo.kMaxServoAngle - Servo.kMinServoAngle
         
         
-class Solenoid(object):
+class Solenoid(_WPILibObject):
+    
+    _channels = [None] * 16
+    
+    @staticmethod
+    def _reset():
+        Solenoid._channels = [None]*8
     
     def __init__(self, channel):
+        
+        if Solenoid._channels[channel-1] is not None:
+            raise RuntimeError( "Error inserting Solenoid, %s already at channel %s" % 
+                               (DigitalModule._io[channel-1], channel ))
+        Solenoid._channels[channel-1] = self
+        
         self.value = False
         
     def Get(self):
@@ -1130,7 +1154,7 @@ class Solenoid(object):
         self.value = value
 
         
-class Ultrasonic(object):
+class Ultrasonic(_WPILibObject):
 
     @staticmethod
     def SetAutomaticMode( mode ):
