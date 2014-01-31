@@ -115,9 +115,9 @@ class SimUI(object):
         slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
             
         # CAN
-        slot = tk.LabelFrame(top, text='CAN')
-        
-        slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
+        self.can_slot = tk.LabelFrame(top, text='CAN')
+        self.can_slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
+        self.can = {}
             
         # solenoid
         slot = tk.LabelFrame(top, text='Solenoid')
@@ -199,8 +199,25 @@ class SimUI(object):
         
         sim.pack(side=tk.LEFT, fill=tk.Y)
      
-    def _add_CAN(self):
-        pass   
+    def _add_CAN(self, device):
+        
+        row = len(self.can)
+        
+        motor = ValueWidget(self.can_slot, default=0.0)
+        motor.grid(column=0, row=row)
+        
+        flvar = tk.IntVar()
+        fl = tk.Checkbutton(self.can_slot, text='F', variable=flvar)
+        fl.grid(column=1, row=row)
+        
+        rlvar = tk.IntVar()
+        rl = tk.Checkbutton(self.can_slot, text='R', variable=rlvar)
+        rl.grid(column=2, row=row)
+        
+        Tooltip.create(fl, 'Forward limit switch')
+        Tooltip.create(rl, 'Reverse limit switch')
+        
+        self.can[device] = (motor, flvar, rlvar)
         
     def idle_add(self, callable, *args):
         '''Call this with a function as the argument, and that function
@@ -277,7 +294,26 @@ class SimUI(object):
                 else:
                     self.solenoids[i].set_value(ch.value)
             
-            # can
+            # CAN
+            
+            # detect new devices
+            if len(self.can) != len(_core.CAN._devices):
+                existing = list(self.can.keys())
+                
+                for k, v in _core.CAN._devices.items():
+                    if k in existing:
+                        continue
+                    
+                    self._add_CAN(k)
+                    
+            
+            for k, (motor, fl, rl) in self.can.items():
+                can = _core.CAN._devices[k]
+                
+                motor.set_value(can.value)
+                can.forward_ok = True if fl.get() else False
+                can.reverse_ok = True if rl.get() else False
+                
             
             # joystick/driver station
             sticks = _core.DriverStation.GetInstance().sticks
