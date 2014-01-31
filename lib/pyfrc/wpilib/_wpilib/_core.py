@@ -344,26 +344,45 @@ class CANJaguar(SpeedController):
     @staticmethod
     def UpdateSyncGroup(group):
         pass
-    
+
+
 class Compressor(_WPILibObject):
     
-    def __init__(self, pressureSwitchChannel, compressorRelayChannel):
-        DigitalModule._add_io( pressureSwitchChannel, self )
-        DigitalModule._add_relay( compressorRelayChannel, self )
+    def __init__(self, pressureSwitchChannel, compressorRelayChannel):       
+        self._dio = DigitalInput(pressureSwitchChannel)
+        self._dio._parent = self
+        self._dio._update_fn = self._update_relay
+        
+        self._relay = Relay(compressorRelayChannel)
+        self._relay._parent = self
+        
         self.enabled = False
-        self.value = 0
         
     def Enabled(self):
         return self.enabled
     
+    def GetPressureSwitchValue(self):
+        return self._dio.Get()
+    
+    def SetRelayValue(self, value):
+        self._relay.Set(value)
+    
     def Start(self):
         self.enabled = True
+        self._update_relay()
         
     def Stop(self):
         self.enabled = False
-        
-    def GetPressureSwitchValue(self):
-        return self.value
+        self._update_relay()
+    
+    # testing interface only, not present
+    # on the robot!
+    
+    def _update_relay(self):
+        if not self.enabled:
+            self._relay.Set(Relay.kOff)
+        else:
+            self._relay.Set(Relay.kOn if self._dio.value else Relay.kOff)
 
         
 class DigitalModule(_WPILibObject):
@@ -425,6 +444,7 @@ class DigitalInput(_WPILibObject):
         DigitalModule._add_io( channel, self )
         self._value = 0
         self.channel = channel
+        self._update_fn = None
     
     def Get(self):
         return self.value
@@ -444,6 +464,9 @@ class DigitalInput(_WPILibObject):
             self._value = 1
         else:
             self._value = 0
+            
+        if self._update_fn:
+            self._update_fn()
      
      
 class DigitalOutput(_WPILibObject):
@@ -505,6 +528,7 @@ class DriverStation(object):
             self.lock = _WPILibObject._sim_lock
         
             self.battery = AnalogChannel(DriverStation.kBatteryChannel)
+            self.battery._parent = self
         
             # TODO: Need to sync this with the enhanced I/O
             self.digital_in = [ False, False, False, False, False, False, False, False ]
@@ -1077,21 +1101,38 @@ class Relay(_WPILibObject):
         self.on = False
         self.forward = False
         self.value = Relay.kOff
+        self.direction = direction
         
     def Set(self, value):
         
         self.value = value
         
-        if value == Relay.kOff or value == Relay.kReverse:
+        if value == Relay.kOff:
             self.forward = False
             self.on = False
             
-        elif value == Relay.kOn or value == Relay.kForward:
+        elif value == Relay.kOn:
             self.forward = True
             self.on = True
             
+        elif value == Relay.kReverse:
+            
+            if self.direction == Relay.kForwardOnly:
+                raise ValueError("Cannot set a forward only relay in a reverse direction")
+            
+            self.forward = False
+            self.on = True
+            
+        elif value == Relay.kForward:
+            
+            if self.direction == Relay.kReverseOnly:
+                raise ValueError("Cannot set a reverse only relay in a forward direction")
+            
+            self.forward = True
+            self.on = True
+        
         else:
-            raise RuntimeError( 'Invalid value %s passed to Relay.Set' % str(value) )
+            raise RuntimeError( 'Invalid value "%s" passed to Relay.Set' % str(value) )
             
             
 class Servo(_WPILibObject):
