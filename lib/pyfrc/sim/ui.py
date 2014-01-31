@@ -204,16 +204,19 @@ class SimUI(object):
         
         row = len(self.can)
         
+        lbl = tk.Label(self.can_slot, text=str(canId))
+        lbl.grid(column=0, row=row)
+        
         motor = ValueWidget(self.can_slot, default=0.0)
-        motor.grid(column=0, row=row)
+        motor.grid(column=1, row=row)
         
         flvar = tk.IntVar()
         fl = tk.Checkbutton(self.can_slot, text='F', variable=flvar)
-        fl.grid(column=1, row=row)
+        fl.grid(column=2, row=row)
         
         rlvar = tk.IntVar()
         rl = tk.Checkbutton(self.can_slot, text='R', variable=rlvar)
-        rl.grid(column=2, row=row)
+        rl.grid(column=3, row=row)
         
         Tooltip.create(motor, device.__class__.__name__)
         Tooltip.create(fl, 'Forward limit switch')
@@ -316,7 +319,7 @@ class SimUI(object):
             if len(self.can) != len(_core.CAN._devices):
                 existing = list(self.can.keys())
                 
-                for k, v in _core.CAN._devices.items():
+                for k, v in sorted(_core.CAN._devices.items()):
                     if k in existing:
                         continue
                     
