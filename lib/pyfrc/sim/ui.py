@@ -112,6 +112,19 @@ class SimUI(object):
             pi = PanelIndicator(slot, clickable=True)
             pi.grid(column=5, row=i-7)
             self.dio.append(pi)
+            
+        label = tk.Label(slot, text='Relay')
+        label.grid(column=6, columnspan=2, row=0, padx=5)
+        self.relays = []
+        
+        for i in range(1, 9):
+            label = tk.Label(slot, text=str(i))
+            label.grid(column=6, row=i, sticky=tk.E)
+            
+            pi = PanelIndicator(slot)
+            pi.grid(column=7, row=i)
+            self.relays.append(pi)
+            
         
         slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
             
@@ -273,8 +286,7 @@ class SimUI(object):
                 if ch is None:
                     analog.set_disabled()
                 else:
-                    if not hasattr(analog, 'has_tooltip'):
-                        Tooltip.create(analog, ch.__class__.__name__)
+                    self._set_tooltip(analog, ch)
                     
                     ret = analog.sync_value(ch.value)
                     if ret is not None:
@@ -286,8 +298,7 @@ class SimUI(object):
                 if ch is None:
                     dio.set_disabled()
                 else:
-                    if not hasattr(dio, 'has_tooltip'):
-                        Tooltip.create(dio, ch.__class__.__name__)
+                    self._set_tooltip(dio, ch)
                     
                     # determine which one changed, and set the appropriate one
                     ret = dio.sync_value(ch.value)
@@ -299,9 +310,22 @@ class SimUI(object):
                 if ch is None:
                     pwm.set_disabled()
                 else:
-                    if not hasattr(pwm, 'has_tooltip'):
-                        Tooltip.create(pwm, ch.__class__.__name__)
+                    self._set_tooltip(pwm, ch)
                     pwm.set_value(ch.value)
+                    
+            for i, ch in enumerate(_core.DigitalModule._relays):
+                relay = self.relays[i]
+                if ch is None:
+                    relay.set_disabled()
+                else:
+                    self._set_tooltip(relay, ch)
+                    
+                    if not ch.on:
+                        relay.set_off()
+                    elif ch.forward:
+                        relay.set_on()
+                    else:
+                        relay.set_back()
             
             # solenoid
             for i, ch in enumerate(_core.Solenoid._channels):
@@ -309,8 +333,7 @@ class SimUI(object):
                 if ch is None:
                     sol.set_disabled()
                 else:
-                    if not hasattr(sol, 'has_tooltip'):
-                        Tooltip.create(sol, ch.__class__.__name__)
+                    self._set_tooltip(sol, ch)
                     sol.set_value(ch.value)
             
             # CAN
@@ -322,10 +345,8 @@ class SimUI(object):
                 for k, v in sorted(_core.CAN._devices.items()):
                     if k in existing:
                         continue
-                    
                     self._add_CAN(k, v)
                     
-            
             for k, (motor, fl, rl) in self.can.items():
                 can = _core.CAN._devices[k]
                 
@@ -344,6 +365,14 @@ class SimUI(object):
             
                 for j, button in enumerate(buttons):
                     stick_buttons[i][j] = True if button.get() else False
+    
+        
+    def _set_tooltip(self, widget, obj):
+        if not hasattr(widget, 'has_tooltip'):
+            # only show the parent object, otherwise the tip is confusing
+            while hasattr(obj, '_parent'):
+                obj = obj._parent
+            Tooltip.create(widget, obj.__class__.__name__)
         
     def on_robot_mode_change(self, mode):
         self.mode.set(mode)

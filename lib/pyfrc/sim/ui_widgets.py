@@ -135,6 +135,10 @@ class PanelIndicator(tk.Frame):
     def set_off(self):
         self.canvas.itemconfig(self.light, fill='#008800')
         self.value = False
+        
+    def set_back(self):
+        self.canvas.itemconfig(self.light, fill='#FF0000')
+        self.value = -1
     
     def set_disabled(self):
         self.canvas.itemconfig(self.light, fill='#aaaaaa')
