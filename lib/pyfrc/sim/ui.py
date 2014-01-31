@@ -13,6 +13,7 @@ except ImportError:
     
 import queue
 
+from ..version import __version__
 from ..wpilib._wpilib import _core
 
 from .ui_widgets import PanelIndicator, Tooltip, ValueWidget
@@ -32,7 +33,7 @@ class SimUI(object):
         self.manager = manager
         
         self.root = tk.Tk()
-        self.root.wm_title("pyfrc Robot Simulator")
+        self.root.wm_title("PyFRC Robot Simulator v%s" % __version__)
         
         # setup mode switch
         frame = tk.Frame(self.root)
