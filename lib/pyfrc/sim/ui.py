@@ -191,6 +191,7 @@ class SimUI(object):
             
         # simulation control
         sim = tk.LabelFrame(bottom, text='Robot')
+        self.state_buttons = []
         
         button = tk.Button(sim, text='Stop')
         button = tk.Button(sim, text='Step')
@@ -203,13 +204,19 @@ class SimUI(object):
         button = tk.Radiobutton(sim, text='Disabled', variable=self.mode, \
                                 value=self.manager.MODE_DISABLED, command=_set_mode)
         button.pack(fill=tk.X)
+        self.state_buttons.append(button)
+        
         button = tk.Radiobutton(sim, text='Autonomous', variable=self.mode, \
                                 value=self.manager.MODE_AUTONOMOUS, command=_set_mode)
         button.pack(fill=tk.X)
+        self.state_buttons.append(button)
+        
         button = tk.Radiobutton(sim, text='Teleoperated', variable=self.mode, \
                                 value=self.manager.MODE_OPERATOR_CONTROL, command=_set_mode)
         button.pack(fill=tk.X)
+        self.state_buttons.append(button)
         
+        self.robot_dead = tk.Label(sim, text='Robot died!', fg='red')
         
         sim.pack(side=tk.LEFT, fill=tk.Y)
      
@@ -376,3 +383,9 @@ class SimUI(object):
         
     def on_robot_mode_change(self, mode):
         self.mode.set(mode)
+        
+        if not self.manager.is_alive():
+            for button in self.state_buttons:
+                button.config(state=tk.DISABLED)
+                
+            self.robot_dead.pack()
