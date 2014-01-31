@@ -184,6 +184,7 @@ class Tooltip(object):
     @staticmethod
     def create(widget, text):
         toolTip = Tooltip(widget)
+        widget.has_tooltip = True
         def enter(event):
             toolTip.showtip(text)
         def leave(event):

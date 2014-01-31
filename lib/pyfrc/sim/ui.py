@@ -199,7 +199,7 @@ class SimUI(object):
         
         sim.pack(side=tk.LEFT, fill=tk.Y)
      
-    def _add_CAN(self, device):
+    def _add_CAN(self, canId, device):
         
         row = len(self.can)
         
@@ -214,10 +214,11 @@ class SimUI(object):
         rl = tk.Checkbutton(self.can_slot, text='R', variable=rlvar)
         rl.grid(column=2, row=row)
         
+        Tooltip.create(motor, device.__class__.__name__)
         Tooltip.create(fl, 'Forward limit switch')
         Tooltip.create(rl, 'Reverse limit switch')
         
-        self.can[device] = (motor, flvar, rlvar)
+        self.can[canId] = (motor, flvar, rlvar)
         
     def idle_add(self, callable, *args):
         '''Call this with a function as the argument, and that function
@@ -264,35 +265,49 @@ class SimUI(object):
             # -> TODO: voltage and value should be the same?
             
             for i, ch in enumerate(_core.AnalogModule._channels):
+                analog = self.analog[i]
                 if ch is None:
-                    self.analog[i].set_disabled()
+                    analog.set_disabled()
                 else:
-                    ret = self.analog[i].sync_value(ch.value)
+                    if not hasattr(analog, 'has_tooltip'):
+                        Tooltip.create(analog, ch.__class__.__name__)
+                    
+                    ret = analog.sync_value(ch.value)
                     if ret is not None:
                         ch.value = ret
             
             # digital module
             for i, ch in enumerate(_core.DigitalModule._io):
+                dio = self.dio[i]
                 if ch is None:
-                    self.dio[i].set_disabled()
+                    dio.set_disabled()
                 else:
+                    if not hasattr(dio, 'has_tooltip'):
+                        Tooltip.create(dio, ch.__class__.__name__)
+                    
                     # determine which one changed, and set the appropriate one
-                    ret = self.dio[i].sync_value(ch.value)
+                    ret = dio.sync_value(ch.value)
                     if ret is not None:
                         ch.value = ret
             
             for i, ch in enumerate(_core.DigitalModule._pwm):
+                pwm = self.pwm[i]
                 if ch is None:
-                    self.pwm[i].set_disabled()
+                    pwm.set_disabled()
                 else:
-                    self.pwm[i].set_value(ch.value)
+                    if not hasattr(pwm, 'has_tooltip'):
+                        Tooltip.create(pwm, ch.__class__.__name__)
+                    pwm.set_value(ch.value)
             
             # solenoid
             for i, ch in enumerate(_core.Solenoid._channels):
+                sol = self.solenoids[i]
                 if ch is None:
-                    self.solenoids[i].set_disabled()
+                    sol.set_disabled()
                 else:
-                    self.solenoids[i].set_value(ch.value)
+                    if not hasattr(sol, 'has_tooltip'):
+                        Tooltip.create(sol, ch.__class__.__name__)
+                    sol.set_value(ch.value)
             
             # CAN
             
@@ -304,7 +319,7 @@ class SimUI(object):
                     if k in existing:
                         continue
                     
-                    self._add_CAN(k)
+                    self._add_CAN(k, v)
                     
             
             for k, (motor, fl, rl) in self.can.items():
