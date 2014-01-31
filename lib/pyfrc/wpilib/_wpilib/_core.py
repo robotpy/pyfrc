@@ -783,10 +783,10 @@ class Joystick(GenericHID):
         return self.GetRawAxis(self.axes[Joystick.kThrottleAxis])
         
     def GetTop(self):
-        return self.GetRawButton(Joystick.kTopButton)
+        return self.GetRawButton(Joystick.kDefaultTopButton)
         
     def GetTrigger(self):
-        return self.GetRawButton(Joystick.kTriggerButton)
+        return self.GetRawButton(Joystick.kDefaultTriggerButton)
         
     def GetTwist(self):
         return self.GetRawAxis(self.axes[Joystick.kTwistAxis])
@@ -829,7 +829,7 @@ class Joystick(GenericHID):
             
     def _get_button(self, number):
         with self._ds.lock:
-            return self._ds.stick_buttons[self.port-1][number]
+            return self._ds.stick_buttons[self.port-1][number-1]
         
     def _set_button(self, number, value):
         with self._ds.lock:
