@@ -15,7 +15,7 @@ import queue
 
 from ..wpilib._wpilib import _core
 
-from .ui_widgets import PanelIndicator, ValueWidget
+from .ui_widgets import PanelIndicator, Tooltip, ValueWidget
 
 
 class SimUI(object):
@@ -163,6 +163,11 @@ class SimUI(object):
                 ck = tk.Checkbutton(slot, text=str(j), variable=var)
                 ck.grid(column=col+1+(1-j%2), row=5 + int((j - 1) / 2))
                 buttons.append(var)
+                
+                if j == 1:
+                    Tooltip.create(ck, 'Trigger')
+                elif j == 2:
+                    Tooltip.create(ck, 'Top')
                 
             self.joysticks.append((axes, buttons))
             
