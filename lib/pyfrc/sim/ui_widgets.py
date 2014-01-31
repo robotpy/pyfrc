@@ -31,6 +31,9 @@ class ValueWidget(tk.Frame):
         
     def _on_mouse(self, event):
         
+        if self.value is None:
+            return
+        
         # TODO: this needs to be better.. 
         self.updated = True
         
@@ -56,6 +59,7 @@ class ValueWidget(tk.Frame):
     def set_disabled(self):
         self.canvas.itemconfig(self.text, text='--')
         self.canvas.itemconfig(self.box, state=tk.HIDDEN)
+        self.value = None
         
     def sync_value(self, value):
         if self.updated:
@@ -95,7 +99,7 @@ class PanelIndicator(tk.Frame):
         super().__init__(master)
         
         self.updated = False
-        self.value = False
+        self.value = None
         
         self.canvas = tk.Canvas(self, width=width, height=height)
         self.light = self.canvas.create_oval(2, 2, 18, 18, fill='#aaaaaa')
@@ -106,6 +110,8 @@ class PanelIndicator(tk.Frame):
             self.canvas.bind("<Button 1>", self._on_mouse)
             
     def _on_mouse(self, event):
+        if self.value is None:
+            return
         self.updated = True
         self.set_value(not self.value)
         
@@ -132,6 +138,7 @@ class PanelIndicator(tk.Frame):
     
     def set_disabled(self):
         self.canvas.itemconfig(self.light, fill='#aaaaaa')
+        self.value = None
 
 #
 # from http://www.voidspace.org.uk/python/weblog/arch_d7_2006_07_01.shtml#e387
