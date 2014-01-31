@@ -1153,6 +1153,20 @@ class Solenoid(_WPILibObject):
     def Set(self, value):
         self.value = value
 
+
+class Talon(SpeedController):
+
+    def __init__(self, channel):
+        SpeedController.__init__(self)
+        DigitalModule._add_pwm( channel, self )
+        self.value = 0
+        
+    def Get(self):
+        return self.value
+        
+    def Set(self, value, syncGroup=0):
+        self.value = value
+        
         
 class Ultrasonic(_WPILibObject):
 
