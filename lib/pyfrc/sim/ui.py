@@ -372,7 +372,7 @@ class SimUI(object):
             # only show the parent object, otherwise the tip is confusing
             while hasattr(obj, '_parent'):
                 obj = obj._parent
-            Tooltip.create(widget, obj.__class__.__name__)
+            Tooltip.create(widget, obj.__class__.__name__.strip('_'))
         
     def on_robot_mode_change(self, mode):
         self.mode.set(mode)
