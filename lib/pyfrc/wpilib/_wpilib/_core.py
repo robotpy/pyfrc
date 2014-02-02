@@ -142,6 +142,9 @@ class AnalogModule(_WPILibObject):
     
     @staticmethod
     def _add_channel(channel, item):
+        if channel < 1 or channel > len(AnalogModule._channels):
+            raise RuntimeError("Invalid analog channel number %s when creating %s" % (channel, item))
+            
         if AnalogModule._channels[channel-1] is not None:
             raise RuntimeError( "Error inserting %s, %s already at channel %s" % 
                                (item, AnalogModule._channels[channel-1], channel ))
@@ -399,6 +402,9 @@ class DigitalModule(_WPILibObject):
     
     @staticmethod
     def _add_io(channel, item):
+        if channel < 1 or channel > len(DigitalModule._io):
+            raise RuntimeError("Invalid digital channel number %s when creating %s" % (channel, item))
+        
         if DigitalModule._io[channel-1] is not None:
             raise RuntimeError( "Error inserting %s, %s already at channel %s" % 
                                (item, DigitalModule._io[channel-1], channel ))
@@ -406,6 +412,9 @@ class DigitalModule(_WPILibObject):
         
     @staticmethod
     def _add_pwm(channel, item):
+        if channel < 1 or channel > len(DigitalModule._pwm):
+            raise RuntimeError("Invalid pwm number %s when creating %s" % (channel, item))
+        
         if DigitalModule._pwm[channel-1] is not None:
             raise RuntimeError( "Error inserting %s, %s already at channel %s" % 
                                (item, DigitalModule._pwm[channel-1], channel ))
@@ -413,6 +422,9 @@ class DigitalModule(_WPILibObject):
         
     @staticmethod
     def _add_relay(channel, item):
+        if channel < 1 or channel > len(DigitalModule._relays):
+            raise RuntimeError("Invalid relay number %s when creating %s" % (channel, item))
+        
         if DigitalModule._relays[channel-1] is not None:
             raise RuntimeError( "Error inserting %s, %s already at channel %s" % 
                                (item, DigitalModule._relays[channel-1], channel ))
@@ -761,6 +773,10 @@ class Joystick(GenericHID):
     kNumButtonTypes = 2
     
     def __init__(self, port):
+        
+        if port < 1 or port > DriverStation.kJoystickPorts:
+            raise RuntimeError("Invalid joystick port %s" % port)
+        
         self.port = port
         self._ds = DriverStation.GetInstance()
         
@@ -1180,6 +1196,9 @@ class Solenoid(_WPILibObject):
         Solenoid._channels = [None]*8
     
     def __init__(self, channel):
+        
+        if channel < 1 or channel > len(Solenoid._channels):
+            raise RuntimeError("Invalid solenoid channel number %s" % (channel))
         
         if Solenoid._channels[channel-1] is not None:
             raise RuntimeError( "Error inserting Solenoid, %s already at channel %s" % 
