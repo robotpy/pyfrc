@@ -506,6 +506,40 @@ class DigitalOutput(_WPILibObject):
             self._value = 1
         else:
             self._value = 0
+            
+            
+class DoubleSolenoid(_WPILibObject):
+    
+    kOff = 0
+    kForward = 1
+    kReverse = 2
+    
+    def __init__(self, forwardChannel, reverseChannel):
+        self._forward = Solenoid(forwardChannel)
+        self._reverse = Solenoid(reverseChannel)
+    
+    def Get(self, value):
+        if self._forward.Get():
+            return DoubleSolenoid.kForward
+        elif self._reverse.Get():
+            return DoubleSolenoid.kReverse
+        else:
+            return DoubleSolenoid.kOff
+    
+    def Set(self, value):
+        if value == DoubleSolenoid.kForward:
+            self._forward.Set(True)
+            self._reverse.Set(False)
+        elif value == DoubleSolenoid.kReverse:
+            self._forward.Set(False)
+            self._reverse.Set(True)
+        elif value == DoubleSolenoid.kOff:
+            self._forward.Set(False)
+            self._reverse.Set(False)
+        else:
+            raise ValueError("Invalid value '%s' passed to DoubleSolenoid.Set()" % value)
+            
+    
 
 class DriverStation(object):
     
