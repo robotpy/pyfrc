@@ -6,7 +6,6 @@
 
 try:
     import tkinter as tk
-    import tkinter.ttk as ttk
 except ImportError:
     print("pyfrc robot simulation requires python tkinter support to be installed")
     raise
@@ -52,6 +51,7 @@ class SimUI(object):
         
         # connect to the controller
         self.manager.on_mode_change(lambda mode: self.idle_add(self.on_robot_mode_change, mode))
+        self.on_robot_mode_change(self.manager.get_mode())
         
         self.timer_fired()
         
@@ -176,7 +176,7 @@ class SimUI(object):
                 var = tk.IntVar()
                 ck = tk.Checkbutton(slot, text=str(j), variable=var)
                 ck.grid(column=col+1+(1-j%2), row=5 + int((j - 1) / 2))
-                buttons.append(var)
+                buttons.append((ck, var))
                 
                 if j == 1:
                     Tooltip.create(ck, 'Trigger')
@@ -370,8 +370,8 @@ class SimUI(object):
                 for j, ax in enumerate(axes):
                     sticks[i][j+1] = ax.get_value() 
             
-                for j, button in enumerate(buttons):
-                    stick_buttons[i][j] = True if button.get() else False
+                for j, (ck, var) in enumerate(buttons):
+                    stick_buttons[i][j] = True if var.get() else False
     
         
     def _set_tooltip(self, widget, obj):
@@ -380,9 +380,21 @@ class SimUI(object):
             while hasattr(obj, '_parent'):
                 obj = obj._parent
             Tooltip.create(widget, obj.__class__.__name__.strip('_'))
-        
+            
     def on_robot_mode_change(self, mode):
         self.mode.set(mode)
+        
+        # this is not strictly true... a robot can actually receive joystick
+        # commands from the driver station in disabled mode. However, most 
+        # people aren't going to use that functionality... 
+        controls_disabled = False if mode == self.manager.MODE_OPERATOR_CONTROL else True 
+        state = tk.DISABLED if controls_disabled else tk.NORMAL
+        
+        for axes, buttons in self.joysticks:
+            for axis in axes:
+                axis.set_disabled(disabled=controls_disabled)
+            for ck, var in buttons:
+                ck.config(state=state)
         
         if not self.manager.is_alive():
             for button in self.state_buttons:

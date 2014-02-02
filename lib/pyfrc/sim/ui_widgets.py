@@ -23,6 +23,8 @@ class ValueWidget(tk.Frame):
             self.canvas.bind("<Button 1>", self._on_mouse)
         
         self.updated = False
+        self.disabled = False
+        self.value = 0.0
         
         if default is None:
             self.set_disabled()
@@ -31,7 +33,7 @@ class ValueWidget(tk.Frame):
         
     def _on_mouse(self, event):
         
-        if self.value is None:
+        if self.disabled:
             return
         
         # TODO: this needs to be better.. 
@@ -56,10 +58,15 @@ class ValueWidget(tk.Frame):
     # Public interface
     #
     
-    def set_disabled(self):
-        self.canvas.itemconfig(self.text, text='--')
-        self.canvas.itemconfig(self.box, state=tk.HIDDEN)
-        self.value = None
+    def set_disabled(self, disabled=True):
+        self.disabled = disabled
+        
+        if disabled:
+            self.canvas.itemconfig(self.text, text='--')
+            self.canvas.itemconfig(self.box, state=tk.HIDDEN)
+        else:
+            self.set_value(self.value)
+        
         
     def sync_value(self, value):
         if self.updated:
