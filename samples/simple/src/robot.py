@@ -14,6 +14,9 @@ class MyRobot(wpilib.SimpleRobot):
         
         self.lstick = wpilib.Joystick(1)
         self.motor = wpilib.CANJaguar(8)
+        self.ds = wpilib.DriverStation.GetInstance()
+        
+        print(wpilib.SmartDashboard)
 
     def Autonomous(self):
         '''Called when autonomous mode is enabled'''
@@ -29,11 +32,17 @@ class MyRobot(wpilib.SimpleRobot):
         dog.SetEnabled(True)
         dog.SetExpiration(0.25)
 
+        timer = wpilib.Timer()
+        timer.Start()
+
         while self.IsOperatorControl() and self.IsEnabled():
             dog.Feed()
 
             # Move a motor with a Joystick
             self.motor.Set(self.lstick.GetY())
+
+            if timer.HasPeriodPassed(1.0):
+                print("Analog 8: %s" % self.ds.battery.GetVoltage())
 
             wpilib.Wait(0.04)
 
