@@ -34,7 +34,7 @@ class FuzzTestController(object):
             buttons = [ 0.0 ] * 16
             self.sticks.append( (axes, buttons) )
             
-        self.digital_inputs = [0]*16
+        self.digital_inputs = [0]*14
         self.analog_channels = [0]*8
         
     def _fuzz_bool(self, tm, i, dst, tms):
