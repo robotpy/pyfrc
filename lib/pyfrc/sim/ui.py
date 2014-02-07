@@ -72,7 +72,7 @@ class SimUI(object):
             label = tk.Label(slot, text=str(i))
             label.grid(column=0, row=i)
             
-            vw = ValueWidget(slot, clickable=True)
+            vw = ValueWidget(slot, width=120, clickable=True, minval=-10.0, maxval=10.0)
             vw.grid(column=1, row=i)
             self.analog.append(vw)
         
@@ -293,11 +293,9 @@ class SimUI(object):
                 if ch is None:
                     analog.set_disabled()
                 else:
+                    analog.set_disabled(False)
                     self._set_tooltip(analog, ch)
-                    
-                    ret = analog.sync_value(ch.value)
-                    if ret is not None:
-                        ch.value = ret
+                    ch.voltage = analog.get_value()
             
             # digital module
             for i, ch in enumerate(_core.DigitalModule._io):

@@ -5,7 +5,7 @@ import tkinter as tk
 # user drawable widget for tk
 class ValueWidget(tk.Frame):
     
-    def __init__(self, master, width=80, height=20, clickable=False, default=None):
+    def __init__(self, master, width=80, height=20, clickable=False, default=None, minval=-1.0, maxval=1.0):
         
         super().__init__(master)
         
@@ -24,6 +24,9 @@ class ValueWidget(tk.Frame):
         
         self.updated = False
         self.disabled = False
+        
+        self.minval = minval
+        self.maxval = maxval
         self.value = 0.0
         
         if default is None:
@@ -48,9 +51,8 @@ class ValueWidget(tk.Frame):
             value = event.x - 5
         
         # normalize it
-        value = 2.0 * (value - (self.w - 10)/2.0) / (self.w - 10) 
-        value = min(max(-1.0, value), 1.0)
-        
+        vrange = self.maxval - self.minval
+        value = vrange * (value - (self.w - vrange)/2.0) / (self.w - 10)      
         self.set_value(value)
     
     
@@ -59,6 +61,10 @@ class ValueWidget(tk.Frame):
     #
     
     def set_disabled(self, disabled=True):
+        
+        if self.disabled == disabled:
+            return
+        
         self.disabled = disabled
         
         if disabled:
@@ -77,16 +83,17 @@ class ValueWidget(tk.Frame):
     
     def set_value(self, value):
         
-        value = float(min(max(value, -1.0), 1.0))
+        value = float(min(max(value, self.minval), self.maxval))
         
+        vrange = (self.maxval - self.minval)/2.0
         if value < 0:
             color = '#ff0000'
             x2 = int(self.w / 2)
-            x1 = x2 - (abs(value) * x2) 
+            x1 = x2 - (abs(value) * x2)/vrange 
         else:
             color = '#00ff00'
             x1 = int(self.w / 2)
-            x2 = x1 + (abs(value)) * x1
+            x2 = x1 + (abs(value)) * x1/vrange
             
         self.canvas.itemconfig(self.text, text='%.2f' % value)
         self.canvas.itemconfig(self.box, state=tk.NORMAL, fill=color)
