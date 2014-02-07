@@ -56,3 +56,6 @@ def run():
         from .cli import cli_sim
         cli_sim.run(run_fn, file_location)
 
+    elif arg1 == 'netsim':
+        from .cli import cli_sim
+        cli_sim.run(run_fn, file_location, True)

@@ -42,8 +42,8 @@ def GetWatchdog():
     return Watchdog.GetInstance()
 
 def _StartCompetition(self):
-    from .._wpilib import SmartDashboard
-    SmartDashboard.init()
+    from ... import wpilib
+    wpilib.SmartDashboard.init()
     self._sr_competition_started = True
 
     

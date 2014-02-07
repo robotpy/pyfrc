@@ -121,6 +121,15 @@ in real time and displays the results in a (ugly) user interface. To run
 the simulator, run your robot.py with the following arguments:
 
     $ python3 robot.py sim
+    
+If you wish to run so that your simulator can connect to the SmartDashboard,
+if you have pynetworktables installed you can run the following:
+
+	$ python3 robot.py netsim
+
+Or you can use this instead:
+
+    $ python3 robot.py sim --enable-pynetworktables
 
 As there is interest, I will add more features to the simulator.
 
@@ -131,7 +140,9 @@ Implementation Notes
 SmartDashboard/NetworkTables support
 ------------------------------------
 
-TODO
+The implementation of wpilib contained with pyfrc has a 'fake' implementation
+of SmartDashboard/NetworkTables within it. The simulator functionality can
+also use pynetworktables as the NetworkTables base when instructed.
 
 Internals
 ---------

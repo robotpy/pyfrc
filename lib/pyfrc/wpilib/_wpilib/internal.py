@@ -50,6 +50,32 @@ def set_test_controller(controller_cls):
 #
 #################################################  
 
+def setup_networktables(enable_pynetworktables=False):
+    
+    if enable_pynetworktables:
+        try:
+            import pynetworktables as sdimpl
+        except ImportError:
+            print("pynetworktables does not appear to be installed!", file=sys.stderr)
+            raise
+        
+        try:
+            print("Using pynetworktables %s" % (sdimpl.__version__) )
+        except AttributeError:
+            print("WARNING: You are using an old version of pynetworktables!")
+    
+    else:
+        
+        from . import _smart_dashboard as sdimpl
+        
+        
+    # copy the class objects over to wpilib
+    from ... import wpilib
+    
+    for name, cls in inspect.getmembers(sdimpl, inspect.isclass):
+        setattr(wpilib, name, cls)
+        
+
 def initialize_test():
     '''Resets all wpilib globals'''
     

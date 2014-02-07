@@ -88,5 +88,7 @@ def run(run_fn, file_location, ignore_missing_test=False):
     
     os.chdir(test_directory)
     
+    wpilib.internal.setup_networktables()
+    
     return pytest.main(sys.argv[1:], plugins=[PyFrcPlugin(file_location, run_fn)])
 
