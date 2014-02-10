@@ -22,6 +22,9 @@ class FakeTime(object):
         
     def IncrementTimeBy(self, time):
     
+        if time < 0:
+            time = 0
+        
         final_time = self.time + time
         
         if len(self.notifiers) > 0:
@@ -192,7 +195,7 @@ class Timer(object):
         '''
     
         if self.running:
-            self.accumulated_time += self.Get()
+            self.accumulated_time = self.Get()
             self.running = False
     
     
