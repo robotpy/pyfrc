@@ -13,7 +13,7 @@ except ImportError:
 import queue
 
 from ..version import __version__
-from ..wpilib._wpilib import _core
+from ..wpilib._wpilib import _core, _fake_time
 
 from .ui_widgets import PanelIndicator, Tooltip, ValueWidget
 
@@ -43,7 +43,7 @@ class SimUI(object):
         self.root.resizable(width=0, height=0)
         
         
-        
+        self.mode_start_tm = 0
         self.text_id = None
         
         # Set up idle_add
@@ -60,9 +60,13 @@ class SimUI(object):
         
         top = tk.Frame(frame)
         top.pack(side=tk.TOP, fill=tk.X)
-        
+                
         bottom = tk.Frame(frame)
-        bottom.pack(side=tk.BOTTOM, fill=tk.X)
+        bottom.pack(fill=tk.X)
+        
+        # status bar
+        self.status = tk.Label(frame, bd=1, relief=tk.SUNKEN, anchor=tk.E)
+        self.status.pack(fill=tk.X)
         
         # analog
         slot = tk.LabelFrame(top, text='Analog')
@@ -192,10 +196,7 @@ class SimUI(object):
         # simulation control
         sim = tk.LabelFrame(bottom, text='Robot')
         self.state_buttons = []
-        
-        button = tk.Button(sim, text='Stop')
-        button = tk.Button(sim, text='Step')
-        
+                
         self.mode = tk.IntVar()
         
         def _set_mode():
@@ -219,6 +220,43 @@ class SimUI(object):
         self.robot_dead = tk.Label(sim, text='Robot died!', fg='red')
         
         sim.pack(side=tk.LEFT, fill=tk.Y)
+        
+        # timing control
+        control = tk.LabelFrame(bottom, text='Time')
+        
+        #self.
+        
+        def _set_realtime():
+            if realtime_mode.get() == 0:
+                step_button.pack_forget()
+                step_entry.pack_forget()
+                self.on_pause(False)
+            else:
+                step_button.pack(fill=tk.X)
+                step_entry.pack()
+                self.on_pause(True)
+                
+        
+        realtime_mode = tk.IntVar()
+        
+        button = tk.Radiobutton(control, text='Run', variable=realtime_mode,
+                                value=0, command=_set_realtime)
+        button.pack(fill=tk.X)
+        
+        button = tk.Radiobutton(control, text='Pause', variable=realtime_mode,
+                                value=1, command=_set_realtime)
+        button.pack(fill=tk.X)
+        
+        step_button = tk.Button(control, text='Step', command=self.on_step_time)
+        self.step_entry = tk.StringVar()
+        self.step_entry.set("0.025")
+        step_entry = tk.Entry(control, width=6, textvariable=self.step_entry)
+        
+        Tooltip.create(step_button, 'Click this to increment time by the step value')
+        Tooltip.create(step_entry, 'Time to step (in seconds)')
+        realtime_mode.set(0)
+        
+        control.pack(side=tk.LEFT, fill=tk.Y)
      
     def _add_CAN(self, canId, device):
         
@@ -370,6 +408,12 @@ class SimUI(object):
             
                 for j, (ck, var) in enumerate(buttons):
                     stick_buttons[i][j] = True if var.get() else False
+            
+            tm = _fake_time.FAKETIME.Get()
+            mode_tm = tm - self.mode_start_tm
+            
+            self.status.config(text="Time: %.03f mode, %.03f total" % (mode_tm, tm))
+            
     
         
     def _set_tooltip(self, widget, obj):
@@ -381,6 +425,8 @@ class SimUI(object):
             
     def on_robot_mode_change(self, mode):
         self.mode.set(mode)
+        
+        self.mode_start_tm = _fake_time.FAKETIME.Get()
         
         # this is not strictly true... a robot can actually receive joystick
         # commands from the driver station in disabled mode. However, most 
@@ -399,3 +445,27 @@ class SimUI(object):
                 button.config(state=tk.DISABLED)
                 
             self.robot_dead.pack()
+            
+    #
+    # Time related callbacks
+    #
+            
+    def on_pause(self, pause):
+        print("Pause")
+        if pause:
+            _fake_time.FAKETIME.Pause()
+        else:
+            _fake_time.FAKETIME.Resume()
+
+    def on_step_time(self):
+        val = self.step_entry.get()
+        try:
+            tm = float(self.step_entry.get())
+        except ValueError:
+            tk.messagebox.showerror("Invalid step time", "'%s' is not a valid number" % val)
+            return
+            
+        if tm > 0:
+            _fake_time.FAKETIME.Resume(tm)
+        
+        

@@ -51,6 +51,9 @@ class RobotController(object):
             else:
                 self.mode = SimManager.MODE_DISABLED
         
+        # resume the robot just in case it's hung somewhere
+        _wpilib._fake_time.FAKETIME.Resume()
+        
         try:
             self.thread.join(timeout=5.0)
         except RuntimeError:
