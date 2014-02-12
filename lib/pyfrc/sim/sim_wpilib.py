@@ -43,7 +43,7 @@ class FakeRealTime(object):
         now = time.time()
         
         # normal usage
-        if secs is None:
+        if secs is None or self.pause_at is None:
             self.tm += (now - self.last_tm)
             self.last_tm = now
         else:
