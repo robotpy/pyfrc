@@ -575,6 +575,9 @@ class DriverStation(object):
         
             self.battery = AnalogChannel(DriverStation.kBatteryChannel)
             self.battery._parent = self
+            
+            # set default battery voltage
+            self.battery.voltage = 7.6
         
             # TODO: Need to sync this with the enhanced I/O
             self.digital_in = [ False, False, False, False, False, False, False, False ]
@@ -598,6 +601,9 @@ class DriverStation(object):
         def GetAlliance(self):
             with self.lock:
                 return self.alliance
+            
+        def GetBatteryVoltage(self):
+            return self.battery.GetAverageVoltage() * (1680.0 / 1000.0)
         
         def GetDigitalIn(self, number):
             with self.lock:

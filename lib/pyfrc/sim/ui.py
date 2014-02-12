@@ -78,6 +78,11 @@ class SimUI(object):
             
             vw = ValueWidget(slot, width=120, clickable=True, minval=-10.0, maxval=10.0)
             vw.grid(column=1, row=i)
+            
+            # driver station default voltage
+            if i == 8:
+                vw.set_value(7.6)
+            
             self.analog.append(vw)
         
         slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
