@@ -21,6 +21,7 @@ class ValueWidget(tk.Frame):
         
         if clickable:
             self.canvas.bind("<Button 1>", self._on_mouse)
+            self.canvas.bind("<Key>", self._on_key)
         
         self.updated = False
         self.disabled = False
@@ -33,10 +34,29 @@ class ValueWidget(tk.Frame):
             self.set_disabled()
         else:
             self.set_value(default)
+      
+    def _on_key(self, event):
+        if self.disabled:
+            return
+        
+        if event.keysym in ['Left', 'Down']:
+            self.set_value(self.value - 0.05)
+        
+        elif event.keysym in ['Right', 'Up']:
+            self.set_value(self.value + 0.05)
+            
+        elif event.keysym in [str(i) for i in range(0, 10)]:
+            self.set_value(int(event.keysym))
         
     def _on_mouse(self, event):
         
-        if self.disabled:
+        has_focus = False
+        if self.canvas.focus_get() == self.canvas:
+            has_focus = True
+        
+        self.canvas.focus_set()
+        
+        if self.disabled or not has_focus:
             return
         
         # TODO: this needs to be better.. 
