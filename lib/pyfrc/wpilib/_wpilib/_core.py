@@ -181,7 +181,7 @@ class AnalogChannel(_WPILibObject):
         return self.voltage
         
     def GetAverageVoltage(self):
-        return self.average_voltage
+        return self.voltage
         
     # TODO: Implement a sensible implementation for this
 
