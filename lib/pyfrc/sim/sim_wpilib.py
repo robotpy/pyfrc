@@ -103,7 +103,7 @@ class RealFakeWatchdog(object):
                     
                 was_alive = self.alive
                 self.alive = True
-                self.fed = time.time()
+                self.fed = _fake_time.FAKETIME.Get()
                 self.cv.notify()
             
             return was_alive
@@ -118,7 +118,7 @@ class RealFakeWatchdog(object):
             
         def GetTimer(self):
             with self.lock:
-                return time.time() - self.fed
+                return _fake_time.FAKETIME.Get() - self.fed
                 
         def IsAlive(self):
             with self.lock:
@@ -134,7 +134,7 @@ class RealFakeWatchdog(object):
             with self.lock:
                 self.enabled = bool(enabled)
                 self.alive = True
-                self.fed = time.time()
+                self.fed = _fake_time.FAKETIME.Get()
                 self.cv.notify()
         
         def SetExpiration(self, expiration):
@@ -142,7 +142,7 @@ class RealFakeWatchdog(object):
                 self.expiration = float(expiration)
                 if self.enabled:
                     self.alive = True
-                    self.fed = time.time()
+                    self.fed = _fake_time.FAKETIME.Get()
                 self.cv.notify()
         
         def _watcher_fn(self):
@@ -169,7 +169,7 @@ class RealFakeWatchdog(object):
                             break
                         
                         # check for hunger
-                        now = time.time()
+                        now = _fake_time.FAKETIME.Get()
                         period = now - self.fed
                         
                         if period > self.expiration:
