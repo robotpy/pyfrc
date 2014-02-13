@@ -219,6 +219,9 @@ class Timer(object):
     def GetPPCTimestamp():
         return FAKETIME.Get()
     
+    @staticmethod
+    def GetFPGATimestamp():
+        return FAKETIME.Get()
         
 def Wait(time):
     '''
