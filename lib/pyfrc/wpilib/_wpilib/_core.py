@@ -945,7 +945,10 @@ class RobotDrive(object):
         
         self.maxOutput = 1.0
         self.inverted = [1,1,1,1]
-        
+    
+    def StopMotor(self):
+        self._SetLeftRightMotorOutputs(0, 0)
+            
     def ArcadeDrive(self, *args, **kwargs):
         
         # parse the arguments first
