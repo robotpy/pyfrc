@@ -98,7 +98,7 @@ robot.py:
         return robot
         
     if __name__ == '__main__':
-        wpilib.run()
+        wpilib.run(min_version='2014.4.0')
 
 
 py.test unit testing integration support
@@ -115,6 +115,20 @@ To run the unit tests, just run your robot.py with the following arguments:
 
 For more information on how to write py.test tests, see the documentation
 at http://pytest.org , or refer to the samples directory for examples.
+
+test fixtures
+-------------
+
+If your test functions have any of the following arguments, then that
+argument will be an object as listed below:
+
+* control: the wpilib.internal module
+* fake_time: the module that controls time for wpilib, use Get() to retrieve the
+  current simulation time
+* robot: An instance of your robot class
+* robot_file: the filename your robot code is started from
+* robot_path: the directory that your robot is located
+* wpilib: the wpilib module
 
 
 robot simulator
@@ -135,7 +149,8 @@ Or you can use this instead:
 
     $ python3 robot.py sim --enable-pynetworktables
 
-As there is interest, I will add more features to the simulator.
+As there is interest, I will add more features to the simulator. Please feel
+free to improve it and submit pull requests!
 
 
 Implementation Notes
