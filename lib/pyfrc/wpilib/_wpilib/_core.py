@@ -388,6 +388,28 @@ class Compressor(_WPILibObject):
             self._relay.Set(Relay.kOn if self._dio.value else Relay.kOff)
 
         
+class Counter(_WPILibObject):
+    '''
+        TODO: Make this function as a genuine mock. It should
+        behave like a real Counter
+    '''
+
+    def SetUpSource(self, channel):
+        pass
+
+    def SetUpSourceEdge(self, risingEdge, fallingEdge):
+        pass
+
+    def Start(self):
+        pass
+
+    def Reset(self):
+        pass
+
+    def Get(self):
+        return 1
+
+
 class DigitalModule(_WPILibObject):
 
     _io = [None] * 16
