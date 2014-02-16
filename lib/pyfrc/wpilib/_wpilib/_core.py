@@ -518,7 +518,7 @@ class DoubleSolenoid(_WPILibObject):
         self._forward = Solenoid(forwardChannel)
         self._reverse = Solenoid(reverseChannel)
     
-    def Get(self, value):
+    def Get(self):
         if self._forward.Get():
             return DoubleSolenoid.kForward
         elif self._reverse.Get():
