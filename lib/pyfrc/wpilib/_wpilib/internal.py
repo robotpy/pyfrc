@@ -152,6 +152,11 @@ def IterativeRobotAutonomous(robot):
     
     while robot.IsEnabled() and robot.IsAutonomous():
         robot.AutonomousPeriodic()
+        
+        if robot._period > 0:
+            wpilib.Wait(robot._period)
+        else:
+            wpilib.Wait(0.20)
     
     
 def IterativeRobotDisabled(robot, loops):
