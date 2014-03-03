@@ -969,7 +969,7 @@ class RobotDrive(object):
         self.inverted = [1,1,1,1]
     
     def StopMotor(self):
-        self._SetLeftRightMotorOutputs(0, 0)
+        self.SetLeftRightMotorOutputs(0, 0)
             
     def ArcadeDrive(self, *args, **kwargs):
         
@@ -1056,7 +1056,7 @@ class RobotDrive(object):
                 leftMotorOutput = moveValue - rotateValue
                 rightMotorOutput = -max(-moveValue, -rotateValue)
         
-        self._SetLeftRightMotorOutputs(leftMotorOutput, rightMotorOutput)
+        self.SetLeftRightMotorOutputs(leftMotorOutput, rightMotorOutput)
         
     def MecanumDrive_Cartesian(self, x, y, rotation, gyroAngle=0.0):
         
@@ -1154,7 +1154,7 @@ class RobotDrive(object):
 
         return xOut, yOut
         
-    def _SetLeftRightMotorOutputs(self, leftOutput, rightOutput):
+    def SetLeftRightMotorOutputs(self, leftOutput, rightOutput):
         if self.lf_motor is not None:
             self.lf_motor.Set(self._Limit(leftOutput) * self.inverted[RobotDrive.kFrontLeftMotor] * self.maxOutput)
         self.lr_motor.Set(self._Limit(leftOutput) * self.inverted[RobotDrive.kRearLeftMotor] * self.maxOutput)
