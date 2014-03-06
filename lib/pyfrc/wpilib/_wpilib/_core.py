@@ -636,7 +636,7 @@ class DriverStation(object):
         
         def GetStickAxis(self, stick, axis):
             with self.lock:
-                return self.sticks[stick-1][axis]
+                return self.sticks[stick-1][axis-1]
             
         def GetStickButtons(self, stick):
             with self.lock:

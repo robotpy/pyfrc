@@ -4,7 +4,11 @@
 # provided as fixtures that will allow your tests to access the robot
 # code and stuff
 #
+#    control - the wpilib.internal module
+#    fake_time - the FAKETIME object that controls time
 #    robot - This is whatever is returned from the run function in robot.py
+#    robot_file - The filename of robot.py
+#    robot_path - The directory name that robot.py is located in
 #    wpilib - This is the wpilib module
 #
 
@@ -15,14 +19,26 @@
 # object is created each time
 #
 
-def test_autonomous(robot, wpilib):
+def test_autonomous(robot, wpilib, fake_time):
     
+    # run autonomous mode for 10 seconds
     wpilib.internal.enabled = True
+    wpilib.internal.on_IsAutonomous = lambda tm: tm < 10
+    
     wpilib.internal.IterativeRobotAutonomous(robot)
+    
+    # make sure autonomous mode ran for 10 seconds
+    assert int(fake_time.Get()) == 10
 
 
-def test_disabled(robot, wpilib):
+def test_disabled(robot, fake_time, wpilib):
+    
+    # run disabled mode for 5 seconds
+    wpilib.internal.on_IsEnabled = lambda: fake_time.Get() > 5.0 
     wpilib.internal.IterativeRobotDisabled(robot, 1000)
+    
+    # make sure disabled mode ran for 5 seconds
+    assert int(fake_time.Get()) == 5
 
 
 def test_operator_control(robot, wpilib):
@@ -47,7 +63,6 @@ def test_operator_control(robot, wpilib):
                 it matches the previous value that you set on the inputs, not the
                 current value.
             '''
-            print("loop", self.loop_count)
             self.loop_count += 1
             
             # motor value is equal to the previous value of the stick

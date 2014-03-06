@@ -3,8 +3,11 @@ import inspect
 import os
 import sys
 
+from .version import __version__
+from distutils.version import StrictVersion
 
-def run():
+
+def run(min_version=None):
     '''
         This function gets run from your robot code something like this:
         
@@ -17,7 +20,18 @@ def run():
         
         This will parse command line arguments, and allow the user to perform
         a number of different actions on the robot code.
+        
+        :param min_version:    Specify the minimum version of pyfrc required
+                               to run tests
     '''
+    
+    if min_version is not None:
+        pyfrc_version = StrictVersion(__version__)
+        min_version = StrictVersion(min_version)
+        
+        if pyfrc_version < min_version:
+            print("ERROR: robot code requires pyfrc %s or later (currently running %s)" % (min_version, pyfrc_version))
+            return 1
     
     if len(sys.argv) == 1:
         print("Usage: %s upload|test ...", file=sys.stderr)

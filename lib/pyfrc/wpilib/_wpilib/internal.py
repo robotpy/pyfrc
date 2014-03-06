@@ -74,7 +74,24 @@ def setup_networktables(enable_pynetworktables=False):
     
     for name, cls in inspect.getmembers(sdimpl, inspect.isclass):
         setattr(wpilib, name, cls)
-        
+
+
+def _default_isAutonomous(tm):
+    if enabled and on_IsEnabled is _default_isEnabled:
+        raise RuntimeError("Your test will run infinitely! Call wpilib.internal.set_test_controller to control IsEnabled or IsAutonomous")
+    return False
+
+def _default_isOperatorControl(tm):
+    if enabled and on_IsEnabled is _default_isEnabled:
+        raise RuntimeError("Your test will run infinitely! Call wpilib.internal.set_test_controller to control IsEnabled or IsOperatorControl")
+    return False
+
+def _default_isEnabled():
+    if on_IsAutonomous is _default_isAutonomous and on_IsOperatorControl is _default_isOperatorControl:
+        raise RuntimeError("Your test may run infinitely! Call wpilib.internal.set_test_controller to control the robot")
+    
+    return enabled
+
 
 def initialize_test():
     '''Resets all wpilib globals'''
@@ -83,9 +100,9 @@ def initialize_test():
     
     setattr(this, 'enabled', False)
     
-    setattr(this, 'on_IsAutonomous',        lambda tm: False)
-    setattr(this, 'on_IsOperatorControl',   lambda tm: False)
-    setattr(this, 'on_IsEnabled',           lambda: enabled)
+    setattr(this, 'on_IsAutonomous',        _default_isAutonomous)
+    setattr(this, 'on_IsOperatorControl',   _default_isOperatorControl)
+    setattr(this, 'on_IsEnabled',           _default_isEnabled)
     
     setattr(this, 'on_IsSystemActive',      lambda: True)
     setattr(this, 'on_IsNewDataAvailable',  lambda: True)
@@ -152,6 +169,11 @@ def IterativeRobotAutonomous(robot):
     
     while robot.IsEnabled() and robot.IsAutonomous():
         robot.AutonomousPeriodic()
+        
+        if robot._period > 0:
+            wpilib.Wait(robot._period)
+        else:
+            wpilib.Wait(0.20)
     
     
 def IterativeRobotDisabled(robot, loops):

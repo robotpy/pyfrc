@@ -24,10 +24,17 @@ class PyFrcPlugin(object):
     #
     # Fixtures
     #
+    # Each one of these can be arguments to your test, and the result of the
+    # corresponding function will be passed to your test as that argument.
+    #
     
     @pytest.fixture()
     def control(self):
         return wpilib.internal
+    
+    @pytest.fixture()
+    def fake_time(self):
+        return wpilib._wpilib._fake_time.FAKETIME
     
     @pytest.fixture()
     def robot(self):

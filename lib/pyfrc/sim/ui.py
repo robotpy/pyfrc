@@ -409,7 +409,7 @@ class SimUI(object):
             
             for i, (axes, buttons) in enumerate(self.joysticks):
                 for j, ax in enumerate(axes):
-                    sticks[i][j+1] = ax.get_value() 
+                    sticks[i][j] = ax.get_value() 
             
                 for j, (ck, var) in enumerate(buttons):
                     stick_buttons[i][j] = True if var.get() else False
