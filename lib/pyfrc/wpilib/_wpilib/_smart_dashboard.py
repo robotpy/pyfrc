@@ -88,52 +88,87 @@ class NetworkTable(object):
     def GetTable(table_name):
         table = NetworkTable._tables.get(table_name)
         if table is None:
-            table = NetworkTable()
-            NetworkTable._tables[table_name] = NetworkTable()
+            table = NetworkTable._NetworkTable()
+            NetworkTable._tables[table_name] = table
         return table 
         
-    def __init__(self):
-        self.data = {}
-    
-    def AddTableListener(self, name, listener, isNew):
-        pass
-    
-    def PutData(self, key, data):
-        self.data[key] = data
-    
-    # not implemented in RobotPy
-    #def GetData(self, key):
-    #    return self.data[key]
-    
-    def PutBoolean(self, key, value):
-        if not isinstance(value, bool):
-            raise RuntimeError("%s is not a boolean (is %s instead)" % (key, type(value)))
-        self.data[key] = value
+    class _NetworkTable(object):
         
-    def GetBoolean(self, key):
-        return self.data[key]
-    
-    def PutNumber(self, key, value):
-        if not isinstance(value, (int, float)):
-            raise RuntimeError("%s is not a number (is %s instead)" % (key, type(value)))
-        self.data[key] = value
-      
-    def GetNumber(self, key):
-        return self.data[key]
+        def __init__(self):
+            self.data = {}
+            self._subtables = {}
         
-    def PutString(self, key, value):
-        self.data[key] = str(value)
+        def IsConnected(self):
+            return True
+        
+        def IsServer(self):
+            return True
+        
+        def AddConnectionListener(self, listener, immediateNotify):
+            pass
+        
+        def RemoveConnectionListener(self, listener):
+            pass
+        
+        def AddTableListener(self, name, listener, isNew):
+            pass
+        
+        def AddSubTableListener(self, listener):
+            pass
+        
+        def RemoveTableListener(self, listener):
+            pass
+        
+        def GetSubTable(self, key):
+            table = self._subtables.get(key)
+            if table is None:
+                table = NetworkTable._NetworkTable()
+                self._subtables[key] = table
+            return table
+        
+        def ContainsKey(self, key):
+            return key in self.data
+        
+        def ContainsSubTable(self, key):
+            return key in self._subtables
+        
+        
+        def PutData(self, key, data):
+            self.data[key] = data
+        
+        # not implemented in RobotPy
+        #def GetData(self, key):
+        #    return self.data[key]
+        
+        def PutBoolean(self, key, value):
+            if not isinstance(value, bool):
+                raise RuntimeError("%s is not a boolean (is %s instead)" % (key, type(value)))
+            self.data[key] = value
+            
+        def GetBoolean(self, key):
+            return self.data[key]
+        
+        def PutNumber(self, key, value):
+            if not isinstance(value, (int, float)):
+                raise RuntimeError("%s is not a number (is %s instead)" % (key, type(value)))
+            self.data[key] = value
+          
+        def GetNumber(self, key):
+            return self.data[key]
+            
+        def PutString(self, key, value):
+            self.data[key] = str(value)
+        
+        def GetString(self, key):
+            return self.data[key]
     
-    def GetString(self, key):
-        return self.data[key]
-
-    def PutValue(self, key, value):
-        self.data[key] = value
+        def PutValue(self, key, value):
+            self.data[key] = value
     
-    # not implemented in RobotPy
-    #@staticmethod
-    #def GetValue(self,key):
-    #    return self.data[key]
+        # not implemented in RobotPy
+        #@staticmethod
+        #def GetValue(self,key):
+        #    return self.data[key]
     
 class ITableListener(object):
     pass
