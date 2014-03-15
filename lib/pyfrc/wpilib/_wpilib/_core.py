@@ -388,6 +388,28 @@ class Compressor(_WPILibObject):
             self._relay.Set(Relay.kOn if self._dio.value else Relay.kOff)
 
         
+class Counter(_WPILibObject):
+    '''
+        TODO: Make this function as a genuine mock. It should
+        behave like a real Counter
+    '''
+
+    def SetUpSource(self, channel):
+        pass
+
+    def SetUpSourceEdge(self, risingEdge, fallingEdge):
+        pass
+
+    def Start(self):
+        pass
+
+    def Reset(self):
+        pass
+
+    def Get(self):
+        return 1
+
+
 class DigitalModule(_WPILibObject):
 
     _io = [None] * 16
@@ -518,7 +540,7 @@ class DoubleSolenoid(_WPILibObject):
         self._forward = Solenoid(forwardChannel)
         self._reverse = Solenoid(reverseChannel)
     
-    def Get(self, value):
+    def Get(self):
         if self._forward.Get():
             return DoubleSolenoid.kForward
         elif self._reverse.Get():
@@ -945,7 +967,10 @@ class RobotDrive(object):
         
         self.maxOutput = 1.0
         self.inverted = [1,1,1,1]
-        
+    
+    def StopMotor(self):
+        self.SetLeftRightMotorOutputs(0, 0)
+            
     def ArcadeDrive(self, *args, **kwargs):
         
         # parse the arguments first
@@ -1031,7 +1056,7 @@ class RobotDrive(object):
                 leftMotorOutput = moveValue - rotateValue
                 rightMotorOutput = -max(-moveValue, -rotateValue)
         
-        self._SetLeftRightMotorOutputs(leftMotorOutput, rightMotorOutput)
+        self.SetLeftRightMotorOutputs(leftMotorOutput, rightMotorOutput)
         
     def MecanumDrive_Cartesian(self, x, y, rotation, gyroAngle=0.0):
         
@@ -1129,7 +1154,7 @@ class RobotDrive(object):
 
         return xOut, yOut
         
-    def _SetLeftRightMotorOutputs(self, leftOutput, rightOutput):
+    def SetLeftRightMotorOutputs(self, leftOutput, rightOutput):
         if self.lf_motor is not None:
             self.lf_motor.Set(self._Limit(leftOutput) * self.inverted[RobotDrive.kFrontLeftMotor] * self.maxOutput)
         self.lr_motor.Set(self._Limit(leftOutput) * self.inverted[RobotDrive.kRearLeftMotor] * self.maxOutput)
