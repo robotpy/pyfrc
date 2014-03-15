@@ -75,6 +75,7 @@ class SendableChooser(object):
         if self.selected is None:
             return None
         return self.choices[self.selected]
+    
 
 class NetworkTable(object):
 
@@ -186,3 +187,59 @@ class LiveWindow(object):
     
     def SetEnabled(self, enabled):
         pass
+
+#
+# complex types.. 
+#
+
+class ComplexData(object):
+    
+    def __init__(self, type):
+        self.type = type
+        
+    def GetType(self):
+        return self.type
+
+class ArrayData(ComplexData):
+    
+    def __init__(self, type):
+        super().__init__(type)
+        self._array = []
+        
+        
+    def remove(self, index):
+        del self._array[index]
+        
+    def setSize(self, size):
+        raise NotImplementedError("I'm lazy")
+    
+    def size(self):
+        return len(self._array)
+
+class NumberArray(ArrayData):
+    
+    def __init__(self):
+        super().__init__(None)
+    
+    def get(self, index):
+        return self._array[index]
+    
+    def set(self, index, value):
+        self._array[index] = value
+    
+    def add(self, value):
+        self._array.append(value)
+
+class StringArray(ArrayData):
+    
+    def __init__(self):
+        super().__init__(None)
+    
+    def get(self, index):
+        return self._array[index]
+    
+    def set(self, index, value):
+        self._array[index] = value
+    
+    def add(self, value):
+        self._array.append(value)
