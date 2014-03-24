@@ -84,6 +84,7 @@ class Accelerometer(_WPILibObject):
 
     def __init__(self, channel):
         AnalogModule._add_channel(channel, self)
+        self._channel = channel
         self.value = 0
         
     def GetAcceleration(self):
@@ -168,6 +169,7 @@ class AnalogChannel(_WPILibObject):
     
     def __init__(self, channel):
         AnalogModule._add_channel(channel, self)
+        self.channel = channel
         self.value = 0
         self.voltage = 0
         
@@ -246,6 +248,7 @@ class CANJaguar(SpeedController):
         SpeedController.__init__(self)
         CAN._add_can(deviceNumber, self)
         self.control_mode = controlMode
+        self.deviceNumber = deviceNumber
         self.forward_ok = True              # forward limit switch
         self.reverse_ok = True              # reverse limit switch
         self.position = 0
@@ -786,6 +789,7 @@ class Gyro(_WPILibObject):
     
     def __init__(self, channel):
         AnalogModule._add_channel(channel, self)
+        self.channel = channel
         self.value = 0
         
     def GetAngle(self):
@@ -803,6 +807,7 @@ class Jaguar(SpeedController):
     def __init__(self, channel):
         SpeedController.__init__(self)
         DigitalModule._add_pwm( channel, self )
+        self.channel = channel
         self.value = 0
         
     def Get(self):
@@ -1179,6 +1184,7 @@ class Relay(_WPILibObject):
     
     def __init__(self, channel, direction=kBothDirections):
         DigitalModule._add_relay( channel, self )
+        self.channel = channel
         self.on = False
         self.forward = False
         self.value = Relay.kOff
@@ -1223,6 +1229,7 @@ class Servo(_WPILibObject):
 
     def __init__(self, channel):
         DigitalModule._add_pwm( channel, self )
+        self.channel = channel
         self.value = None
         
     def Get(self):
@@ -1270,6 +1277,7 @@ class Solenoid(_WPILibObject):
                                (DigitalModule._io[channel-1], channel ))
         Solenoid._channels[channel-1] = self
         
+        self.channel = channel
         self.value = False
         
     def Get(self):
@@ -1284,6 +1292,7 @@ class Talon(SpeedController):
     def __init__(self, channel):
         SpeedController.__init__(self)
         DigitalModule._add_pwm( channel, self )
+        self.channel = channel
         self.value = 0
         
     def Get(self):
@@ -1330,6 +1339,7 @@ class Victor(SpeedController):
     def __init__(self, channel):
         SpeedController.__init__(self)
         DigitalModule._add_pwm( channel, self )
+        self.channel = channel
         self.value = 0
         
     def Get(self):
