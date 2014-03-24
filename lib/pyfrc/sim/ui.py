@@ -338,7 +338,11 @@ class SimUI(object):
                 else:
                     analog.set_disabled(False)
                     self._set_tooltip(analog, ch)
-                    ch.voltage = analog.get_value()
+                    
+                    # determine which one changed, and set the appropriate one
+                    ret = analog.sync_value(ch.voltage)
+                    if ret is not None:
+                        ch.voltage = ret
             
             # digital module
             for i, ch in enumerate(_core.DigitalModule._io):
@@ -359,7 +363,11 @@ class SimUI(object):
                     pwm.set_disabled()
                 else:
                     self._set_tooltip(pwm, ch)
-                    pwm.set_value(ch.value)
+                    
+                    # determine which one changed, and set the appropriate one
+                    ret = pwm.sync_value(ch.value)
+                    if ret is not None:
+                        ch.value = ret
                     
             for i, ch in enumerate(_core.DigitalModule._relays):
                 relay = self.relays[i]
@@ -382,7 +390,10 @@ class SimUI(object):
                     sol.set_disabled()
                 else:
                     self._set_tooltip(sol, ch)
-                    sol.set_value(ch.value)
+                    # determine which one changed, and set the appropriate one
+                    ret = sol.sync_value(ch.value)
+                    if ret is not None:
+                        ch.value = ret
             
             # CAN
             
