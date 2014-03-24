@@ -100,6 +100,25 @@ robot.py:
     if __name__ == '__main__':
         wpilib.run(min_version='2014.4.0')
 
+Robot 'physics model'
+---------------------
+
+pyfrc now supports a simplistic custom physics model implementations for
+simulation and testing support. It can be as simple or complex as you want
+to make it. Hopefully in the future we will be adding helper functions to
+make this a lot easier to do.
+
+The idea here is you provide a simulation object that overrides specific
+pieces of WPILib, and modifies motors/sensors accordingly depending on the
+state of the simulation. An example of this would be measuring a motor
+moving for a set period of time, and then changing a limit switch to turn 
+on after that period of time. This can help you do more complex simulations
+of your robot code without too much extra effort.
+
+By default, pyfrc doesn't modify any of your inputs/outputs without being
+told to do so by your code or the simulation GUI. 
+
+See samples/physics for more details.  
 
 py.test unit testing integration support
 ========================================
