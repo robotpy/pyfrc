@@ -6,6 +6,23 @@ import sys
 from .version import __version__
 from distutils.version import StrictVersion
 
+def require_version(min_version=None):
+    '''
+        You should *always* call this
+         
+        :param min_version:    Specify the minimum version of pyfrc required
+                               to run tests.
+        :return:               True if the version requirement is met, False otherwise
+    '''
+    if min_version is not None:
+        pyfrc_version = StrictVersion(__version__)
+        min_version = StrictVersion(min_version)
+        
+        if pyfrc_version < min_version:
+            print("ERROR: robot code requires pyfrc %s or later (currently running %s)" % (min_version, pyfrc_version))
+            return False
+        
+    return True
 
 def run(min_version=None):
     '''
@@ -25,13 +42,8 @@ def run(min_version=None):
                                to run tests
     '''
     
-    if min_version is not None:
-        pyfrc_version = StrictVersion(__version__)
-        min_version = StrictVersion(min_version)
-        
-        if pyfrc_version < min_version:
-            print("ERROR: robot code requires pyfrc %s or later (currently running %s)" % (min_version, pyfrc_version))
-            return 1
+    if not require_version(min_version):
+        return 1
     
     if len(sys.argv) == 1:
         print("Usage: %s upload|test ...", file=sys.stderr)
@@ -73,3 +85,4 @@ def run(min_version=None):
     elif arg1 == 'netsim':
         from .cli import cli_sim
         cli_sim.run(run_fn, file_location, True)
+
