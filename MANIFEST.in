@@ -5,3 +5,4 @@ prune samples/iterative/src/__pycache__
 prune samples/iterative/tests/__pycache__
 prune samples/simple/src/__pycache__
 prune samples/simple/tests/__pycache__
+prune samples/physics/src/__pycache__
