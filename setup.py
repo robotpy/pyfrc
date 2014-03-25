@@ -10,6 +10,7 @@ packages = [
     'pyfrc.cli',
     'pyfrc.robotpy',
     'pyfrc.sim',
+    'pyfrc.physics',
     'pyfrc.wpilib',
     'pyfrc.wpilib._wpilib',
 ]
