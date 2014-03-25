@@ -5,7 +5,7 @@ import tkinter as tk
 # user drawable widget for tk
 class ValueWidget(tk.Frame):
     
-    def __init__(self, master, width=80, height=20, clickable=False, default=None, minval=-1.0, maxval=1.0):
+    def __init__(self, master, width=80, height=20, clickable=False, default=None, minval=-1.0, maxval=1.0, step=0.05):
         
         super().__init__(master)
         
@@ -28,6 +28,7 @@ class ValueWidget(tk.Frame):
         
         self.minval = minval
         self.maxval = maxval
+        self.step = step
         self.value = 0.0
         
         if default is None:
@@ -39,11 +40,13 @@ class ValueWidget(tk.Frame):
         if self.disabled:
             return
         
+        self.updated = True
+        
         if event.keysym in ['Left', 'Down']:
-            self.set_value(self.value - 0.05)
+            self.set_value(self.value - self.step)
         
         elif event.keysym in ['Right', 'Up']:
-            self.set_value(self.value + 0.05)
+            self.set_value(self.value + self.step)
             
         elif event.keysym in [str(i) for i in range(0, 10)]:
             self.set_value(int(event.keysym))
@@ -70,9 +73,7 @@ class ValueWidget(tk.Frame):
         else:
             value = event.x - 5
         
-        # normalize it
-        vrange = self.maxval - self.minval
-        value = vrange * (value - (self.w - vrange)/2.0) / (self.w - 10)      
+        value = ((value / (self.w - 10.0)) * float(self.maxval - self.minval)) + self.minval
         self.set_value(value)
     
     
@@ -92,7 +93,13 @@ class ValueWidget(tk.Frame):
             self.canvas.itemconfig(self.box, state=tk.HIDDEN)
         else:
             self.set_value(self.value)
+            
+    def set_range(self, minval, maxval, step):
+        self.minval = minval
+        self.maxval = maxval
+        self.step = step
         
+        self.set_value(self.value)
         
     def sync_value(self, value):
         if self.updated:

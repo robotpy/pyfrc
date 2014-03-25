@@ -339,10 +339,19 @@ class SimUI(object):
                     analog.set_disabled(False)
                     self._set_tooltip(analog, ch)
                     
-                    # determine which one changed, and set the appropriate one
-                    ret = analog.sync_value(ch.voltage)
-                    if ret is not None:
-                        ch.voltage = ret
+                    if isinstance(ch, _core.Gyro) and analog.maxval != 720:
+                        analog.set_range(-720, 720, 1)
+                    
+                    if hasattr(ch, 'voltage'):
+                        # determine which one changed, and set the appropriate one
+                        ret = analog.sync_value(ch.voltage)
+                        if ret is not None:
+                            ch.voltage = ret
+                    else:
+                        # determine which one changed, and set the appropriate one
+                        ret = analog.sync_value(ch.value)
+                        if ret is not None:
+                            ch.value = ret
             
             # digital module
             for i, ch in enumerate(_core.DigitalModule._io):
