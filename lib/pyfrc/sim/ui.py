@@ -15,7 +15,7 @@ import queue
 from ..version import __version__
 from ..wpilib._wpilib import _core, _fake_time
 
-from .ui_widgets import PanelIndicator, Tooltip, ValueWidget
+from .ui_widgets import CheckButtonWrapper, PanelIndicator, Tooltip, ValueWidget
 
 
 class SimUI(object):
@@ -273,19 +273,17 @@ class SimUI(object):
         motor = ValueWidget(self.can_slot, default=0.0)
         motor.grid(column=1, row=row)
         
-        flvar = tk.IntVar()
-        fl = tk.Checkbutton(self.can_slot, text='F', variable=flvar)
+        fl = CheckButtonWrapper(self.can_slot, text='F')
         fl.grid(column=2, row=row)
         
-        rlvar = tk.IntVar()
-        rl = tk.Checkbutton(self.can_slot, text='R', variable=rlvar)
+        rl = CheckButtonWrapper(self.can_slot, text='R')
         rl.grid(column=3, row=row)
         
         Tooltip.create(motor, device.__class__.__name__)
         Tooltip.create(fl, 'Forward limit switch')
         Tooltip.create(rl, 'Reverse limit switch')
         
-        self.can[canId] = (motor, flvar, rlvar)
+        self.can[canId] = (motor, fl, rl)
         
     def idle_add(self, callable, *args):
         '''Call this with a function as the argument, and that function
@@ -419,9 +417,14 @@ class SimUI(object):
                 can = _core.CAN._devices[k]
                 
                 motor.set_value(can.value)
-                can.forward_ok = True if fl.get() else False
-                can.reverse_ok = True if rl.get() else False
                 
+                ret = fl.sync_value(not can.forward_ok)
+                if ret is not None:
+                    can.forward_ok = not ret
+                    
+                ret = rl.sync_value(not can.reverse_ok)
+                if ret is not None:
+                    can.reverse_ok = not ret    
             
             # joystick/driver station
             sticks = _core.DriverStation.GetInstance().sticks
