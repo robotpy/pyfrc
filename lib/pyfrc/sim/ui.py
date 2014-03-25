@@ -476,7 +476,6 @@ class SimUI(object):
     #
             
     def on_pause(self, pause):
-        print("Pause")
         if pause:
             _fake_time.FAKETIME.Pause()
         else:
