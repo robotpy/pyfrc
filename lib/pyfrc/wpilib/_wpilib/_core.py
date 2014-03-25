@@ -248,12 +248,15 @@ class CANJaguar(SpeedController):
         SpeedController.__init__(self)
         CAN._add_can(deviceNumber, self)
         self.control_mode = controlMode
+        self.current = 0
         self.deviceNumber = deviceNumber
         self.forward_ok = True              # forward limit switch
         self.reverse_ok = True              # reverse limit switch
         self.position = 0
         self.speed = 0
         self.value = 0
+        self.voltage = 0
+        
     
     def ChangeControlMode(self, mode):
         self.control_mode = mode
@@ -298,10 +301,10 @@ class CANJaguar(SpeedController):
         return self.forward_ok
         
     def GetOutputCurrent(self):
-        return 0.0
+        return self.current
         
     def GetOutputVoltage(self):
-        return 0.0
+        return self.voltage
         
     def GetP(self):
         return self.p
