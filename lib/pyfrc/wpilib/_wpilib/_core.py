@@ -546,6 +546,15 @@ class DoubleSolenoid(_WPILibObject):
         self._forward = Solenoid(forwardChannel)
         self._reverse = Solenoid(reverseChannel)
     
+    @property
+    def label(self):
+        raise NotImplementedError("This will break on your robot")
+    
+    @label.setter
+    def label(self, value):
+        self._forward.label = '%s (forward)' % value
+        self._reverse.label = '%s (reverse)' % value
+    
     def Get(self):
         if self._forward.Get():
             return DoubleSolenoid.kForward

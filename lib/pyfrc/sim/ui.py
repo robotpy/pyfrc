@@ -279,7 +279,7 @@ class SimUI(object):
         rl = CheckButtonWrapper(self.can_slot, text='R')
         rl.grid(column=3, row=row)
         
-        Tooltip.create(motor, device.__class__.__name__)
+        self._set_tooltip(motor, device)
         Tooltip.create(fl, 'Forward limit switch')
         Tooltip.create(rl, 'Reverse limit switch')
         
@@ -446,10 +446,17 @@ class SimUI(object):
         
     def _set_tooltip(self, widget, obj):
         if not hasattr(widget, 'has_tooltip'):
-            # only show the parent object, otherwise the tip is confusing
-            while hasattr(obj, '_parent'):
-                obj = obj._parent
-            Tooltip.create(widget, obj.__class__.__name__.strip('_'))
+            
+            if hasattr(obj, 'label'):
+                tooltip = obj.label
+            else:
+                # only show the parent object, otherwise the tip is confusing
+                while hasattr(obj, '_parent'):
+                    obj = obj._parent
+                    
+                tooltip = obj.__class__.__name__.strip('_')
+                    
+            Tooltip.create(widget, tooltip)
             
     def on_robot_mode_change(self, mode):
         self.mode.set(mode)
