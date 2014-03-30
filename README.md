@@ -171,6 +171,20 @@ Or you can use this instead:
 As there is interest, I will add more features to the simulator. Please feel
 free to improve it and submit pull requests!
 
+Adding custom tooltips to motors/sensors
+----------------------------------------
+
+If you move the mouse over the motors/sensors in the simulator user interface,
+you will notice that tooltips are shown which show which type of object is
+using the slot. pyfrc will now read the 'label' attribute from each object,
+and if present it will display that as the tooltip instead. For example:
+
+    motor = wpilib.Jaguar(1)
+    motor.label = 'whatzit motor'
+
+I haven't tested it on the cRio yet, but I believe that this should not affect
+operation on the robot, as RobotPy will just ignore the extra attribute.
+
 
 Implementation Notes
 ====================
@@ -197,7 +211,7 @@ lib/pyfrc/wpilib/_wpilib there is a python package which emulates a lot of
 the functionality found in the binary package for wpilib. 
 
 The StartCompetition function is monkey-patched by run_test.py so that the
-library and test runners can load properly. 
+library and test runners can load properly.
 
 Contributing new changes
 ========================

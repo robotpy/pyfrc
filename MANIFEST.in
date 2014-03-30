@@ -1,5 +1,6 @@
 include README.md
 include requirements.txt
+include CHANGELOG.md
 graft samples
 prune samples/iterative/src/__pycache__
 prune samples/iterative/tests/__pycache__
