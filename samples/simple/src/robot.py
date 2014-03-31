@@ -14,6 +14,8 @@ class MyRobot(wpilib.SimpleRobot):
         
         self.lstick = wpilib.Joystick(1)
         self.motor = wpilib.CANJaguar(8)
+        self.motor.label = 'Thing motor'
+        
         self.ds = wpilib.DriverStation.GetInstance()
         
         print(wpilib.SmartDashboard)

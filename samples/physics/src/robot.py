@@ -13,7 +13,10 @@ class MyRobot(wpilib.SimpleRobot):
         super().__init__()
         
         self.lstick = wpilib.Joystick(1)
+        
         self.motor = wpilib.Jaguar(1)
+        self.motor.label = 'Thing motor'
+        
         self.limit1 = wpilib.DigitalInput(1)
         self.limit2 = wpilib.DigitalInput(2)
         

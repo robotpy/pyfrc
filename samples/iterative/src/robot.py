@@ -14,6 +14,7 @@ class MyRobot(wpilib.IterativeRobot):
         
         self.lstick = wpilib.Joystick(1)
         self.motor = wpilib.CANJaguar(8)
+        self.motor.label = 'Thing motor'
 
     def AutonomousInit(self):
         '''Called only at the beginning of autonomous mode'''
