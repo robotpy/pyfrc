@@ -42,24 +42,26 @@ def run(min_version=None):
                                to run tests
     '''
     
+    usage_args = 'netsim|sim|test|upload ...'
+    
     if not require_version(min_version):
-        return 1
+        exit(2)
     
     if len(sys.argv) == 1:
-        print("Usage: %s upload|test ...", file=sys.stderr)
-        return 1
+        print("Usage: %s coverage|%s" % (sys.arg[0], usage_args), file=sys.stderr)
+        exit(1)
     
     try:
         frame = inspect.currentframe()
         if frame is None:
             print("Your python interpreter does not seem to support 'currentframe'. Please use a different python interpreter", file=sys.stderr)
-            return 4
+            exit(3)
         
         frame = frame.f_back
         
         if 'run' not in frame.f_globals:
             print('Your robot code does not seem to have a "run" function. It must have a run function!', file=sys.stderr)
-            return 3
+            exit(4)
         
         run_fn = frame.f_globals['run']
         file_location = os.path.abspath(frame.f_code.co_filename)
@@ -70,19 +72,38 @@ def run(min_version=None):
     arg1 = sys.argv[1]
     del sys.argv[1]
     
+    if arg1 == '--coverage-passthru':
+        
+        if len(sys.argv) == 1:
+            print("Usage: %s coverage %s" % (sys.argv[0], usage_args), file=sys.stderr)
+            exit(1)
+        
+        arg1 = sys.argv[1]
+        del sys.argv[1]
+        
+    
     if arg1 == 'upload':
         from .cli import cli_upload
-        cli_upload.run(run_fn, file_location)
+        retval = cli_upload.run(run_fn, file_location)
         
     elif arg1 == 'test':
         from .cli import cli_test
-        cli_test.run(run_fn, file_location)
+        retval = cli_test.run(run_fn, file_location)
+        
+    elif arg1 == 'coverage':
+        from .cli import cli_coverage
+        retval = cli_coverage.run(run_fn, file_location)
         
     elif arg1 == 'sim':
         from .cli import cli_sim
-        cli_sim.run(run_fn, file_location)
+        retval = cli_sim.run(run_fn, file_location)
 
     elif arg1 == 'netsim':
         from .cli import cli_sim
-        cli_sim.run(run_fn, file_location, True)
-
+        retval = cli_sim.run(run_fn, file_location, True)
+        
+    else:
+        print("ERROR: Invalid argument '%s'" % arg1, file=sys.stderr)
+        retval = 5
+    
+    exit(retval)

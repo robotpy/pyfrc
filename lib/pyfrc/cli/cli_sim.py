@@ -30,3 +30,5 @@ def run(run_fn, file_location, enable_pynetworktables=False):
     # -> if it can't, then the user messed up
     if not controller.stop():
         print('Error: could not stop the robot code! Check your code')
+
+    return 0

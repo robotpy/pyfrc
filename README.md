@@ -149,6 +149,37 @@ argument will be an object as listed below:
 * robot_path: the directory that your robot is located
 * wpilib: the wpilib module
 
+code coverage for tests
+-----------------------
+
+pyfrc supports testing for code coverage using the coverage.py module. This
+feature can be used with any of the pyfrc commands and provide coverage
+information.
+
+For example, to run the 'test' command to run unit tests:
+
+    $ python3 robot.py coverage test
+    
+Or to run coverage over the simulator:
+
+    $ python3 robot.py coverage sim
+	
+Running code coverage while the simulator is running is nice, because you
+don't have to write unit tests to make sure that you've completely covered
+your code. Of course, you *should* write unit tests anyways... but this is
+good for developing code that needs to be run on the robot quickly and you
+need to make sure that you tested everything first.
+
+When using the code coverage feature, what actually happens is robot.py gets
+executed *again*, except this time it is executed using the coverage module.
+This allows coverage.py to completely track code coverage, otherwise any
+modules that are imported by robot.py (and much of robot.py itself) would not
+be reported as covered. 
+
+Note: There is a py.test module called pytest-cov that is supposed to allow
+you to run code coverage tests. However, I've found that it doesn't work
+particularly well for me, and doesn't appear to be maintained anymore.
+
 
 robot simulator
 ===============
@@ -199,19 +230,12 @@ also use pynetworktables as the NetworkTables base when instructed.
 Internals
 ---------
 
-The implementation of wpilib that you can run on your computer is contained
-in the 'lib' directory. If you use the 'run_test.py' script to run your
-tests, it will automatically setup the python path correctly so that loading
-fake_wpilib will load the correct package. 
-
 The lib/pyfrc/wpilib directory is the code for wpilib directly copied from 
 the RobotPy implementation. This code tries to load a module called '_wpilib',
 which is a binary python module on the robot. However, in the directory 
 lib/pyfrc/wpilib/_wpilib there is a python package which emulates a lot of
 the functionality found in the binary package for wpilib. 
 
-The StartCompetition function is monkey-patched by run_test.py so that the
-library and test runners can load properly.
 
 Contributing new changes
 ========================
