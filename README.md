@@ -180,6 +180,9 @@ Note: There is a py.test module called pytest-cov that is supposed to allow
 you to run code coverage tests. However, I've found that it doesn't work
 particularly well for me, and doesn't appear to be maintained anymore.
 
+Note II: For some reason, when running the simulation under the code coverage
+tool, the output is buffered until the process exits. This does not happen
+under py.test, however. It's not clear why this occurs.  
 
 robot simulator
 ===============
