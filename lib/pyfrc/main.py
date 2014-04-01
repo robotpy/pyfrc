@@ -69,10 +69,18 @@ def run(min_version=None):
     finally:
         del frame
     
+    from . import config
+    
     arg1 = sys.argv[1]
     del sys.argv[1]
     
+    config.mode = arg1
+    
     if arg1 == '--coverage-passthru':
+        
+        # Set this so randomized unit tests can be skipped
+        
+        config.coverage_mode = True
         
         if len(sys.argv) == 1:
             print("Usage: %s coverage %s" % (sys.argv[0], usage_args), file=sys.stderr)

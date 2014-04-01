@@ -10,6 +10,9 @@
     that you'll be able to duplicate it with this test.
 '''
 
+
+import pyfrc.config
+import pytest
 import random
 
 
@@ -99,6 +102,7 @@ class FuzzTestController(object):
         
 
 
+@pytest.mark.skipif(pyfrc.config.coverage_mode == True, reason="Don't run this during coverage testing, will lead to imprecise coverage results")
 def test_fuzz(robot, wpilib):
 
     controller = FuzzTestController(robot, wpilib)
