@@ -57,6 +57,18 @@ Once you have those installed, you can just install pyfrc the same way
 you would install most other python programs:
 
 	$ python3 setup.py install
+	
+code coverage support
+---------------------
+
+If you wish to run code coverage testing, then you must install the following
+package:
+
+* coverage (https://pypi.python.org/pypi/coverage)
+
+It requires a compiler to install from source, so if you're on Windows you
+probably just want to download the binary from pypi and install that, instead
+of trying to install from pip.
 
 Usage
 =====
