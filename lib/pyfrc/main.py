@@ -102,6 +102,10 @@ def run(min_version=None):
         from .cli import cli_coverage
         retval = cli_coverage.run(run_fn, file_location)
         
+    elif arg1 == 'profiler':
+        from .cli import cli_profiler
+        retval = cli_profiler.run(run_fn, file_location)
+        
     elif arg1 == 'sim':
         from .cli import cli_sim
         retval = cli_sim.run(run_fn, file_location)
