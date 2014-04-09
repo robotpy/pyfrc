@@ -11,6 +11,9 @@ packages = [
     'pyfrc.robotpy',
     'pyfrc.sim',
     'pyfrc.physics',
+    'pyfrc.tests',
+    'pyfrc.tests.iterative',
+    'pyfrc.tests.simple',
     'pyfrc.wpilib',
     'pyfrc.wpilib._wpilib',
 ]
