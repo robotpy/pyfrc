@@ -10,8 +10,7 @@ import os
 import re
 import sys
 
-# easy way to disable the test in a hurry
-disable_test = False
+
 
 # if you want to be really pedantic, enforce sphinx docstrings. Ha.
 pedantic_docstrings = True
@@ -124,20 +123,19 @@ def check_thing(parent, thing, robot_path, errors):
     elif inspect.isfunction(thing):
         check_function(parent, thing, errors)
 
-if not disable_test:
-    def test_docstrings(robot, robot_path):
+def test_docstrings(robot, robot_path):
+    
+    # this allows abspath() to work correctly
+    os.chdir(robot_path)
+    
+    errors = []
+    
+    for module in sys.modules.values():
         
-        # this allows abspath() to work correctly
-        os.chdir(robot_path)
+        if ignore_object(module, robot_path):
+            continue
         
-        errors = []
-        
-        for module in sys.modules.values():
-            
-            if ignore_object(module, robot_path):
-                continue
-            
-            check_object(module, robot_path, errors)
-        
-        # if you get an error here, look at stdout for the error message
-        assert len(errors) == 0
+        check_object(module, robot_path, errors)
+    
+    # if you get an error here, look at stdout for the error message
+    assert len(errors) == 0

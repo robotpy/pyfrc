@@ -102,7 +102,10 @@ class FuzzTestController(object):
 
 
 @pytest.mark.skipif(pyfrc.config.coverage_mode == True, reason="Don't run this during coverage testing, will lead to imprecise coverage results")
-def test_fuzz(robot, wpilib):
+def test_iterative_fuzz(robot, wpilib):
+    '''
+        Fuzz test for iterative framework
+    '''
 
     controller = FuzzTestController(robot, wpilib)
     wpilib.internal.set_test_controller(controller)
@@ -110,4 +113,15 @@ def test_fuzz(robot, wpilib):
     
     wpilib.internal.IterativeRobotTeleop(robot)
 
+@pytest.mark.skipif(pyfrc.config.coverage_mode == True, reason="Don't run this during coverage testing, will lead to imprecise coverage results")
+def test_simple_fuzz(robot, wpilib):
+    '''
+        Fuzz test for simple framework
+    '''
+
+    controller = FuzzTestController(robot, wpilib)
+    wpilib.internal.set_test_controller(controller)
+    wpilib.internal.enabled = True
+    
+    robot.OperatorControl()
 
