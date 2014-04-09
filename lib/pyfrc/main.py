@@ -48,7 +48,7 @@ def run(min_version=None):
         exit(2)
     
     if len(sys.argv) == 1:
-        print("Usage: %s coverage|%s" % (sys.arg[0], usage_args), file=sys.stderr)
+        print("Usage: %s coverage|%s" % (sys.argv[0], usage_args), file=sys.stderr)
         exit(1)
     
     try:
