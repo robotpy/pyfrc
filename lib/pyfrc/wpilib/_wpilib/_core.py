@@ -4,6 +4,7 @@
 '''
 
 import copy
+import inspect
 import math
 import threading
 
@@ -21,10 +22,15 @@ def IsAutonomous():
     return internal.on_IsAutonomous(GetClock())
 
 def IsEnabled():
-    return internal.on_IsEnabled()
+    # backwards compatibility until 2015
+    argspec = inspect.getfullargspec(internal.on_IsEnabled)
+    if len(argspec[0]) == 0:
+        return internal.on_IsEnabled()
+    else:
+        return internal.on_IsEnabled(GetClock())
     
 def IsDisabled():
-    return not internal.on_IsEnabled()
+    return not IsEnabled()
     
 def IsOperatorControl():
     return internal.on_IsOperatorControl(GetClock())

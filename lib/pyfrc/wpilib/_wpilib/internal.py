@@ -24,9 +24,17 @@ enabled = False
 on_IsAutonomous         = None
 on_IsOperatorControl    = None
 on_IsEnabled            = None
+on_IsTest               = None
 
 on_IsSystemActive       = None
 on_IsNewDataAvailable   = None
+
+#######################################################################
+#
+# Another useful shortcut. You can define an object that has an
+# IsAutonomous, etc function, which will be called when appropriate. 
+#
+#######################################################################
 
 
 def set_test_controller(controller_cls):
@@ -38,11 +46,50 @@ def set_test_controller(controller_cls):
     if inspect.isclass(controller_cls):
         controller =  controller_cls()
         
-    for name in ['IsAutonomous', 'IsOperatorControl', 'IsEnabled', 'IsSystemActive', 'IsNewDataAvailable']:
+    for name in ['IsAutonomous', 'IsOperatorControl', 'IsEnabled', 'IsSystemActive', 'IsNewDataAvailable', 'IsTest']:
         if hasattr(controller, name):
             setattr(this, 'on_%s' % name, getattr(controller, name))
 
     return controller
+
+#
+# Sample test controller object you can inherit from
+#
+
+class PracticeMatchTestController(object):
+    
+    autonomous_period = 10
+    operator_period = 120
+    
+    def _calc_mode(self, tm):
+        
+        autonomous = False
+        operator = False
+        
+        if tm < 5:
+            pass
+        
+        elif tm < 5 + self.autonomous_period:
+            autonomous = True
+            
+        elif tm < 5 + self.autonomous_period + 1:
+            pass
+        
+        elif tm < 5 + self.autonomous_period + 1 + self.operator_period:
+            operator = True
+            
+        return autonomous, operator 
+    
+    def IsAutonomous(self, tm):
+        return self._calc_mode(tm)[0]
+    
+    def IsOperatorControl(self, tm):
+        return self._calc_mode(tm)[1]
+    
+    def IsEnabled(self, tm):
+        autonomous, operator = self._calc_mode(tm)
+        return autonomous or operator
+
 
 #################################################
 #
@@ -86,7 +133,7 @@ def _default_isOperatorControl(tm):
         raise RuntimeError("Your test will run infinitely! Call wpilib.internal.set_test_controller to control IsEnabled or IsOperatorControl")
     return False
 
-def _default_isEnabled():
+def _default_isEnabled(tm):
     if on_IsAutonomous is _default_isAutonomous and on_IsOperatorControl is _default_isOperatorControl:
         raise RuntimeError("Your test may run infinitely! Call wpilib.internal.set_test_controller to control the robot")
     
@@ -103,6 +150,7 @@ def initialize_test():
     setattr(this, 'on_IsAutonomous',        _default_isAutonomous)
     setattr(this, 'on_IsOperatorControl',   _default_isOperatorControl)
     setattr(this, 'on_IsEnabled',           _default_isEnabled)
+    setattr(this, 'on_IsTest',              lambda: False)
     
     setattr(this, 'on_IsSystemActive',      lambda: True)
     setattr(this, 'on_IsNewDataAvailable',  lambda: True)
