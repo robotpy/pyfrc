@@ -24,7 +24,7 @@ def IsAutonomous():
 def IsEnabled():
     # backwards compatibility until 2015
     argspec = inspect.getfullargspec(internal.on_IsEnabled)
-    if len(argspec[0]) == 0:
+    if len(argspec.args) == 0 or (len(argspec.args) == 1 and argspec.args[0] == 'self'):
         return internal.on_IsEnabled()
     else:
         return internal.on_IsEnabled(GetClock())
