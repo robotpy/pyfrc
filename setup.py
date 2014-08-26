@@ -10,6 +10,7 @@ packages = [
     'pyfrc.cli',
     'pyfrc.robotpy',
     'pyfrc.sim',
+    'pyfrc.sim.field',
     'pyfrc.physics',
     'pyfrc.tests',
     'pyfrc.tests.iterative',
