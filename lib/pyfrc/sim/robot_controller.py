@@ -86,8 +86,8 @@ class RobotController(object):
         '''
         with self._lock:
             drive_stick = self.driver_station.sticks[0]
-            drive_stick[1] = x
-            drive_stick[2] = y
+            drive_stick[0] = x
+            drive_stick[1] = y
             
     def set_mode(self, mode):
         

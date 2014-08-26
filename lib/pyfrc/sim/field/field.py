@@ -27,6 +27,8 @@ class RobotField(object):
         self.canvasHeight = 2*self.margin + self.rows*self.cellSize
         
         self.canvas = tk.Canvas(root, width=self.canvasWidth, height=self.canvasHeight)
+        self.canvas.bind("<Key>", self.on_key_pressed)
+        self.canvas.bind("<Button-1>", self.on_click)
         
         self.text_id = None
         
@@ -41,6 +43,32 @@ class RobotField(object):
     
     def grid(self, *args, **kwargs):
         self.canvas.grid(*args, **kwargs)
+        
+    def on_key_pressed(self, event):
+        '''
+            likely to take in a set of parameters to treat as up, down, left,
+            right, likely to actually be based on a joystick event... not sure
+            yet
+        '''
+        
+        if event.keysym == "Up":
+            self.manager.set_joystick(0.0, -1.0, 0)
+        elif event.keysym == "Down":
+            self.manager.set_joystick(0.0, 1.0, 0)
+        elif event.keysym == "Left":
+            self.manager.set_joystick(-1.0, 0.0, 0)
+        elif event.keysym == "Right":
+            self.manager.set_joystick(1.0, 0.0, 0)
+            
+        elif event.char == " ":
+            mode = self.manager.get_mode()
+            if mode == self.manager.MODE_DISABLED:
+                self.manager.set_mode(self.manager.MODE_OPERATOR_CONTROL)
+            else:
+                self.manager.set_mode(self.manager.MODE_DISABLED)
+    
+    def on_click(self, event):
+        self.canvas.focus_set()
     
     def update_widgets(self):
         

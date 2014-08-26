@@ -21,12 +21,12 @@ def two_motor_drivetrain(tm_diff, l_motor, r_motor, robot_circumference=8):
     
     # TODO: do something with tm_diff
     
-    jag1 = -r_motor.Get()
-    jag2 = l_motor.Get()
+    jag1 = -l_motor.Get()
+    jag2 = r_motor.Get()
 
     # speed obtained by adding together motor speeds
     speed = (jag1 + jag2) / 6
-    yaw = (jag2 / robot_circumference) - (jag1/robot_circumference) 
+    yaw = (jag1 / robot_circumference) - (jag2/robot_circumference) 
     
     return speed, yaw
             
