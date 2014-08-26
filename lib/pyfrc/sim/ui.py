@@ -15,6 +15,8 @@ import queue
 from ..version import __version__
 from ..wpilib._wpilib import _core, _fake_time
 
+from .field.field import RobotField
+
 from .ui_widgets import CheckButtonWrapper, PanelIndicator, Tooltip, ValueWidget
 
 
@@ -59,14 +61,17 @@ class SimUI(object):
     def _setup_widgets(self, frame):
         
         top = tk.Frame(frame)
-        top.pack(side=tk.TOP, fill=tk.X)
+        top.grid(column=0, row=0)
                 
         bottom = tk.Frame(frame)
-        bottom.pack(fill=tk.X)
+        bottom.grid(column=0, row=1)
+        
+        self.field = RobotField(frame, self.manager, (14, 14))
+        self.field.grid(column=1, row=0, rowspan=2)
         
         # status bar
         self.status = tk.Label(frame, bd=1, relief=tk.SUNKEN, anchor=tk.E)
-        self.status.pack(fill=tk.X)
+        self.status.grid(column=0, row=2, columnspan=2, sticky=tk.W+tk.E)
         
         # analog
         slot = tk.LabelFrame(top, text='Analog')
@@ -76,7 +81,7 @@ class SimUI(object):
             label = tk.Label(slot, text=str(i))
             label.grid(column=0, row=i)
             
-            vw = ValueWidget(slot, width=120, clickable=True, minval=-10.0, maxval=10.0)
+            vw = ValueWidget(slot, clickable=True, minval=-10.0, maxval=10.0)
             vw.grid(column=1, row=i)
             
             # driver station default voltage
@@ -137,25 +142,33 @@ class SimUI(object):
         
         slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
             
-        # CAN
-        self.can_slot = tk.LabelFrame(top, text='CAN')
-        self.can_slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
-        self.can = {}
+        csfm = tk.Frame(top)
             
         # solenoid
-        slot = tk.LabelFrame(top, text='Solenoid')
+        slot = tk.LabelFrame(csfm, text='Solenoid')
         self.solenoids = []
         
         for i in range(1, 9):
             label = tk.Label(slot, text=str(i))
-            label.grid(column=0, row=i)
+            
+            c = int((i-1)/2)*2
+            r = (i-1)%2
+            
+            label.grid(column=0+c, row=r)
             
             pi = PanelIndicator(slot)
-            pi.grid(column=1, row=i)
+            pi.grid(column=1+c, row=r)
             
             self.solenoids.append(pi)
         
-        slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
+        slot.pack(side=tk.TOP, fill=tk.BOTH, padx=5)
+        
+        # CAN
+        self.can_slot = tk.LabelFrame(csfm, text='CAN')
+        self.can_slot.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5)
+        self.can = {}
+        
+        csfm.pack(side=tk.LEFT, fill=tk.Y)
         
         # joysticks
         slot = tk.LabelFrame(bottom, text='Joysticks')
@@ -198,8 +211,47 @@ class SimUI(object):
         slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
         
             
+        ctrl_frame = tk.Frame(bottom)
+        
+        # timing control
+        timing_control = tk.LabelFrame(ctrl_frame, text='Time')
+        
+        #self.
+        
+        def _set_realtime():
+            if realtime_mode.get() == 0:
+                step_button.pack_forget()
+                step_entry.pack_forget()
+                self.on_pause(False)
+            else:
+                step_button.pack(fill=tk.X)
+                step_entry.pack()
+                self.on_pause(True)
+                
+        
+        realtime_mode = tk.IntVar()
+        
+        button = tk.Radiobutton(timing_control, text='Run', variable=realtime_mode,
+                                value=0, command=_set_realtime)
+        button.pack(fill=tk.X)
+        
+        button = tk.Radiobutton(timing_control, text='Pause', variable=realtime_mode,
+                                value=1, command=_set_realtime)
+        button.pack(fill=tk.X)
+        
+        step_button = tk.Button(timing_control, text='Step', command=self.on_step_time)
+        self.step_entry = tk.StringVar()
+        self.step_entry.set("0.025")
+        step_entry = tk.Entry(timing_control, width=6, textvariable=self.step_entry)
+        
+        Tooltip.create(step_button, 'Click this to increment time by the step value')
+        Tooltip.create(step_entry, 'Time to step (in seconds)')
+        realtime_mode.set(0)
+        
+        timing_control.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        
         # simulation control
-        sim = tk.LabelFrame(bottom, text='Robot')
+        sim = tk.LabelFrame(ctrl_frame, text='Robot')
         self.state_buttons = []
                 
         self.mode = tk.IntVar()
@@ -224,44 +276,9 @@ class SimUI(object):
         
         self.robot_dead = tk.Label(sim, text='Robot died!', fg='red')
         
-        sim.pack(side=tk.LEFT, fill=tk.Y)
+        sim.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
         
-        # timing control
-        control = tk.LabelFrame(bottom, text='Time')
-        
-        #self.
-        
-        def _set_realtime():
-            if realtime_mode.get() == 0:
-                step_button.pack_forget()
-                step_entry.pack_forget()
-                self.on_pause(False)
-            else:
-                step_button.pack(fill=tk.X)
-                step_entry.pack()
-                self.on_pause(True)
-                
-        
-        realtime_mode = tk.IntVar()
-        
-        button = tk.Radiobutton(control, text='Run', variable=realtime_mode,
-                                value=0, command=_set_realtime)
-        button.pack(fill=tk.X)
-        
-        button = tk.Radiobutton(control, text='Pause', variable=realtime_mode,
-                                value=1, command=_set_realtime)
-        button.pack(fill=tk.X)
-        
-        step_button = tk.Button(control, text='Step', command=self.on_step_time)
-        self.step_entry = tk.StringVar()
-        self.step_entry.set("0.025")
-        step_entry = tk.Entry(control, width=6, textvariable=self.step_entry)
-        
-        Tooltip.create(step_button, 'Click this to increment time by the step value')
-        Tooltip.create(step_entry, 'Time to step (in seconds)')
-        realtime_mode.set(0)
-        
-        control.pack(side=tk.LEFT, fill=tk.Y)
+        ctrl_frame.pack(side=tk.LEFT, fill=tk.Y)
      
     def _add_CAN(self, canId, device):
         
@@ -314,6 +331,8 @@ class SimUI(object):
         # grab the simulation lock, gather all of the
         # wpilib objects, and display them on the screen
         self.update_widgets()
+        
+        self.field.update_widgets()
             
         # call next timer_fired (or we'll never call timer_fired again!)
         delay = 100 # milliseconds

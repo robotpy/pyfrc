@@ -130,7 +130,8 @@ of your robot code without too much extra effort.
 By default, pyfrc doesn't modify any of your inputs/outputs without being
 told to do so by your code or the simulation GUI. 
 
-See samples/physics for more details.  
+See samples/physics for more details. The API has changed a bit as of 
+pyfrc 2014.7.0
 
 py.test unit testing integration support
 ========================================

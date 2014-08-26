@@ -255,3 +255,14 @@ def IterativeRobotTeleop(robot):
         else:
             wpilib.Wait(0.20)
 
+
+#################################################
+#
+# physics simulation global singleton
+#
+#################################################  
+
+from ...physics.core import Physics
+physics_controller = Physics()
+
+

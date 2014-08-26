@@ -1,5 +1,5 @@
 '''
-    This manages the active state of the robot
+    
 ''' 
 
 import sys
@@ -10,6 +10,11 @@ from ..wpilib import _wpilib
 from .sim_manager import SimManager
 
 class RobotController(object):
+    '''
+        This manages the active state of the robot. At the moment, this
+        isn't coded as a singleton, but because of the references to 
+        wpilib.internal, it's essentially a singleton.
+    '''
     
     mode_map = {
         SimManager.MODE_AUTONOMOUS: "Autonomous",
@@ -28,6 +33,8 @@ class RobotController(object):
         _wpilib.internal.on_IsEnabled = self.on_IsEnabled
         _wpilib.internal.on_IsAutonomous = self.on_IsAutonomous
         _wpilib.internal.on_IsOperatorControl = self.on_IsOperatorControl
+        
+        self.physics_controller = _wpilib.internal.physics_controller
         
         # any data shared with the ui must be protected by
         # this since it's running in a different thread
@@ -100,13 +107,21 @@ class RobotController(object):
             callback = self.mode_callback
             
         # don't call from inside the lock
-        if old_mode != mode and callback is not None:
-            callback(mode)
+        if old_mode != mode:
+            
+            self.physics_controller._set_robot_enabled(mode != SimManager.MODE_DISABLED)
+            
+            if callback is not None:
+                callback(mode)
 
     def get_mode(self):
         with self._lock:
             return self.mode
-
+        
+    def get_position(self):
+        '''Returns x,y,angle'''
+        return self.physics_controller.get_position()
+        
     #
     # Runs the code
     #

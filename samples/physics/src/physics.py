@@ -10,51 +10,62 @@
 #
 # This is a bit limited so far...
 #
+# One limitation to be aware of is that the physics implementation currently
+# assumes that you are only calling Wait() once per main loop. If you do it
+# more than that, you may get some rather funky results.
+#
 # NOTE: THIS API IS ALPHA AND WILL MOST LIKELY CHANGE!
 #       ... if you have better ideas on how to implement, submit a patch!
 #
 
 from pyfrc import wpilib
+from pyfrc.physics import drivetrains
 
 
 class PhysicsEngine(object):
     '''
         Simulates a motor moving something that strikes two limit switches,
-        one on each end of the track. 
+        one on each end of the track. Obviously, this is not particularly
+        realistic, but it's good enough to illustrate the point
        
         TODO: a better way to implement this is have something track all of
         the input values, and have that in a data structure, while also
         providing the override capability.
-       
-        Obviously, this is not particularly realistic, but it's good enough
-        to illustrate the point
     '''
     
     
-    def __init__(self):
+    def __init__(self, physics_controller):
+        
+        self.physics_controller = physics_controller
         
         self.jag_value = None
         
         self.position = 0
         self.last_tm = None
+            
+    def update_sim(self, now, tm_diff):
+        '''
+            Called when the simulation parameters for the program need to be
+            updated. This is mostly when wpilib.Wait is called.
+            
+            :param now: The current time as a float
+            :param tm_diff: The amount of time that has passed since the last
+                            time that this function was called
+        '''
         
+        # Simulate the drivetrain
+        l_motor = wpilib.DigitalModule._pwm[0]
+        r_motor = wpilib.DigitalModule._pwm[1]
         
-    def update_sim(self, tm):
-        '''Called when the simulation parameters need to be updated'''
+        speed, yaw = drivetrains.two_motor_drivetrain(tm_diff, l_motor, r_motor)
+        self.physics_controller.drive(speed, yaw)
         
-        last_tm = self.last_tm
-        self.last_tm = tm
-        
-        if last_tm is None:
-            return
-        
-        time_diff = tm - last_tm
         
         if self.jag_value is None:
             return
         
-        # update position
-        self.position += self.jag_value * time_diff * 3
+        # update position (use tm_diff so the rate is constant)
+        self.position += self.jag_value * tm_diff * 3
         
         # update limit switches based on position
         if self.position <= 0:
@@ -91,7 +102,7 @@ class PhysicsEngine(object):
     
     def sim_Jaguar_Set(self, obj, fn, value):
         
-        if obj.channel == 1:
+        if obj.channel == 4:
             self.jag_value = value
         
         fn(value)

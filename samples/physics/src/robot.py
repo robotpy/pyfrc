@@ -13,8 +13,14 @@ class MyRobot(wpilib.SimpleRobot):
         super().__init__()
         
         self.lstick = wpilib.Joystick(1)
+        self.rstick = wpilib.Joystick(2)
         
-        self.motor = wpilib.Jaguar(1)
+        self.l_motor = wpilib.Jaguar(1)
+        self.r_motor = wpilib.Jaguar(2)
+        
+        self.robot_drive = wpilib.RobotDrive(self.l_motor, self.r_motor)
+        
+        self.motor = wpilib.Jaguar(4)
         self.motor.label = 'Thing motor'
         
         self.limit1 = wpilib.DigitalInput(1)
@@ -48,9 +54,11 @@ class MyRobot(wpilib.SimpleRobot):
 
         while self.IsOperatorControl() and self.IsEnabled():
             dog.Feed()
+            
+            self.robot_drive.ArcadeDrive(self.lstick)
 
             # Move a motor with a Joystick
-            y = self.lstick.GetY()
+            y = self.rstick.GetY()
             
             # stop movement backwards when 1 is on
             if self.limit1.Get():
@@ -75,10 +83,10 @@ def run():
 
 if __name__ == '__main__':
     
-    wpilib.require_version('2014.5.0')
+    wpilib.require_version('2014.7.0')
     
     import physics
-    wpilib.set_physics(physics)
+    wpilib.internal.physics_controller.setup(physics)
     
     wpilib.run()
 

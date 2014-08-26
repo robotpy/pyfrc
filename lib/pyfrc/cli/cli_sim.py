@@ -18,12 +18,14 @@ def run(run_fn, file_location, enable_pynetworktables=False):
     sim_manager = sim.SimManager()
     
     controller = sim.RobotController(myrobot)
+    robot_element = sim.RobotElement(controller) 
     
     sim_manager.add_robot(controller)
     
     controller.run()
     
     ui = sim.SimUI(sim_manager)
+    ui.field.add_moving_element(robot_element)
     ui.run()
 
     # once it has finished, try to shut the robot down

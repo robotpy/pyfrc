@@ -50,7 +50,7 @@ class SimManager(object):
             self.mode_callback(mode)
     
     #
-    # API used by the SnakeBoard class
+    # API used by the RobotField class
     #
     
     def is_alive(self):
