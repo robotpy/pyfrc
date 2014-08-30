@@ -37,7 +37,6 @@ class Physics(object):
         
         # avoid circular import problems
         from .. import wpilib
-        self.fake_time = wpilib._wpilib._fake_time.FAKETIME
     
         # for now, look for a class called PhysicsEngine
         self.engine = physics.PhysicsEngine(self)
@@ -81,21 +80,27 @@ class Physics(object):
         
         print("Physics initialized")
         
-    def _wait_wrapper(self, tm):
+    def _wait_wrapper(self, wait_tm):
+        
+        if not hasattr(self, 'fake_time'):
+            from .. import wpilib
+            self.fake_time = wpilib._wpilib._fake_time.FAKETIME
+                
         now = self.fake_time.Get()
         
         last_tm = self.last_tm
-        self.last_tm = tm
+        self.last_tm = now
+        
         
         if last_tm is not None:
         
             # When using time, always do it based on a differential! You may
             # not always be called at a constant rate
-            tm_diff = tm - last_tm
+            tm_diff = now - last_tm
             
             self.engine.update_sim(now, tm_diff)
         
-        self.old_wait(tm)
+        self.old_wait(wait_tm)
         
     def _set_robot_enabled(self, enabled):
         self.robot_enabled = enabled
@@ -124,8 +129,8 @@ class Physics(object):
             
         # todo: tunable constants for weight, whatever
         angle = yaw * 100
-        x = 20*speed*math.cos(angle)
-        y = 20*speed*math.sin(angle)
+        x = speed*math.cos(angle)
+        y = speed*math.sin(angle)
         
         # something here
         with self._lock:
