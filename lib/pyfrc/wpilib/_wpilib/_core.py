@@ -994,12 +994,23 @@ class RobotDrive(object):
     def StopMotor(self):
         self.SetLeftRightMotorOutputs(0, 0)
             
+    def _validate_params(self, args, types):
+        
+        for i, (a, t) in enumerate(zip(args, types)):
+            if not isinstance(a, t):
+                if isinstance(t, list):
+                    raise TypeError("Invalid parameter %s (expected %s, got %s)" % 
+                                    (i+1, (tt.__name__ for tt in t), a.__class__.__name__))
+                else:
+                    raise TypeError("Invalid parameter %s (expected %s, got %s)" % 
+                                    (i+1, t.__name__, a.__class__.__name__))
+        
+            
     def ArcadeDrive(self, *args, **kwargs):
         
-        # parse the arguments first
-        # -> TODO: There has to be a better way to do this
         squaredInputs = False
         
+        # parse the arguments first
         if len(kwargs) == 1:
             args.append(kwargs['squaredInputs'])
         elif len(kwargs) != 0:
@@ -1007,44 +1018,36 @@ class RobotDrive(object):
         
         if len(args) == 1:
             
-            # ArcadeDrive(GenericHID, squaredInputs)
-            if not isinstance(args[0], GenericHID):
-                raise TypeError("Invalid parameter 1 (expected GenericHID, got %s)", args[0])
+            self._validate_params(args, [GenericHID])
             
+            # ArcadeDrive(GenericHID, squaredInputs=False)
             moveValue = args[0].GetY()
             rotateValue = args[0].GetX()
-            
+        
         elif len(args) == 2:
             
             # ArcadeDrive(GenericHID, squaredInputs)
-            if isinstance(args[0], GenericHID) and isinstance(args[1], bool):
+            if isinstance(args[0], GenericHID):
+                self._validate_params(args, [GenericHID, bool])
+                
                 moveValue = args[0].GetY()
                 rotateValue = args[0].GetX()
                 squaredInputs = args[1]
                 
-            # ArcadeDrive(moveValue, rotateValue, squaredInputs)
-            elif isinstance(args[0], (float, int)) and isinstance(args[1], (float, int)):
-                moveValue, rotateValue = args
-                
             else:
-                raise TypeError("Invalid parameters for RobotDrive.ArcadeDrive()")
-                
+                # ArcadeDrive(moveValue, rotateValue, squaredInputs=False)
+                self._validate_params(args, [(int, float), (int, float)])
+                moveValue, rotateValue = args
+        
         elif len(args) == 3:
             
             # ArcadeDrive(moveValue, rotateValue, squaredInputs)
-            if not isinstance(args[0], float):
-                raise TypeError("Invalid parameter 1: expected float, got %s" % type(args[0]))
-            
-            if not isinstance(args[1], float):
-                raise TypeError("Invalid parameter 2: expected float, got %s" % type(args[1]))
-            
-            if not isinstance(args[2], bool):
-                raise TypeError("Invalid parameter 3: expected float, got %s" % type(args[2]))
+            self._validate_params(args, [(int, float), (int, float), bool])
             
             moveValue, rotateValue, squaredInputs = args
             
         else:
-            raise TypeError("Invalid arguments")
+            raise TypeError("Invalid arguments: %s", args)
         
         
         # Actually do the function now
@@ -1133,6 +1136,73 @@ class RobotDrive(object):
     
     def HolonomicDrive(self, magnitude, direction, rotation):
         return self.MecanumDrive_Polar(magnitude, direction, rotation)
+    
+    def TankDrive(self, *args, **kwargs):
+        
+        # parse the arguments first
+        # -> TODO: There has to be a better way to do this
+        squaredInputs = False
+        
+        if len(kwargs) == 1:
+            args.append(kwargs['squaredInputs'])
+        elif len(kwargs) != 0:
+            raise ValueError('RobotDrive.TankDrive takes exactly one named argument')
+                
+        if len(args) == 2:
+
+            if isinstance(args[0], GenericHID):
+                
+                # TankDrive(leftStick, rightStick, squaredInputs)
+                self._validate_params(args, [GenericHID, GenericHID])
+                
+                leftValue = args[0].GetY()
+                rightValue = args[1].GetY()
+                
+            else:
+                
+                # TankDrive(leftValue, rightValue, squaredInputs)
+                self._validate_params(args, [(int, float), (int, float)])
+                leftValue, rightValue = args
+        
+        elif len(args) == 3:
+            
+            if isinstance(args[0], GenericHID):
+                
+                # TankDrive(leftStick, rightStick, squaredInputs)
+                self._validate_params(args, [GenericHID, GenericHID, bool])
+                
+                leftValue = args[0].GetY()
+                rightValue = args[1].GetY()
+                squaredInputs = args[2]
+                
+            else:
+                
+                # TankDrive(leftValue, rightValue, squaredInputs)
+                self._validate_params(args, [(int, float), (int, float), bool])
+                leftValue, rightValue, squaredInputs = args
+                  
+        else:
+            raise TypeError("Invalid arguments: %s, %s" % (args, kwargs))
+        
+        
+        # Actually do the function now
+        
+        leftValue = self._Limit(leftValue)
+        rightValue = self._Limit(rightValue)
+        
+        if squaredInputs:
+            if leftValue >= 0.0:
+                leftValue = leftValue * leftValue
+            else:
+                leftValue = -(leftValue * leftValue)
+            
+            if rightValue >= 0.0:
+                rightValue = rightValue * rightValue
+            else:
+                rightValue = -(rightValue * rightValue)
+                
+        self.SetLeftRightMotorOutputs(leftValue, rightValue)
+        
         
     def SetInvertedMotor(self, motorType, isInverted):
         if motorType < 0 or motorType > len(self.inverted):
