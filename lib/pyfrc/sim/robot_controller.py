@@ -83,11 +83,36 @@ class RobotController(object):
     def set_joystick(self, x, y):
         '''
             Receives joystick values from the ui
+            
+            TODO: needs to be more sophisticated to drive mechanum
         '''
         with self._lock:
-            drive_stick = self.driver_station.sticks[0]
-            drive_stick[0] = x
-            drive_stick[1] = y
+            
+            joysticks = self.physics_controller.get_robot_params()[5]
+            
+            if len(joysticks) == 1:
+                
+                # Single stick drive
+                drive_stick = self.driver_station.sticks[joysticks[0]]
+                drive_stick[0] = x
+                drive_stick[1] = y
+                
+            elif len(joysticks) == 2:
+                
+                # Tank drive
+                drive_stick1 = self.driver_station.sticks[joysticks[0]-1]
+                drive_stick2 = self.driver_station.sticks[joysticks[1]-1]
+                
+                l = x - y
+                r = x + y
+                
+                drive_stick1[1] = -l
+                drive_stick2[1] = r
+                
+            else:
+                
+                raise ValueError("Invalid joystick values")
+                
             
     def set_mode(self, mode):
         

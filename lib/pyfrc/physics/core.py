@@ -112,14 +112,16 @@ class Physics(object):
                 robot_height,      # in feet
                 starting_x,        # center of robot
                 starting_y,        # center of robot
-                starting_angle)    # in degrees (0 is east, 90 is south)
+                starting_angle,    # in degrees (0 is east, 90 is south)
+                joysticks)         # joystick numbers that driving uses
         '''
         
         return (getattr(self.engine, 'ROBOT_WIDTH', 2),
                 getattr(self.engine, 'ROBOT_HEIGHT', 3),
                 getattr(self.engine, 'ROBOT_STARTING_X', 18.5),
                 getattr(self.engine, 'ROBOT_STARTING_Y', 12),
-                getattr(self.engine, 'STARTING_ANGLE', 180))
+                getattr(self.engine, 'STARTING_ANGLE', 180),
+                getattr(self.engine, 'JOYSTICKS', [1]))
         
             
     #######################################################
