@@ -9,14 +9,22 @@ from pyfrc.physics import drivetrains
 
 class PhysicsEngine(object):
     '''
-        Simulates a motor moving something that strikes two limit switches,
-        one on each end of the track. Obviously, this is not particularly
-        realistic, but it's good enough to illustrate the point
-       
-        TODO: a better way to implement this is have something track all of
-        the input values, and have that in a data structure, while also
-        providing the override capability.
+       Simulates a 4-wheel robot using Tank Drive joystick control 
     '''
+    
+    # Specified in feet
+    ROBOT_WIDTH = 2
+    ROBOT_HEIGHT = 3
+    
+    ROBOT_STARTING_X = 18.5
+    ROBOT_STARTING_Y = 12
+    
+    # In degrees, 0 is east, 90 is south
+    STARTING_ANGLE = 180
+    
+    # Tank drive
+    JOYSTICKS = [1, 2] # which joysticks to use for controlling?
+                       # first is left, second is right. 1-based index. 
     
     
     def __init__(self, physics_controller):

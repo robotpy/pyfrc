@@ -13,6 +13,7 @@ class MyRobot(wpilib.SimpleRobot):
         super().__init__()
         
         self.lstick = wpilib.Joystick(1)
+        self.rstick = wpilib.Joystick(2)
         
         self.lr_motor = wpilib.Jaguar(1)
         self.rr_motor = wpilib.Jaguar(2)
@@ -53,7 +54,7 @@ class MyRobot(wpilib.SimpleRobot):
         while self.IsOperatorControl() and self.IsEnabled():
             dog.Feed()
             
-            self.robot_drive.ArcadeDrive(self.lstick)
+            self.robot_drive.TankDrive(self.lstick, self.rstick)
 
             wpilib.Wait(0.04)
 

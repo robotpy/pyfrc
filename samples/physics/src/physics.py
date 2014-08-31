@@ -33,6 +33,16 @@ class PhysicsEngine(object):
         providing the override capability.
     '''
     
+    # Specified in feet
+    ROBOT_WIDTH = 2
+    ROBOT_HEIGHT = 3
+    
+    ROBOT_STARTING_X = 18.5
+    ROBOT_STARTING_Y = 12
+    
+    # In degrees, 0 is east, 90 is south
+    STARTING_ANGLE = 180
+    
     
     def __init__(self, physics_controller):
         
