@@ -13,23 +13,15 @@ class MyRobot(wpilib.SimpleRobot):
         super().__init__()
         
         self.lstick = wpilib.Joystick(1)
-        self.rstick = wpilib.Joystick(2)
         
-        self.l_motor = wpilib.Jaguar(1)
-        self.r_motor = wpilib.Jaguar(2)
+        self.lr_motor = wpilib.Jaguar(1)
+        self.rr_motor = wpilib.Jaguar(2)
+        self.lf_motor = wpilib.Jaguar(3)
+        self.rf_motor = wpilib.Jaguar(4)
         
-        self.robot_drive = wpilib.RobotDrive(self.l_motor, self.r_motor)
-        
-        self.motor = wpilib.Jaguar(4)
-        self.motor.label = 'Thing motor'
-        
-        self.limit1 = wpilib.DigitalInput(1)
-        self.limit2 = wpilib.DigitalInput(2)
-        
-        self.position = wpilib.AnalogChannel(1)
-        
-        self.ds = wpilib.DriverStation.GetInstance()
-        
+        self.robot_drive = wpilib.RobotDrive(self.lr_motor, self.rr_motor,
+                                             self.lf_motor, self.rf_motor)
+         
     def Disabled(self):
         '''Called when the robot is disabled'''
         while self.IsDisabled():
@@ -58,28 +50,13 @@ class MyRobot(wpilib.SimpleRobot):
         dog.SetEnabled(True)
         dog.SetExpiration(0.25)
 
-        timer = wpilib.Timer()
-        timer.Start()
-
         while self.IsOperatorControl() and self.IsEnabled():
             dog.Feed()
             
             self.robot_drive.ArcadeDrive(self.lstick)
 
-            # Move a motor with a Joystick
-            y = self.rstick.GetY()
-            
-            # stop movement backwards when 1 is on
-            if self.limit1.Get():
-                y = max(0, y)
-                
-            # stop movement forwards when 2 is on
-            if self.limit2.Get():
-                y = min(0, y)
-                
-            self.motor.Set(y)
-
             wpilib.Wait(0.04)
+
 
 def run():
     '''Called by RobotPy when the robot initializes'''
