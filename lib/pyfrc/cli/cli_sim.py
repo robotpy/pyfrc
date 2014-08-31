@@ -15,16 +15,20 @@ def run(run_fn, file_location, enable_pynetworktables=False):
     wpilib.internal.initialize_test()
     myrobot = run_fn()
 
+    # sim parameters
+    field_size = (25, 54)
+    px_per_ft = 10
+
     sim_manager = sim.SimManager()
     
     controller = sim.RobotController(myrobot)
-    robot_element = sim.RobotElement(controller) 
+    robot_element = sim.RobotElement(controller, px_per_ft) 
     
     sim_manager.add_robot(controller)
     
     controller.run()
     
-    ui = sim.SimUI(sim_manager)
+    ui = sim.SimUI(sim_manager, field_size, px_per_ft)
     ui.field.add_moving_element(robot_element)
     ui.run()
 

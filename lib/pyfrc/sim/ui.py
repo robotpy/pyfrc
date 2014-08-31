@@ -22,7 +22,7 @@ from .ui_widgets import CheckButtonWrapper, PanelIndicator, Tooltip, ValueWidget
 
 class SimUI(object):
     
-    def __init__(self, manager):
+    def __init__(self, manager, field_size, px_per_ft):
         '''
             initializes all default values and creates 
             a board, waits for run() to be called
@@ -40,7 +40,7 @@ class SimUI(object):
         frame = tk.Frame(self.root)
         frame.pack(side=tk.TOP, anchor=tk.W)
                
-        self._setup_widgets(frame)
+        self._setup_widgets(frame, field_size, px_per_ft)
        
         self.root.resizable(width=0, height=0)
         
@@ -58,7 +58,7 @@ class SimUI(object):
         self.timer_fired()
         
         
-    def _setup_widgets(self, frame):
+    def _setup_widgets(self, frame, field_size, px_per_ft):
         
         top = tk.Frame(frame)
         top.grid(column=0, row=0)
@@ -66,7 +66,7 @@ class SimUI(object):
         bottom = tk.Frame(frame)
         bottom.grid(column=0, row=1)
         
-        self.field = RobotField(frame, self.manager, (14, 14))
+        self.field = RobotField(frame, self.manager, field_size, px_per_ft)
         self.field.grid(column=1, row=0, rowspan=2)
         
         # status bar

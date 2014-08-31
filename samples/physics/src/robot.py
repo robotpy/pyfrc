@@ -38,8 +38,17 @@ class MyRobot(wpilib.SimpleRobot):
     def Autonomous(self):
         '''Called when autonomous mode is enabled'''
         
+        timer = wpilib.Timer()
+        timer.Start()
+        
         self.GetWatchdog().SetEnabled(False)
         while self.IsAutonomous() and self.IsEnabled():
+            
+            if timer.Get() < 2.0:
+                self.robot_drive.ArcadeDrive(-1.0, 0)
+            else:
+                self.robot_drive.ArcadeDrive(0, 0)
+            
             wpilib.Wait(0.01)
 
     def OperatorControl(self):

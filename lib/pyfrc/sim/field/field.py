@@ -4,7 +4,7 @@ import tkinter as tk
 
 class RobotField(object):
     
-    def __init__(self, root, manager, field_size):
+    def __init__(self, root, manager, field_size, px_per_ft):
         '''
             initializes all default values and creates 
             a board, waits for run() to be called
@@ -19,10 +19,10 @@ class RobotField(object):
         self.manager = manager
         self.elements = []      # robots, walls, missles, etc
         
-        # setup board characteristics
+        # setup board characteristics -- cell size is 1ft
         self.rows, self.cols = field_size
         self.margin = 5
-        self.cellSize = 30
+        self.cellSize = px_per_ft
         self.canvasWidth = 2*self.margin + self.cols*self.cellSize
         self.canvasHeight = 2*self.margin + self.rows*self.cellSize
         
@@ -80,11 +80,11 @@ class RobotField(object):
     def draw_field(self):
         for row in range(self.rows):
             for col in range(self.cols):
-                self.draw_board_cell(row, col, "white")
+                self.draw_board_cell(row, col)
             
-    def draw_board_cell(self, row, col, color):
+    def draw_board_cell(self, row, col):
         left = self.margin + col * self.cellSize
         right = left + self.cellSize
         top = self.margin + row * self.cellSize
         bottom = top + self.cellSize
-        self.canvas.create_rectangle(left, top, right, bottom, fill=color)
+        self.canvas.create_rectangle(left, top, right, bottom, outline="#ccc", fill="#fff")

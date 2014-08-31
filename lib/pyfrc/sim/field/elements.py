@@ -48,6 +48,8 @@ class DrawableElement(object):
     def rotate(self, angle):
         '''
             This works. Rotates the object about its center.
+            
+            Angle is specified in degrees
         '''
         
         angle = math.radians(angle)

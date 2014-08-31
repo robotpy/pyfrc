@@ -104,6 +104,23 @@ class Physics(object):
         
     def _set_robot_enabled(self, enabled):
         self.robot_enabled = enabled
+        
+    def get_robot_params(self):
+        '''
+            :returns: a tuple of 
+                (robot_width,      # in feet
+                robot_height,      # in feet
+                starting_x,        # center of robot
+                starting_y,        # center of robot
+                starting_angle)    # in degrees (0 is east, 90 is south)
+        '''
+        
+        return (getattr(self.engine, 'ROBOT_WIDTH', 2),
+                getattr(self.engine, 'ROBOT_HEIGHT', 3),
+                getattr(self.engine, 'ROBOT_STARTING_X', 18.5),
+                getattr(self.engine, 'ROBOT_STARTING_Y', 12),
+                getattr(self.engine, 'STARTING_ANGLE', 180))
+        
             
     #######################################################
     #
@@ -111,13 +128,16 @@ class Physics(object):
     #
     #######################################################
     
-    def drive(self, speed, yaw):
+    def drive(self, distance, yaw):
         '''Call this from your update_sim function. Will update the
            robot's position accordingly
            
            The outputs of the drivetrains.* functions should be passed
            to this function. When implementing your own versions of those,
            take care to adjust the speed/yaw values based on time.
+           
+           :param distance: Distance traveled, specified in feet
+           :param yaw:      % of circle traveled (-1 to 1)
            
            .. only allows driving in a 2D direction at the moment
            .. TODO: collisions?
@@ -126,11 +146,12 @@ class Physics(object):
         # if the robot is disabled, don't do anything
         if not self.robot_enabled:
             return
+        
+        angle = math.radians(yaw * 360.0)
             
         # todo: tunable constants for weight, whatever
-        angle = yaw * 100
-        x = speed*math.cos(angle)
-        y = speed*math.sin(angle)
+        x = distance*math.cos(angle)
+        y = distance*math.sin(angle)
         
         # something here
         with self._lock:
@@ -139,7 +160,7 @@ class Physics(object):
             self.angle += angle
         
     def get_position(self):
-        '''Returns robot's current position as x,y,angle. angle is in radians'''
+        '''Returns robot's current position as x,y,angle. x/y in feet, angle is in radians'''
         with self._lock:
             return self.x, self.y, self.angle
     
