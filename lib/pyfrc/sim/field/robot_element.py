@@ -1,6 +1,8 @@
 
 from .elements import CompositeElement, DrawableElement
 
+import math
+
 class RobotElement(CompositeElement):
     '''
         TODO: allow user customization
@@ -46,7 +48,7 @@ class RobotElement(CompositeElement):
         self.elements.append(robot_pt)
         
         if angle != 0:
-            self.rotate(angle)
+            self.rotate(math.radians(angle))
     
     def perform_move(self):
         

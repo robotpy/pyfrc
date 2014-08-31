@@ -45,7 +45,7 @@ class MyRobot(wpilib.SimpleRobot):
         while self.IsAutonomous() and self.IsEnabled():
             
             if timer.Get() < 2.0:
-                self.robot_drive.ArcadeDrive(-1.0, 0)
+                self.robot_drive.ArcadeDrive(-1.0, -.3)
             else:
                 self.robot_drive.ArcadeDrive(0, 0)
             

@@ -49,10 +49,9 @@ class DrawableElement(object):
         '''
             This works. Rotates the object about its center.
             
-            Angle is specified in degrees
+            Angle is specified in radians
         '''
         
-        angle = math.radians(angle)
         self.angle = (self.angle + angle) % (math.pi*2.0)
         
         # precalculate these parameters

@@ -1,57 +1,77 @@
 '''
     Based on input from various drive motors, this simulates
     moving the robot in various ways.
+                
+    Thanks to Ether (http://www.chiefdelphi.com/forums/member.php?u=34863)
+    for assistance with the motion equations.
     
-    Each of these functions returns a tuple of (distance, yaw)
-    indicating the distance the robot traveled during the time
-    diff passed in. Where
-    heading is an angle, Yaw is % of circle in one time
-    deviation.
+    2/4/6 wheel robot, simple drivetrain:
     
-    Distance is specified in feet
-    Yaw is specified in % of circle
+        FWD = (L+R)/2
+        RCW = (L-R)/W
+        
+    L is forward speed of the left wheel(s), all in sync
+    R is forward speed of the right wheel(s), all in sync
+    W is wheelbase in feet
     
-    These are really simple approximations, and get the job
-    done for now. If you have better ways of doing the
-    calculations, please submit fixes!
+    When specifying the robot speed to the below functions, the following
+    may help you determine the approximate speed of your robot:
     
-    Scale approximations:
-        Robot size: 20px x 20px -- 2.3ft x 2.3ft
-        Robot speed estimates:
-            Slow: 4ft/s
-            Typical: 5 to 7ft/s
-            Fast: 8 to 12ft/s
+        Slow: 4ft/s
+        Typical: 5 to 7ft/s
+        Fast: 8 to 12ft/s
+        
+    Obviously, to get the best simulation results, you should try to
+    estimate the speed of your robot accurately.
 '''
 
     
-def two_motor_drivetrain(tm_diff, l_motor, r_motor, speed=5, robot_circumference=8):
+def two_motor_drivetrain(l_motor, r_motor, wheelbase=2, speed=5):
     '''
-        Two center-mounted motors 
+        Two center-mounted motors (see above for equations)
         
-        :param tm_diff:    Amount of time that has passed since last call
-        :param l_motor:    Left motor speed
-        :param r_motor:    Right motor speed
+        :param l_motor:    Left motor value (-1 to 1); -1 is forward
+        :param r_motor:    Right motor value (-1 to 1); 1 is forward
         :param speed:      Speed of robot in feet per second (see above)
-        :param robot_circumference:
+        :param wheelbase:  Distance between wheels, in feet
+        
+        :returns: speed of robot (ft/s), rotation of robot (radians/s)
     '''
     
-    # TODO: do something with tm_diff
-    
-    jag1 = -l_motor.Get()
-    jag2 = r_motor.Get()
+    l = -l_motor.Get() * speed
+    r = r_motor.Get() * speed
 
-    # speed obtained by adding together motor speeds
-    speed = (jag1 + jag2) * 0.5 * tm_diff * speed
-    
-    # Physics could be better here.. why is circumference here?
-    yaw = (jag1 / robot_circumference) - (jag2/robot_circumference) 
-    
-    return speed, yaw
-            
+    # Motion equations
+    fwd = (l + r) * 0.5
+    rcw = (l - r) / float(wheelbase)
+        
+    return fwd, rcw
 
-#def four_wheel_drivetrain()... 
 
-#def six_wheel_drivetrain()...
+def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, speed=5):
+    '''
+        Four motors, each side chained together (see above for equations)
+        
+        :param lr_motor:   Left rear motor value (-1 to 1); -1 is forward
+        :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
+        :param lf_motor:   Left front motor value (-1 to 1); -1 is forward
+        :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
+        :param speed:      Speed of robot in feet per second (see above)
+        :param wheelbase:  Distance between wheels, in feet
+        
+        :returns: speed of robot (ft/s), rotation of robot (radians/s)
+    '''
+    
+    l = -(lf_motor.Get() + lr_motor.Get()) * 0.5 * speed
+    r = (rf_motor.Get() + rr_motor.Get()) * 0.5 * speed
+    
+    # Motion equations
+    fwd = (l + r) * 0.5
+    rcw = (l - r) / float(wheelbase)
+        
+    return fwd, rcw
+
+
 
 
 #def mechanum_drivetrain(tm_diff, ll_motor, lr_motor, rl_motor, rr_motor,

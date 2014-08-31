@@ -128,7 +128,7 @@ class Physics(object):
     #
     #######################################################
     
-    def drive(self, distance, yaw):
+    def drive(self, speed, rotation_speed, tm_diff):
         '''Call this from your update_sim function. Will update the
            robot's position accordingly
            
@@ -136,8 +136,9 @@ class Physics(object):
            to this function. When implementing your own versions of those,
            take care to adjust the speed/yaw values based on time.
            
-           :param distance: Distance traveled, specified in feet
-           :param yaw:      % of circle traveled (-1 to 1)
+           :param speed:           Speed traveling in ft/s
+           :param rotation_speed:  Rotational speed in rad/s
+           :param tm_diff:         Amount of time speed was traveled
            
            .. only allows driving in a 2D direction at the moment
            .. TODO: collisions?
@@ -147,9 +148,9 @@ class Physics(object):
         if not self.robot_enabled:
             return
         
-        angle = math.radians(yaw * 360.0)
-            
-        # todo: tunable constants for weight, whatever
+        distance = speed * tm_diff 
+        angle = rotation_speed * tm_diff
+        
         x = distance*math.cos(angle)
         y = distance*math.sin(angle)
         
