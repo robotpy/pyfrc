@@ -93,7 +93,7 @@ class RobotController(object):
             if len(joysticks) == 1:
                 
                 # Single stick drive
-                drive_stick = self.driver_station.sticks[joysticks[0]]
+                drive_stick = self.driver_station.sticks[joysticks[0]-1]
                 drive_stick[0] = x
                 drive_stick[1] = y
                 
