@@ -18,6 +18,9 @@ class MyRobot(wpilib.SimpleRobot):
         self.l_motor = wpilib.Jaguar(1)
         self.r_motor = wpilib.Jaguar(2)
         
+        # Position gets automatically updated as robot moves
+        self.gyro = wpilib.Gyro(1)
+        
         self.robot_drive = wpilib.RobotDrive(self.l_motor, self.r_motor)
         
         self.motor = wpilib.Jaguar(4)
@@ -26,7 +29,7 @@ class MyRobot(wpilib.SimpleRobot):
         self.limit1 = wpilib.DigitalInput(1)
         self.limit2 = wpilib.DigitalInput(2)
         
-        self.position = wpilib.AnalogChannel(1)
+        self.position = wpilib.AnalogChannel(2)
         
         self.ds = wpilib.DriverStation.GetInstance()
         

@@ -102,7 +102,7 @@ class PhysicsEngine(object):
             pass
         
         try:
-            wpilib.AnalogModule._channels[0].voltage = self.position
+            wpilib.AnalogModule._channels[1].voltage = self.position
         except:
             pass
         
