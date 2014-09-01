@@ -805,10 +805,18 @@ class Gyro(_WPILibObject):
     kCalibrationSampleTime = 5.0
     kDefaultVoltsPerDegreePerSecond = 0.007
     
+    _all_gyros = []
+    
+    @staticmethod
+    def _reset():
+        Gyro._all_gyros = []
+    
     def __init__(self, channel):
         AnalogModule._add_channel(channel, self)
         self.channel = channel
         self.value = 0
+        
+        Gyro._all_gyros.append(self)
         
     def GetAngle(self):
         return self.value
