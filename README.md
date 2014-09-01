@@ -70,6 +70,14 @@ It requires a compiler to install from source, so if you're on Windows you
 probably just want to download the binary from pypi and install that, instead
 of trying to install from pip.
 
+Quick Demo
+==========
+
+Once you get this installed, then you can run a quick demo with the following:
+
+	cd samples/physics/src/
+	python3 robot.py sim
+
 Usage
 =====
 
