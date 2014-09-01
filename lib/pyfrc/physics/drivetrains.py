@@ -30,6 +30,9 @@ def two_motor_drivetrain(l_motor, r_motor, wheelbase=2, speed=5):
     '''
         Two center-mounted motors (see above for equations)
         
+        If you called "SetInvertedMotor" on any of your motors in RobotDrive,
+        then you will need to multiply that motor's value by -1.
+        
         :param l_motor:    Left motor value (-1 to 1); -1 is forward
         :param r_motor:    Right motor value (-1 to 1); 1 is forward
         :param speed:      Speed of robot in feet per second (see above)
@@ -38,8 +41,8 @@ def two_motor_drivetrain(l_motor, r_motor, wheelbase=2, speed=5):
         :returns: speed of robot (ft/s), rotation of robot (radians/s)
     '''
     
-    l = -l_motor.Get() * speed
-    r = r_motor.Get() * speed
+    l = -l_motor * speed
+    r = r_motor * speed
 
     # Motion equations
     fwd = (l + r) * 0.5
@@ -50,7 +53,10 @@ def two_motor_drivetrain(l_motor, r_motor, wheelbase=2, speed=5):
 
 def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, speed=5):
     '''
-        Four motors, each side chained together (see above for equations)
+        Four motors, each side chained together (see above for equations).
+        
+        If you called "SetInvertedMotor" on any of your motors in RobotDrive,
+        then you will need to multiply that motor's value by -1.
         
         :param lr_motor:   Left rear motor value (-1 to 1); -1 is forward
         :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
@@ -62,8 +68,8 @@ def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, s
         :returns: speed of robot (ft/s), rotation of robot (radians/s)
     '''
     
-    l = -(lf_motor.Get() + lr_motor.Get()) * 0.5 * speed
-    r = (rf_motor.Get() + rr_motor.Get()) * 0.5 * speed
+    l = -(lf_motor + lr_motor) * 0.5 * speed
+    r = (rf_motor + rr_motor) * 0.5 * speed
     
     # Motion equations
     fwd = (l + r) * 0.5

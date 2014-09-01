@@ -45,10 +45,10 @@ class PhysicsEngine(object):
         '''
         
         # Simulate the drivetrain
-        lr_motor = wpilib.DigitalModule._pwm[0]
-        rr_motor = wpilib.DigitalModule._pwm[1]
-        lf_motor = wpilib.DigitalModule._pwm[2]
-        rf_motor = wpilib.DigitalModule._pwm[3]
+        lr_motor = wpilib.DigitalModule._pwm[0].Get()
+        rr_motor = wpilib.DigitalModule._pwm[1].Get()
+        lf_motor = wpilib.DigitalModule._pwm[2].Get()
+        rf_motor = wpilib.DigitalModule._pwm[3].Get()
         
         speed, rotation = drivetrains.four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor)
         self.physics_controller.drive(speed, rotation, tm_diff)
