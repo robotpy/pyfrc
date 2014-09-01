@@ -38,7 +38,7 @@ def two_motor_drivetrain(l_motor, r_motor, wheelbase=2, speed=5):
         :param wheelbase:  Distance between wheels, in feet
         :param speed:      Speed of robot in feet per second (see above)
         
-        :returns: speed of robot (ft/s), rotation of robot (radians/s)
+        :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
     '''
     
     l = -l_motor * speed
@@ -65,7 +65,7 @@ def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, s
         :param wheelbase:  Distance between wheels, in feet
         :param speed:      Speed of robot in feet per second (see above)
         
-        :returns: speed of robot (ft/s), rotation of robot (radians/s)
+        :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
     '''
     
     l = -(lf_motor + lr_motor) * 0.5 * speed
@@ -92,7 +92,8 @@ def mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, spee
         :param speed:      Speed of robot in feet per second (see above)
         :param wheelbase:  Distance between wheels, in feet
         
-        :returns: speed of robot (ft/s), rotation of robot (radians/s)
+        :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s), 
+                  clockwise rotation of robot (radians/s)
     '''
     
     lr = lr_motor * speed
