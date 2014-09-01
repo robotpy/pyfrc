@@ -8,3 +8,4 @@ prune samples/simple/src/__pycache__
 prune samples/simple/tests/__pycache__
 prune samples/physics/src/__pycache__
 prune samples/physics-4wheel/src/__pycache__
+prune samples/physics-mecanum/src/__pycache__

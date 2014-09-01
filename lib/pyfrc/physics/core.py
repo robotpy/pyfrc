@@ -140,7 +140,7 @@ class Physics(object):
            take care to adjust the speed/yaw values based on time.
            
            :param speed:           Speed traveling in ft/s
-           :param rotation_speed:  Rotational speed in rad/s
+           :param rotation_speed:  Clockwise rotational speed in rad/s
            :param tm_diff:         Amount of time speed was traveled
            
            .. only allows driving in a 2D direction at the moment
@@ -173,7 +173,7 @@ class Physics(object):
            
            :param vx: Speed in x direction in ft/s
            :param vy: Speed in y direction in ft/s
-           :param vw: Rotational speed in rad/s
+           :param vw: Clockwise rotational speed in rad/s
            :param tm_diff:         Amount of time speed was traveled
         
         '''
@@ -192,8 +192,9 @@ class Physics(object):
     def _update_gyros(self):
         # must be called while holding the lock
         
+        gyro_value = math.degrees(self.angle)
         for gyro in self.gyro_class._all_gyros:
-            gyro.value = math.degrees(self.angle)
+            gyro.value = gyro_value
     
     def get_position(self):
         '''Returns robot's current position as x,y,angle. x/y in feet, angle is in radians'''

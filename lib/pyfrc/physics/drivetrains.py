@@ -35,8 +35,8 @@ def two_motor_drivetrain(l_motor, r_motor, wheelbase=2, speed=5):
         
         :param l_motor:    Left motor value (-1 to 1); -1 is forward
         :param r_motor:    Right motor value (-1 to 1); 1 is forward
-        :param speed:      Speed of robot in feet per second (see above)
         :param wheelbase:  Distance between wheels, in feet
+        :param speed:      Speed of robot in feet per second (see above)
         
         :returns: speed of robot (ft/s), rotation of robot (radians/s)
     '''
@@ -62,8 +62,8 @@ def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, s
         :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
         :param lf_motor:   Left front motor value (-1 to 1); -1 is forward
         :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
-        :param speed:      Speed of robot in feet per second (see above)
         :param wheelbase:  Distance between wheels, in feet
+        :param speed:      Speed of robot in feet per second (see above)
         
         :returns: speed of robot (ft/s), rotation of robot (radians/s)
     '''
@@ -78,13 +78,52 @@ def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, s
     return fwd, rcw
 
 
-
-
-#def mechanum_drivetrain(tm_diff, ll_motor, lr_motor, rl_motor, rr_motor,
-#                        robot_circumference=8):
-#    '''
-#        A 4-wheel mechanum drivetrain
-#    '''
-#    pass
+def mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, speed=5):
+    '''
+        Four motors, each with a mechanum wheel attached to it.
+        
+        If you called "SetInvertedMotor" on any of your motors in RobotDrive,
+        then you will need to multiply that motor's value by -1.
+        
+        :param lr_motor:   Left rear motor value (-1 to 1); -1 is forward
+        :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
+        :param lf_motor:   Left front motor value (-1 to 1); -1 is forward
+        :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
+        :param speed:      Speed of robot in feet per second (see above)
+        :param wheelbase:  Distance between wheels, in feet
+        
+        :returns: speed of robot (ft/s), rotation of robot (radians/s)
+    '''
+    
+    lr = lr_motor * speed
+    rr = rr_motor * speed
+    lf = lf_motor * speed
+    rf = rf_motor * speed
+    
+    #
+    # From http://www.chiefdelphi.com/media/papers/download/2722 pp7-9
+    # [F] [omega](r) = [V]
+    #
+    # F is 
+    # .25  .25  .25 .25
+    # -.25 .25 -.25 .25
+    # -.25k -.25k .25k .25k
+    #
+    # omega is
+    # [lf lr rr rf]
+    
+    # 8-inch wheel? what is r?
+    r = 1
+    
+    Vx = r * .25 * (lf + lr + rr + rf)
+    Vy = r * .25 * (-lf + lr + -rr + rf)
+    
+    k = abs(Vx) + abs(Vy)
+    
+    Vw = r * .25 * k * (-lf + -lr + rr + rf)
+    
+    return Vx, Vy, -Vw
+    
+    
 
 # TODO: swerve drive, etc
