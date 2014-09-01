@@ -37,6 +37,7 @@ class Physics(object):
         
         # avoid circular import problems
         from .. import wpilib
+        self.gyro_class = wpilib.Gyro
     
         # for now, look for a class called PhysicsEngine
         self.engine = physics.PhysicsEngine(self)
@@ -161,7 +162,39 @@ class Physics(object):
             self.x += x
             self.y += y 
             self.angle += angle
+            
+            self._update_gyros()
+            
+    def vector_drive(self, vx, vy, vw, tm_diff):
+        '''Call this from your update_sim function. Will update the
+           robot's position accordingly
+           
+           This moves the robot using a vector, instead of by speed/rotation speed
+           
+           :param vx: Speed in x direction in ft/s
+           :param vy: Speed in y direction in ft/s
+           :param vw: Rotational speed in rad/s
+           :param tm_diff:         Amount of time speed was traveled
         
+        '''
+        
+        # if the robot is disabled, don't do anything
+        if not self.robot_enabled:
+            return
+        
+        with self._lock:
+            self.x += (vx * tm_diff)
+            self.y += (vy * tm_diff)
+            self.angle += (vw * tm_diff)
+            
+            self._update_gyros()
+            
+    def _update_gyros(self):
+        # must be called while holding the lock
+        
+        for gyro in self.gyro_class._all_gyros:
+            gyro.value = math.degrees(self.angle)
+    
     def get_position(self):
         '''Returns robot's current position as x,y,angle. x/y in feet, angle is in radians'''
         with self._lock:
