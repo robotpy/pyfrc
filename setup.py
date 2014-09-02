@@ -25,12 +25,16 @@ def get_version():
         exec(fp.read(), g)
     return g['__version__']
 
-install_requires=open(join(setup_dir, 'requirements.txt')).readlines()
+with open(join(setup_dir, 'requirements.txt')) as requirements_file:
+    install_requires = requirements_file.readlines()
+
+with open(join(dirname(__file__), 'README.md'), 'r') as readme_file:
+    long_description = readme_file.read()
 
 setup(name='pyfrc',
       version=get_version(),
       description='Development tools library for python interpreter used for the FIRST Robotics Competition',
-      long_description=open(join(dirname(__file__), 'README.md'), 'r').read(),
+      long_description=long_description,
       author='Dustin Spicuzza',
       author_email='dustin@virtualroadside.com',
       url='https://github.com/robotpy/pyfrc',
