@@ -2,6 +2,7 @@
 import sys
 
 from .. import sim
+from ..sim.field import elements
 from .. import wpilib
 
 def run(run_fn, file_location, enable_pynetworktables=False):
@@ -22,7 +23,11 @@ def run(run_fn, file_location, enable_pynetworktables=False):
     sim_manager = sim.SimManager()
     
     controller = sim.RobotController(myrobot)
-    robot_element = sim.RobotElement(controller, px_per_ft) 
+    if controller.has_physics():
+        robot_element = sim.RobotElement(controller, px_per_ft)
+    else:
+        center = (field_size[0]*px_per_ft/2, field_size[1]*px_per_ft/2)
+        robot_element = elements.TextElement("Physics not setup", center, 0, '#000', 12)
     
     sim_manager.add_robot(controller)
     

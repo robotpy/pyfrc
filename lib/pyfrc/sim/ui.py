@@ -331,8 +331,6 @@ class SimUI(object):
         # grab the simulation lock, gather all of the
         # wpilib objects, and display them on the screen
         self.update_widgets()
-        
-        self.field.update_widgets()
             
         # call next timer_fired (or we'll never call timer_fired again!)
         delay = 100 # milliseconds
@@ -455,6 +453,8 @@ class SimUI(object):
             
                 for j, (ck, var) in enumerate(buttons):
                     stick_buttons[i][j] = True if var.get() else False
+                    
+            self.field.update_widgets()
             
             tm = _fake_time.FAKETIME.Get()
             mode_tm = tm - self.mode_start_tm

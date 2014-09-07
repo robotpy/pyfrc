@@ -23,6 +23,8 @@ class Physics(object):
         self.angle = 0
         
         self.robot_enabled = False
+        
+        self.engine = None
     
     def setup(self, physics):
         '''
@@ -106,6 +108,9 @@ class Physics(object):
     def _set_robot_enabled(self, enabled):
         self.robot_enabled = enabled
         
+    def has_engine(self):
+        return self.engine is not None
+        
     def get_robot_params(self):
         '''
             :returns: a tuple of 
@@ -117,12 +122,16 @@ class Physics(object):
                 joysticks)         # joystick numbers that driving uses
         '''
         
-        return (getattr(self.engine, 'ROBOT_WIDTH', 2),
-                getattr(self.engine, 'ROBOT_HEIGHT', 3),
-                getattr(self.engine, 'ROBOT_STARTING_X', 18.5),
-                getattr(self.engine, 'ROBOT_STARTING_Y', 12),
-                getattr(self.engine, 'STARTING_ANGLE', 180),
-                getattr(self.engine, 'JOYSTICKS', [1]))
+        engine = self.engine
+        if engine is None:
+            engine = object()
+        
+        return (getattr(engine, 'ROBOT_WIDTH', 2),
+                getattr(engine, 'ROBOT_HEIGHT', 3),
+                getattr(engine, 'ROBOT_STARTING_X', 18.5),
+                getattr(engine, 'ROBOT_STARTING_Y', 12),
+                getattr(engine, 'STARTING_ANGLE', 180),
+                getattr(engine, 'JOYSTICKS', [1]))
         
             
     #######################################################

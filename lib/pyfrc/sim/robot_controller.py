@@ -72,6 +72,9 @@ class RobotController(object):
     # API used by the ui
     #
     
+    def has_physics(self):
+        return self.physics_controller.has_engine()
+    
     def is_alive(self):
         return self.thread.is_alive()
     

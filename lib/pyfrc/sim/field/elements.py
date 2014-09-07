@@ -111,5 +111,24 @@ class CompositeElement(object):
         for e in self.elements:
             e.update_coordinates()
         
+
+class TextElement(DrawableElement):
+    '''
+        An element that shows text
+    '''
+    
+    def __init__(self, text, center, angle, color, fontSize):
+        super().__init__([center], center, angle, color)
+        self.text = text
+        self.fontSize = fontSize
         
+    def initialize(self, canvas):
+        self.canvas = canvas
+        x, y = self.center
+        self.id = self.canvas.create_text(y, x, text=self.text,
+                                          font=("Helvetica", self.fontSize, "bold"))
         
+        self.set_color(self.color)
+
+    def perform_move(self):
+        pass
