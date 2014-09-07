@@ -1,2 +1,3 @@
 pytest
-coverage
+# coverage isn't in here because it requires an installed compiler, which
+# many students may not have installed

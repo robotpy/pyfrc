@@ -5,7 +5,7 @@ python:
   - "3.4"
 # command to install dependencies
 install:
-  - "pip install ."
+  - "pip install . coverage"
 # command to run tests
 script:
   - tests/run_tests.sh
