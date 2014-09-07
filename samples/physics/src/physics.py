@@ -45,6 +45,10 @@ class PhysicsEngine(object):
     
     
     def __init__(self, physics_controller):
+        '''
+            :param physics_controller: `pyfrc.physics.core.Physics` object
+                                       to communicate simulation effects to
+        '''
         
         self.physics_controller = physics_controller
         
@@ -111,6 +115,14 @@ class PhysicsEngine(object):
         self.jag_value = None
     
     def sim_Jaguar_Set(self, obj, fn, value):
+        '''
+            Called when Jaguar.Set() is called. This function should
+            call fn() with the passed in value.
+            
+            :param obj:   Jaguar object
+            :param fn:    Wrapped Jaguar.Set function
+            :param value: Value passed to Jaguar.Set
+        '''
         
         if obj.channel == 4:
             self.jag_value = value

@@ -41,7 +41,7 @@ class MyRobot(wpilib.SimpleRobot):
         while self.IsAutonomous() and self.IsEnabled():
             
             if timer.Get() < 2.0:
-                self.robot_drive.MecanumDrive_Cartesian(0, -1, .1)
+                self.robot_drive.MecanumDrive_Cartesian(0, -1, 1)
             else:
                 self.robot_drive.MecanumDrive_Cartesian(0, 0, 0)
             

@@ -4,7 +4,6 @@ try:
 except ImportError:
     from pyfrc import wpilib
 
-
 class MyRobot(wpilib.SimpleRobot):
     '''Main robot class'''
     
