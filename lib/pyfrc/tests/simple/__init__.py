@@ -1,7 +1,7 @@
 '''
-    This imports all of the generic test modules that can be applied to a
-    SimpleRobot-based robot. The idea is you should be able to do something
-    like the following:
+    These generic test modules can be applied to a
+    :class:`wpilib.SimpleRobot` based robot. To use these, add the
+    following to a python file in your tests directory::
     
         from pyfrc.tests.simple import *
 '''

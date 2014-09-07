@@ -1,25 +1,15 @@
 '''
-    Based on input from various drive motors, this simulates
-    moving the robot in various ways.
-                
-    Thanks to Ether (http://www.chiefdelphi.com/forums/member.php?u=34863)
+    Based on input from various drive motors, these helper functions
+    simulate moving the robot in various ways. Many thanks to
+    `Ether <http://www.chiefdelphi.com/forums/member.php?u=34863>`_
     for assistance with the motion equations.
-    
-    2/4/6 wheel robot, simple drivetrain:
-    
-        FWD = (L+R)/2
-        RCW = (L-R)/W
-        
-    L is forward speed of the left wheel(s), all in sync
-    R is forward speed of the right wheel(s), all in sync
-    W is wheelbase in feet
-    
+      
     When specifying the robot speed to the below functions, the following
     may help you determine the approximate speed of your robot:
     
-        Slow: 4ft/s
-        Typical: 5 to 7ft/s
-        Fast: 8 to 12ft/s
+    * Slow: 4ft/s
+    * Typical: 5 to 7ft/s
+    * Fast: 8 to 12ft/s
         
     Obviously, to get the best simulation results, you should try to
     estimate the speed of your robot accurately.
@@ -28,7 +18,15 @@
     
 def two_motor_drivetrain(l_motor, r_motor, wheelbase=2, speed=5):
     '''
-        Two center-mounted motors (see above for equations)
+        Two center-mounted motors with a simple drivetrain. The 
+        motion equations are as follows::
+    
+            FWD = (L+R)/2
+            RCW = (L-R)/W
+        
+        * L is forward speed of the left wheel(s), all in sync
+        * R is forward speed of the right wheel(s), all in sync
+        * W is wheelbase in feet
         
         If you called "SetInvertedMotor" on any of your motors in RobotDrive,
         then you will need to multiply that motor's value by -1.
@@ -53,7 +51,15 @@ def two_motor_drivetrain(l_motor, r_motor, wheelbase=2, speed=5):
 
 def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, speed=5):
     '''
-        Four motors, each side chained together (see above for equations).
+        Four motors, each side chained together. The motion equations are
+        as follows::
+    
+            FWD = (L+R)/2
+            RCW = (L-R)/W
+        
+        * L is forward speed of the left wheel(s), all in sync
+        * R is forward speed of the right wheel(s), all in sync
+        * W is wheelbase in feet
         
         If you called "SetInvertedMotor" on any of your motors in RobotDrive,
         then you will need to multiply that motor's value by -1.

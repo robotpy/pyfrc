@@ -1,18 +1,116 @@
+'''
+    pyfrc supports simplistic custom physics model implementations for
+    simulation and testing support. It can be as simple or complex as you want
+    to make it. We will continue to add helper functions (such as the 
+    :mod:`pyfrc.physics.drivetrains` module) to make this a lot easier
+    to do. General purpose physics implementations are welcome also!
 
+    The idea is you provide a :class:`PhysicsEngine` object that overrides specific
+    pieces of WPILib, and modifies motors/sensors accordingly depending on the
+    state of the simulation. An example of this would be measuring a motor
+    moving for a set period of time, and then changing a limit switch to turn 
+    on after that period of time. This can help you do more complex simulations
+    of your robot code without too much extra effort.
+
+    .. note::
+
+       One limitation to be aware of is that the physics implementation
+       currently assumes that you are only calling :func:`wpilib.Wait` once
+       per main loop iteration. If you do it more than that, you may get some
+       rather funky results.
+
+    By default, pyfrc doesn't modify any of your inputs/outputs without being
+    told to do so by your code or the simulation GUI, except for :class:`wpilib.Gyroscope`.
+    When you update the robot's position using :func:`Physics.drive` or
+    :func:`Physics.vector_drive`, the simulation will automatically update
+    the robot angle in any :class:`wpilib.Gyroscope` objects that have been
+    created.
+
+    See the physics sample for more details. The API has changed a bit as of 
+    pyfrc 2014.7.0
+
+    Enabling physics support
+    ------------------------
+
+    You must create a python module (for example, physics.py), and import
+    it in your __main__ block in robot.py. The imported module must be passed
+    to :func:`wpilib.internal.physics_controller.setup`. Your __main__ block
+    should end up looking something like this::
+
+        if __name__ == '__main__':
+            
+            wpilib.require_version('2014.7.2')
+            
+            import physics
+            wpilib.internal.physics_controller.setup(physics)
+            
+            wpilib.run()
+
+    A physics module must have a class called :class:`PhysicsEngine` which
+    must have a function called update_sim. When initialized, it will
+    be passed an instance of this object, which can also be found at
+    :obj:`wpilib.internal.physics_control`
 '''
-    TODO: a better way to implement this is have something track all of
-    the input values, and have that in a data structure, while also
-    providing the override capability.
-'''
+
+# TODO: a better way to implement this is have something track all of
+# the input values, and have that in a data structure, while also
+# providing the override capability.
 
 import inspect
 import math
 import threading
 
+
+class PhysicsEngine(object):
+    '''
+        Your physics module must contain a class called PhysicsEngine, 
+        and it must implement the same functions as this class.
+
+        The constructor must take the following parameters:
+
+        :param physics_controller: An instance of :class:`Physics`
+    '''
+
+    #: Width/height of robot in feet
+    ROBOT_WIDTH = 2
+
+    #: Height of the robot specified in feet
+    ROBOT_HEIGHT = 3
+    
+    #: Starting X position of robot on the field, in feet
+    ROBOT_STARTING_X = 18.5
+
+    #: Starting Y position of robot on the field, in feet
+    ROBOT_STARTING_Y = 12
+    
+    #: Starting angle of robot in degrees; 0 is east, 90 is south
+    STARTING_ANGLE = 180
+
+    def __init__(self, physics_controller):
+        self.physics_controller = physics_controller
+
+    def update_sim(self, now, tm_diff):
+        '''
+            Called when the simulation parameters for the program need to be
+            updated. This is mostly when wpilib.Wait is called.
+            
+            :param now: The current time as a float
+            :param tm_diff: The amount of time that has passed since the last
+                            time that this function was called
+        '''
+        pass
+
+
 def _create_wrapper(cls, fname, new_fn, old_fn):
     setattr(cls, fname, lambda s, *args, **kwargs: new_fn(s, lambda *oargs, **okwargs: old_fn(s, *oargs, **okwargs), *args, **kwargs))
 
 class Physics(object):
+    '''
+        An instance of this is passed to the constructor of your
+        :class:`PhysicsEngine` object. This instance is used to communicate
+        information to the simulation, such as moving the robot on the
+        field displayed to the user.
+    '''
     
     def __init__(self):
         self.last_tm = None
@@ -25,16 +123,15 @@ class Physics(object):
         self.robot_enabled = False
         
         self.engine = None
+
+    def __repr__(self):
+        return 'Physics'
     
     def setup(self, physics):
         '''
             Pass your physics module to this function, and it will initialize
-            wpilib patches and setup your callbacks.
-            
-            A physics module must have a class called `PhysicsEngine` which
-            must have a function called update_sim. When initialized, it will
-            be passed an instance of this object, which can also be found at
-            wpilib.internal.physics_control
+            the :class:`PhysicsEngine` instance, setup wpilib patches and 
+            your simulation callbacks.
         '''
         
         # avoid circular import problems
@@ -108,10 +205,10 @@ class Physics(object):
     def _set_robot_enabled(self, enabled):
         self.robot_enabled = enabled
         
-    def has_engine(self):
+    def _has_engine(self):
         return self.engine is not None
         
-    def get_robot_params(self):
+    def _get_robot_params(self):
         '''
             :returns: a tuple of 
                 (robot_width,      # in feet
@@ -141,19 +238,21 @@ class Physics(object):
     #######################################################
     
     def drive(self, speed, rotation_speed, tm_diff):
-        '''Call this from your update_sim function. Will update the
-           robot's position accordingly
+        '''Call this from your :func:`PhysicsEngine.update_sim` function.
+           Will update the robot's position on the simulation field.
+
+           You can either calculate the speed & rotation manually, or you
+           can use the predefined functions in :mod:`pyfrc.physics.drivetrains`.
            
-           The outputs of the drivetrains.* functions should be passed
-           to this function. When implementing your own versions of those,
-           take care to adjust the speed/yaw values based on time.
+           The outputs of the `drivetrains.*` functions should be passed
+           to this function.
+
+           .. note:: The simulator currently only allows 2D motion
            
-           :param speed:           Speed traveling in ft/s
-           :param rotation_speed:  Clockwise rotational speed in rad/s
-           :param tm_diff:         Amount of time speed was traveled
-           
-           .. only allows driving in a 2D direction at the moment
-           .. TODO: collisions?
+           :param speed:           Speed of robot in ft/s
+           :param rotation_speed:  Clockwise rotational speed in radians/s
+           :param tm_diff:         Amount of time speed was traveled (this is the 
+                                   same value that was passed to update_sim)
         '''
         
         # if the robot is disabled, don't do anything
@@ -175,8 +274,8 @@ class Physics(object):
             self._update_gyros()
             
     def vector_drive(self, vx, vy, vw, tm_diff):
-        '''Call this from your update_sim function. Will update the
-           robot's position accordingly
+        '''Call this from your :func:`PhysicsEngine.update_sim` function.
+           Will update the robot's position on the simulation field.
            
            This moves the robot using a vector, instead of by speed/rotation speed
            
@@ -184,7 +283,6 @@ class Physics(object):
            :param vy: Speed in y direction in ft/s
            :param vw: Clockwise rotational speed in rad/s
            :param tm_diff:         Amount of time speed was traveled
-        
         '''
         
         # if the robot is disabled, don't do anything
@@ -206,7 +304,10 @@ class Physics(object):
             gyro.value = gyro_value
     
     def get_position(self):
-        '''Returns robot's current position as x,y,angle. x/y in feet, angle is in radians'''
+        '''
+            :returns: Robot's current position on the field as `(x,y,angle)`.
+                      `x` and `y` are specified in feet, `angle` is in radians
+        '''
         with self._lock:
             return self.x, self.y, self.angle
     

@@ -1,5 +1,5 @@
 #
-# Implements a limited physics model of the robot
+# See the documentation for more details on how this works
 #
 # The idea here is you provide a simulation object that overrides specific
 # pieces of WPILib, and modifies motors/sensors accordingly depending on the
@@ -7,12 +7,6 @@
 # moving for a set period of time, and then changing a limit switch to turn 
 # on after that period of time. This can help you do more complex simulations
 # of your robot code without too much extra effort.
-#
-# This is a bit limited so far...
-#
-# One limitation to be aware of is that the physics implementation currently
-# assumes that you are only calling Wait() once per main loop. If you do it
-# more than that, you may get some rather funky results.
 #
 # NOTE: THIS API IS ALPHA AND WILL MOST LIKELY CHANGE!
 #       ... if you have better ideas on how to implement, submit a patch!
@@ -33,7 +27,7 @@ class PhysicsEngine(object):
         providing the override capability.
     '''
     
-    # Specified in feet
+    #: Width of robot, specified in feet
     ROBOT_WIDTH = 2
     ROBOT_HEIGHT = 3
     

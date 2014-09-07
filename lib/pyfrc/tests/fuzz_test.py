@@ -1,5 +1,5 @@
 '''
-    The purpose of this 'test' is not exactly to 'do' anything, but
+    The purpose of the fuzz 'test' is not exactly to 'do' anything, but
     rather it mashes the buttons and switches in various completely
     random ways to try and find any possible control situations and 
     such that would probably never *normally* come up, but.. well, 
@@ -7,7 +7,9 @@
     
     Keep in mind that the results will totally different every time
     you run this, so if you find an error, fix it -- but don't expect
-    that you'll be able to duplicate it with this test.
+    that you'll be able to duplicate it with this test. Instead, you
+    should design a specific test that can trigger the bug, to ensure
+    that you actually fixed it.
 '''
 
 import pyfrc.config

@@ -12,7 +12,7 @@ Robot Code Modifications
 There are a few modifications that you need to make to your robot.py
 to take advantage of the features provided by pyfrc. 
 
-* Your import statement must catch the wpilib import error and import
+* Your import statement must catch the wpilib :exc:`ImportError` and import
   wpilib from pyfrc instead.
 * Your run() function must return the Robot object you create
 * You must add a block that calls wpilib.run() at the bottom of your
@@ -22,7 +22,7 @@ to take advantage of the features provided by pyfrc.
   reset each time a new test is created, as a new instance of your 
   robot is created each time a test is run.
 
-robot.py:
+An example robot.py with the modifications looks like this::
 
     try:
         import wpilib
@@ -45,7 +45,43 @@ SmartDashboard/NetworkTables support
 ------------------------------------
 
 The implementation of wpilib contained with pyfrc has a 'fake' implementation
-of SmartDashboard/NetworkTables within it. The simulator functionality can
-also use `pynetworktables <https://github.com/robotpy/pynetworktables>`_ 
-as the NetworkTables base when instructed.
+of SmartDashboard/NetworkTables within it. If you have 
+`pynetworktables <https://github.com/robotpy/pynetworktables>`_ installed, the
+simulator can be used to communicate with the SmartDashboard or other
+NetworkTables clients.
 
+For more details, see :ref:`smartdashboard`
+
+Uploading code to the robot
+---------------------------
+
+This command will first run any unit tests on your robot code, and if they
+pass then it will upload the robot code to the cRio.
+
+.. code-block:: sh
+
+    python3 robot.py upload
+
+Running an interactive robot simulation
+---------------------------------------
+
+.. code-block:: sh
+
+    python3 robot.py sim
+
+Or if you want to be able to connect to the SmartDashboard, use:
+
+.. code-block:: sh
+
+    python3 robot.py netsim
+
+For more details, see :doc:`simulator`
+
+Running unit tests
+------------------
+
+.. code-block:: sh
+
+    python3 robot.py test
+
+For more details, see :doc:`testing`

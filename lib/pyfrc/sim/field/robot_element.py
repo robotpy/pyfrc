@@ -18,7 +18,7 @@ class RobotElement(CompositeElement):
         self.px_per_ft = px_per_ft
         
         # get robot starting position, size from physics engine
-        robot_params = self.controller.physics_controller.get_robot_params()
+        robot_params = self.controller.physics_controller._get_robot_params()
         robot_w, robot_h, center_x, center_y, angle = robot_params[:5]
         
         robot_w *= px_per_ft

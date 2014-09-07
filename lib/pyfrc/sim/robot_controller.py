@@ -73,7 +73,7 @@ class RobotController(object):
     #
     
     def has_physics(self):
-        return self.physics_controller.has_engine()
+        return self.physics_controller._has_engine()
     
     def is_alive(self):
         return self.thread.is_alive()
@@ -91,7 +91,7 @@ class RobotController(object):
         '''
         with self._lock:
             
-            joysticks = self.physics_controller.get_robot_params()[5]
+            joysticks = self.physics_controller._get_robot_params()[5]
             
             if len(joysticks) == 1:
                 
