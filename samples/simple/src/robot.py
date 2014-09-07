@@ -17,8 +17,6 @@ class MyRobot(wpilib.SimpleRobot):
         
         self.ds = wpilib.DriverStation.GetInstance()
         
-        print(wpilib.SmartDashboard)
-        
     def Disabled(self):
         '''Called when the robot is disabled'''
         while self.IsDisabled():
