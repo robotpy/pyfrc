@@ -277,10 +277,11 @@ class Physics(object):
         '''Call this from your :func:`PhysicsEngine.update_sim` function.
            Will update the robot's position on the simulation field.
            
-           This moves the robot using a vector, instead of by speed/rotation speed
+           This moves the robot using a vector relative to the robot
+           instead of by speed/rotation speed.
            
-           :param vx: Speed in x direction in ft/s
-           :param vy: Speed in y direction in ft/s
+           :param vx: Speed in x direction relative to robot in ft/s
+           :param vy: Speed in y direction relative to robot in ft/s
            :param vw: Clockwise rotational speed in rad/s
            :param tm_diff:         Amount of time speed was traveled
         '''
@@ -289,11 +290,18 @@ class Physics(object):
         if not self.robot_enabled:
             return
         
+        angle = vw * tm_diff
+        vx = (vx * tm_diff)
+        vy = (vy * tm_diff)
+
+        x = vx*math.sin(angle) + vy*math.cos(angle)
+        y = vx*math.cos(angle) + vy*math.sin(angle)
+        
         with self._lock:
-            self.x += (vx * tm_diff)
-            self.y += (vy * tm_diff)
-            self.angle += (vw * tm_diff)
-            
+            self.x += x
+            self.y += y
+            self.angle += angle
+                 
             self._update_gyros()
             
     def _update_gyros(self):

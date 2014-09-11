@@ -31,6 +31,9 @@ def two_motor_drivetrain(l_motor, r_motor, wheelbase=2, speed=5):
         If you called "SetInvertedMotor" on any of your motors in RobotDrive,
         then you will need to multiply that motor's value by -1.
         
+        .. note:: WPILib RobotDrive assumes that to make the robot go forward,
+                  the left motor must be set to -1, and the right to +1 
+        
         :param l_motor:    Left motor value (-1 to 1); -1 is forward
         :param r_motor:    Right motor value (-1 to 1); 1 is forward
         :param wheelbase:  Distance between wheels, in feet
@@ -64,6 +67,9 @@ def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, s
         If you called "SetInvertedMotor" on any of your motors in RobotDrive,
         then you will need to multiply that motor's value by -1.
         
+        .. note:: WPILib RobotDrive assumes that to make the robot go forward,
+                  the left motors must be set to -1, and the right to +1
+        
         :param lr_motor:   Left rear motor value (-1 to 1); -1 is forward
         :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
         :param lf_motor:   Left front motor value (-1 to 1); -1 is forward
@@ -84,19 +90,22 @@ def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, s
     return fwd, rcw
 
 
-def mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, speed=5):
+def mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheel_size=(8/12), speed=5):
     '''
         Four motors, each with a mechanum wheel attached to it.
         
         If you called "SetInvertedMotor" on any of your motors in RobotDrive,
         then you will need to multiply that motor's value by -1.
         
-        :param lr_motor:   Left rear motor value (-1 to 1); -1 is forward
+        .. note:: WPILib RobotDrive assumes that to make the robot go forward,
+                  all motors are set to +1
+        
+        :param lr_motor:   Left rear motor value (-1 to 1); 1 is forward
         :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
-        :param lf_motor:   Left front motor value (-1 to 1); -1 is forward
+        :param lf_motor:   Left front motor value (-1 to 1); 1 is forward
         :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
+        :param wheel_size: Size of robot wheels
         :param speed:      Speed of robot in feet per second (see above)
-        :param wheelbase:  Distance between wheels, in feet
         
         :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s), 
                   clockwise rotation of robot (radians/s)
@@ -119,15 +128,15 @@ def mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, spee
     # omega is
     # [lf lr rr rf]
     
-    # 8-inch wheel? what is r?
-    r = 1
+    r = wheel_size
     
-    Vx = r * .25 * (lf + lr + rr + rf)
-    Vy = r * .25 * (-lf + lr + -rr + rf)
+    Vy = r * .25 * (lf + lr + rr + rf)
+    Vx = -r * .25 * (-lf + lr + -rr + rf)
     
-    k = abs(Vx) + abs(Vy)
+    # For best results, k must be > 1
+    k = max(abs(Vx) + abs(Vy), 1.0)
     
-    Vw = r * .25 * k * (-lf + -lr + rr + rf)
+    Vw = r * (.25/k) * (-lf + -lr + rr + rf)
     
     return Vx, Vy, -Vw
     
