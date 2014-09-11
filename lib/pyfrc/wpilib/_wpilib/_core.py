@@ -1093,6 +1093,7 @@ class RobotDrive(object):
         self.SetLeftRightMotorOutputs(leftMotorOutput, rightMotorOutput)
         
     def MecanumDrive_Cartesian(self, x, y, rotation, gyroAngle=0.0):
+        # Note: this function has been validated against the C++ version
         
         xIn = float(x)
         yIn = float(y)
