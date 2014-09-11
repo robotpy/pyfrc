@@ -1,4 +1,8 @@
 
+v2014.7.4
+---------
+* Fix gyro simulation to start at zero
+
 v2014.7.3
 ---------
 * Include a field in the simulation display

@@ -271,7 +271,7 @@ class Physics(object):
             self.y += y 
             self.angle += angle
             
-            self._update_gyros()
+            self._update_gyros(angle)
             
     def vector_drive(self, vx, vy, vw, tm_diff):
         '''Call this from your :func:`PhysicsEngine.update_sim` function.
@@ -302,14 +302,14 @@ class Physics(object):
             self.y += y
             self.angle += angle
                  
-            self._update_gyros()
+            self._update_gyros(angle)
             
-    def _update_gyros(self):
+    def _update_gyros(self, angle):
         # must be called while holding the lock
         
-        gyro_value = math.degrees(self.angle)
+        gyro_value = math.degrees(angle)
         for gyro in self.gyro_class._all_gyros:
-            gyro.value = gyro_value
+            gyro.value += gyro_value
     
     def get_position(self):
         '''
