@@ -49,9 +49,11 @@ class PhysicsEngine(object):
         '''
         
         # Simulate the drivetrain
-        lr_motor = wpilib.DigitalModule._pwm[0].Get()
+        # -> Remember, in the constructor we inverted the left motors, so
+        #    invert the motor values here too!
+        lr_motor = -wpilib.DigitalModule._pwm[0].Get()
         rr_motor = wpilib.DigitalModule._pwm[1].Get()
-        lf_motor = wpilib.DigitalModule._pwm[2].Get()
+        lf_motor = -wpilib.DigitalModule._pwm[2].Get()
         rf_motor = wpilib.DigitalModule._pwm[3].Get()
         
         vx, vy, vw = drivetrains.mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor)

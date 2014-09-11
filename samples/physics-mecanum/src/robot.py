@@ -23,6 +23,12 @@ class MyRobot(wpilib.SimpleRobot):
         self.robot_drive = wpilib.RobotDrive(self.lr_motor, self.rr_motor,
                                              self.lf_motor, self.rf_motor)
         
+        # The output function of a mecanum drive robot is always
+        # +1 for all output wheels. However, traditionally wired
+        # robots will be -1 on the left, 1 on the right.
+        self.robot_drive.SetInvertedMotor(wpilib.RobotDrive.kFrontLeftMotor, True)
+        self.robot_drive.SetInvertedMotor(wpilib.RobotDrive.kRearLeftMotor, True)
+        
         # Position gets automatically updated as robot moves
         self.gyro = wpilib.Gyro(1)
          
