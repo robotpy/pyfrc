@@ -9,3 +9,7 @@ lib/pyfrc.egg-info
 .settings
 docs/_build
 
+.DS_Store
+.pydevproject
+.project
+
