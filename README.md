@@ -46,10 +46,14 @@ Once this is done, you can run a quick demo by running:
 Contributing new changes
 ========================
 
-1. Fork this git repository
+pyfrc is intended to be a project that all members of the FIRST community can
+quickly and easily contribute to. If you find a bug, or have an idea that you
+think others can use:
+
+1. [Fork this git repository](https://github.com/robotpy/robotpy/fork) to your github account
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
-4. Push to the branch (`git push origin my-new-feature`)
+4. Push to the branch (`git push -u origin my-new-feature`)
 5. Create new Pull Request on github
 
 
