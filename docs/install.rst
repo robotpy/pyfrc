@@ -9,6 +9,10 @@ installed, just run the following command:
 
 	$ pip3 install pyfrc
 
+To upgrade, you can run this:
+
+    $ pip3 install pyfrc --upgrade
+
 Via pip on Windows
 ------------------
 
@@ -20,6 +24,10 @@ Once you've downloaded it, run it to install pip, and run the following
 command in its window:
 
 	pip install pyfrc
+
+Or to upgrade pyfrc, run this command:
+
+    pip install pyfrc --upgrade
 
 Non-pip installation
 --------------------
