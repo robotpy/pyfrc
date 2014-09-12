@@ -24,6 +24,7 @@ Contents:
    usage
    simulator
    testing
+   contributing
 
 Indices and tables
 ==================
