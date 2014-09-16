@@ -1,3 +1,5 @@
+.. unit_tests::
+
 Unit testing robot code
 =======================
 

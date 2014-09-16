@@ -22,8 +22,10 @@ Contents:
    
    install
    usage
+   anatomy
    simulator
    testing
+   wpilib
    contributing
 
 Indices and tables
