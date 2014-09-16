@@ -113,7 +113,7 @@ Languages such as Java require you to define a 'static main' function. In
 python, because every .py file is usable from other python programs, you
 need to `define a code block which checks for __main__ <http://effbot.org/pyfaq/tutor-what-is-if-name-main-for.htm>`_. Inside your main block, you run code
 that is only ran on your computer, and not on the robot. Most robot code will
-have something that looks like this:
+have something that looks like this::
     
     if __name__ == '__main__':
         wpilib.run()
