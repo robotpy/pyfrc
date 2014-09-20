@@ -44,6 +44,7 @@ class SimUI(object):
        
         self.root.resizable(width=0, height=0)
         
+        self.graph = None
         
         self.mode_start_tm = 0
         self.text_id = None
@@ -276,6 +277,9 @@ class SimUI(object):
         
         self.robot_dead = tk.Label(sim, text='Robot died!', fg='red')
         
+        button = tk.Button(sim, text="Graph", command=self.on_show_graph)
+        button.pack(fill=tk.X)
+        
         sim.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
         
         ctrl_frame.pack(side=tk.LEFT, fill=tk.Y)
@@ -499,6 +503,23 @@ class SimUI(object):
                 button.config(state=tk.DISABLED)
                 
             self.robot_dead.pack()
+            
+    def on_show_graph(self):
+        
+        if self.graph is None:
+            
+            try:
+                from . import ui_graph
+            except ImportError:
+                from tkinter import messagebox
+                messagebox.showerror("Cannot show graph", "Matplotlib does not appear to be properly installed! See the README for more information.")
+            else:
+                self.graph = ui_graph.UiGraph(self.root)
+            
+        #else:
+            # self.graph.show()
+            
+        
             
     #
     # Time related callbacks
