@@ -112,36 +112,3 @@ Controlling the robot's state
 
 .. automodule:: pyfrc.wpilib._wpilib.internal
    :members:
-
-
-SimpleRobot builtin tests
--------------------------
-
-.. automodule:: pyfrc.tests.simple
-   :members:
-
-.. automodule:: pyfrc.tests.simple.basic
-   :members:
-
-IterativeRobot builtin tests
-----------------------------
-
-.. automodule:: pyfrc.tests.iterative
-   :members:
-
-.. automodule:: pyfrc.tests.iterative.basic
-   :members:
-
-
-Fuzz tests
-----------
-
-.. automodule:: pyfrc.tests.fuzz_test
-   :members:
-
-Docstring tests
----------------
-
-.. automodule:: pyfrc.tests.docstring_test
-   :members:
-

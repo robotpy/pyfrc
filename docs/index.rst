@@ -25,6 +25,7 @@ Contents:
    anatomy
    simulator
    testing
+   builtin_tests
    wpilib
    contributing
 
