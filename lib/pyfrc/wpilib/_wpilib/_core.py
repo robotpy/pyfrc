@@ -412,6 +412,33 @@ class Counter(_WPILibObject):
     def SetUpSourceEdge(self, risingEdge, fallingEdge):
         pass
 
+    def ClearUpSource(self):
+        pass
+
+    def SetDownSource(self, channel):
+        pass
+
+    def SetDownSourceEdge(self, risingEdge, fallingEdge):
+        pass
+
+    def ClearDownSource(self):
+        pass
+
+    def SetUpDownCounterMode(self):
+        pass
+
+    def SetExternalDirectionMode(self):
+        pass
+
+    def SetSemiPeriodMode(self, highSemiPeriod):
+        pass
+
+    def SetPulseLengthMode(self, threshold):
+        pass
+
+    def SetReverseDirection(self, reverseDirection):
+        pass
+
     def Start(self):
         pass
 
