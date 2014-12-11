@@ -6,17 +6,16 @@ from os.path import abspath, dirname, exists, join
 
 import pytest
 
-from .. import wpilib
-
+from hal_impl import data, functions
 
 # TODO: setting the plugins so that the end user can invoke py.test directly
 # could be a useful thing. Will have to consider that later.
 
 class PyFrcPlugin(object):
 
-    def __init__(self, file_location, run_fn):
-        self.file_location = file_location
-        self.run_fn = run_fn
+    def __init__(self, robot_class):
+        self.robot_class = robot_class
+
     
     def pytest_runtest_setup(self):
         wpilib.internal.initialize_test()
@@ -30,11 +29,11 @@ class PyFrcPlugin(object):
     
     @pytest.fixture()
     def control(self):
-        return wpilib.internal
+        pass
     
     @pytest.fixture()
     def fake_time(self):
-        return wpilib._wpilib._fake_time.FAKETIME
+        pass
     
     @pytest.fixture()
     def robot(self):
@@ -70,32 +69,37 @@ class PyFrcPlugin(object):
         return wpilib
 
 #
-# Test function
+# main test class
 #
-
-def run(run_fn, file_location, ignore_missing_test=False):
-
-    # find test directory, change current directory so py.test can find the tests
-    # -> assume that tests reside in tests or ../tests
+class PyFrcTest(object):
     
-    test_directory = None
-    root = abspath(dirname(file_location))
-    try_dirs = [join(root, 'tests'), abspath(join(root, '..', 'tests'))]
+    def __init__(self, parser):
+        parser.add_argument('--ignore_mising_test', default=False, 
+                            action = 'store_true', 
+                            help= 'ignore failure if tests are missing')
     
-    for d in try_dirs:
-        if exists(d):
-            test_directory = d
-            break
+    def run(self, options, robot_class):
     
-    if test_directory is None:
-        print("Cannot run robot tests, as test directory was not found. Looked for tests at:")
+        # find test directory, change current directory so py.test can find the tests
+        # -> assume that tests reside in tests or ../tests
+        
+        test_directory = None
+        root = abspath(os.getcwd())
+        
+        try_dirs = [join(root, 'tests'), abspath(join(root, '..', 'tests'))]
+        
         for d in try_dirs:
-            print('- %s' % d)
-        return 0 if ignore_missing_test else 1
-    
-    os.chdir(test_directory)
-    
-    wpilib.internal.setup_networktables()
-    
-    return pytest.main(sys.argv[1:], plugins=[PyFrcPlugin(file_location, run_fn)])
+            if exists(d):
+                test_directory = d
+                break
+        
+        if test_directory is None:
+            print("Cannot run robot tests, as test directory was not found. Looked for tests at:")
+            for d in try_dirs:
+                print('- %s' % d)
+            return 0 if ignore_missing_test else 1
+        
+        os.chdir(test_directory)
+        
+        return pytest.main(sys.argv[1:], plugins=[PyFrcPlugin(robot_class)])
 
