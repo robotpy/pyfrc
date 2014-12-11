@@ -7,16 +7,8 @@ setup_dir = dirname(__file__)
 
 packages = [
     'pyfrc',
-    'pyfrc.cli',
-    'pyfrc.robotpy',
-    'pyfrc.sim',
-    'pyfrc.sim.field',
-    'pyfrc.physics',
+    'pyfrc.mains',
     'pyfrc.tests',
-    'pyfrc.tests.iterative',
-    'pyfrc.tests.simple',
-    'pyfrc.wpilib',
-    'pyfrc.wpilib._wpilib',
 ]
 
 def get_version():
@@ -34,9 +26,9 @@ with open(join(dirname(__file__), 'README.md'), 'r') as readme_file:
 setup(name='pyfrc',
       version=get_version(),
       description='Development tools library for python interpreter used for the FIRST Robotics Competition',
-      long_description=long_description,
-      author='Dustin Spicuzza',
-      author_email='dustin@virtualroadside.com',
+      long_description=long_description,,
+      author='Dustin Spicuzza, Sam Rosenblum',
+      author_email='robotpy@googlegroups.com',
       url='https://github.com/robotpy/pyfrc',
       license='Apache 2.0',
       packages=packages,
@@ -46,8 +38,12 @@ setup(name='pyfrc',
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
-        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.4',
         'Topic :: Software Development'
-      ]
+        ],
+      entry_points={'robotpy': [ 'test = pyfrc.mains.pyfrc_test']
+                    }
 )
+
+
 
