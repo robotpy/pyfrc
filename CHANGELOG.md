@@ -1,3 +1,6 @@
+v2014.7.5
+---------
+* Fix IterativeRobot support in simulator
 
 v2014.7.4
 ---------
