@@ -330,8 +330,9 @@ class IterativeRobot(RobotBase):
         """Periodic code for disabled mode should go here.
         Users should override this method for code which will be called
         periodically at a regular rate while the robot is in disabled mode."""
-        if not hasattr(self.DisabledPeriodic, "run"):
-            self.DisabledPeriodic.run = True
+        func = self.DisabledPeriodic.__func__
+        if not hasattr(func, "run"):
+            func.run = True
             print("Default DisabledPeriodic() method... Overload me!")
         Wait(0.01)
 
@@ -340,8 +341,9 @@ class IterativeRobot(RobotBase):
         Users should override this method for code which will be called
         periodically at a regular rate while the robot is in autonomous
         mode."""
-        if not hasattr(self.AutonomousPeriodic, "run"):
-            self.AutonomousPeriodic.run = True
+        func = self.AutonomousPeriodic.__func__
+        if not hasattr(func, "run"):
+            func.run = True
             print("Default AutonomousPeriodic() method... Overload me!")
         Wait(0.01)
 
@@ -349,8 +351,9 @@ class IterativeRobot(RobotBase):
         """Periodic code for teleop mode should go here.
         Users should override this method for code which will be called
         periodically at a regular rate while the robot is in teleop mode."""
-        if not hasattr(self.TeleopPeriodic, "run"):
-            self.TeleopPeriodic.run = True
+        func = self.TeleopPeriodic.__func__
+        if not hasattr(func, "run"):
+            func.run = True
             print("Default TeleopPeriodic() method... Overload me!")
         Wait(0.01)
 
@@ -358,8 +361,9 @@ class IterativeRobot(RobotBase):
         """Periodic code for test mode should go here.
         Users should override this method for code which will be called
         periodically at a regular rate while the robot is in test mode."""
-        if not hasattr(self.TestPeriodic, "run"):
-            self.TestPeriodic.run = True
+        func = self.TestPeriodic.__func__
+        if not hasattr(func, "run"):
+            func.run = True
             print("Default TestPeriodic() method... Overload me!")
         Wait(0.01)
 

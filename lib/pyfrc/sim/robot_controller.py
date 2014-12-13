@@ -7,6 +7,7 @@ import threading
 import time
 
 from ..wpilib import _wpilib
+from ..wpilib.core import SimpleRobot
 from .sim_manager import SimManager
 
 class RobotController(object):
@@ -219,12 +220,10 @@ class RobotController(object):
                 _wpilib._fake_time.FAKETIME.slept = [True]*3
                 
                 if last_mode != mode:
-                    if mode == SimManager.MODE_DISABLED:
-                        self.myrobot.Disabled()
-                    elif mode == SimManager.MODE_AUTONOMOUS:
-                        self.myrobot.Autonomous()
-                    elif mode == SimManager.MODE_OPERATOR_CONTROL:
-                        self.myrobot.OperatorControl()
+                    if isinstance(self.myrobot, SimpleRobot):
+                        self._run_simplerobot(mode)
+                    else:
+                        self._run_iterativerobot(mode)
                     
                 # make sure infinite loops don't kill the processor... 
                 time.sleep(0.001)
@@ -233,3 +232,20 @@ class RobotController(object):
         finally:
             self.myrobot.GetWatchdog().SetEnabled(False)
             self.set_mode(SimManager.MODE_DISABLED)
+
+    def _run_iterativerobot(self, mode):
+        if mode == SimManager.MODE_DISABLED:
+            _wpilib.internal.IterativeRobotDisabled(self.myrobot)
+        elif mode == SimManager.MODE_AUTONOMOUS:
+            _wpilib.internal.IterativeRobotAutonomous(self.myrobot)
+        elif mode == SimManager.MODE_OPERATOR_CONTROL:
+            _wpilib.internal.IterativeRobotTeleop(self.myrobot)
+
+    def _run_simplerobot(self, mode):
+        if mode == SimManager.MODE_DISABLED:
+            self.myrobot.Disabled()
+        elif mode == SimManager.MODE_AUTONOMOUS:
+            self.myrobot.Autonomous()
+        elif mode == SimManager.MODE_OPERATOR_CONTROL:
+            self.myrobot.OperatorControl()
+

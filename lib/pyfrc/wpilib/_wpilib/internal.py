@@ -263,14 +263,18 @@ def IterativeRobotAutonomous(robot):
             wpilib.Wait(0.20)
     
     
-def IterativeRobotDisabled(robot, loops):
+def IterativeRobotDisabled(robot, loops=None):
     
     from ... import wpilib
     
     robot.DisabledInit()
     
     i = 0
-    while i < loops and robot.IsDisabled():
+    while robot.IsDisabled():
+        if loops is not None:
+            if i >= loops:
+                break
+        
         i += 1
         robot.DisabledPeriodic()
         
