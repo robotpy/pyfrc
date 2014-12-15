@@ -74,15 +74,13 @@ class PyFrcPlugin(object):
 class PyFrcTest(object):
     
     def __init__(self, parser):
-        parser.add_argument('--ignore_mising_test', default=False, 
-                            action = 'store_true', 
-                            help= 'ignore failure if tests are missing')
+        parser.add_argument('pytest_args', nargs='*',
+                            help="To pass args to pytest, specify --, then the args")
     
     def run(self, options, robot_class):
     
         # find test directory, change current directory so py.test can find the tests
         # -> assume that tests reside in tests or ../tests
-        
         test_directory = None
         
         root = abspath(os.getcwd())
@@ -93,14 +91,12 @@ class PyFrcTest(object):
             if exists(d):
                 test_directory = d
                 break
-            
-        ignore_missing_test = options.ignore_mising_test
         
         if test_directory is None:
             print("Cannot run robot tests, as test directory was not found. Looked for tests at:")
             for d in try_dirs:
                 print('- %s' % d)
-            return 0 if ignore_missing_test else 1
+            return 1
         
         os.chdir(test_directory)
         file_location = abspath(inspect.getfile(robot_class))
@@ -111,5 +107,6 @@ class PyFrcTest(object):
         data.reset_hal_data(self.hooks)
         
         robot = robot_class()
-        return pytest.main('-s', plugins=[PyFrcPlugin(robot, file_location, self.hooks)])
+        return pytest.main(options.pytest_args, plugins=[PyFrcPlugin(robot, file_location, self.hooks)])
+
 
