@@ -9,6 +9,7 @@ packages = [
     'pyfrc',
     'pyfrc.mains',
     'pyfrc.tests',
+    'pyfrc.support',
 ]
 
 def get_version():
@@ -41,7 +42,7 @@ setup(name='pyfrc',
         'Programming Language :: Python :: 3.4',
         'Topic :: Software Development'
         ],
-      entry_points={'robotpy': [ 'test = pyfrc.mains.pyfrc_test']
+      entry_points={'robotpy': [ 'test = pyfrc.mains.pyfrc_test:PyFrcTest']
                     }
 )
 

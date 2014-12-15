@@ -1,10 +1,13 @@
 
 import os
 import sys
+import inspect
 
 from os.path import abspath, dirname, exists, join
 
 import pytest
+
+from pyfrc.support import pyfrc_hal_hooks, fake_time
 
 from hal_impl import data, functions
 
@@ -13,12 +16,16 @@ from hal_impl import data, functions
 
 class PyFrcPlugin(object):
 
-    def __init__(self, robot_class):
+    def __init__(self, robot_class, file_location):
         self.robot_class = robot_class
+        self.file_location = file_location
 
     
     def pytest_runtest_setup(self):
-        wpilib.internal.initialize_test()
+        print('PYTEST_RUNTEST_SETUP')
+        #reset the haldata
+        data.reset_hal_data(self.hooks)
+        
     
     #
     # Fixtures
@@ -29,44 +36,26 @@ class PyFrcPlugin(object):
     
     @pytest.fixture()
     def control(self):
+        print('CONTROL')
         pass
     
     @pytest.fixture()
     def fake_time(self):
+        print('FAKE_TIME')
         pass
     
     @pytest.fixture()
-    def robot(self):
-        myrobot = self.run_fn()
-        
-        # validate robot + results
-        
-        if myrobot is None:
-            pytest.fail("ERROR: the run() function in robot.py MUST return an instance of your robot class")
-        
-        if not isinstance(myrobot, wpilib.SimpleRobot) and not isinstance(myrobot, wpilib.IterativeRobot):
-            pytest.fail("ERROR: the object returned from the run function MUST return an instance of a robot class that inherits from wpilib.SimpleRobot or wpilib.IterativeRobot")
-
-        # if they forget to do this, it's an annoying problem to diagnose on the cRio... 
-        if not hasattr(myrobot, 'watchdog') or not myrobot.watchdog:
-            pytest.fail("ERROR: class '%s' must call super().__init__() in its constructor" % (myrobot.__class__.__name__))
-            
-        if not myrobot._sr_competition_started:
-            pytest.fail("ERROR: Your run() function must call StartCompetition() on your robot class")
-                
-        return myrobot
-    
-    @pytest.fixture
-    def robot_file(self):
-        return self.file_location
+    def robot_class(self):
+        return self.robot_class
     
     @pytest.fixture()
     def robot_path(self):
-        return dirname(self.file_location)
+        return file_location
     
     @pytest.fixture()
-    def wpilib(self):
-        return wpilib
+    def wpilib_map(self):
+        global hal_data
+        return hal_data
 
 #
 # main test class
@@ -84,14 +73,18 @@ class PyFrcTest(object):
         # -> assume that tests reside in tests or ../tests
         
         test_directory = None
+        
         root = abspath(os.getcwd())
         
+        print('root:' + root)
         try_dirs = [join(root, 'tests'), abspath(join(root, '..', 'tests'))]
         
         for d in try_dirs:
             if exists(d):
                 test_directory = d
                 break
+            
+        ignore_missing_test = options.ignore_mising_test
         
         if test_directory is None:
             print("Cannot run robot tests, as test directory was not found. Looked for tests at:")
@@ -100,6 +93,11 @@ class PyFrcTest(object):
             return 0 if ignore_missing_test else 1
         
         os.chdir(test_directory)
+        file_location = abspath(inspect.getfile(robot_class))
         
-        return pytest.main(sys.argv[1:], plugins=[PyFrcPlugin(robot_class)])
+        self.hooks = pyfrc_hal_hooks.PyFrcSimHooks(fake_time.FakeTime())
+        
+        data.reset_hal_data(self.hooks)
+        
+        return pytest.main(sys.argv[2:], plugins=[PyFrcPlugin(robot_class, file_location)])
 
