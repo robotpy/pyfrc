@@ -45,7 +45,7 @@ class PyFrcPlugin(object):
         pass
     
     @pytest.fixture()
-    def robot_class(self):
+    def robot(self):
         return self.robot_class
     
     @pytest.fixture()
@@ -54,8 +54,7 @@ class PyFrcPlugin(object):
     
     @pytest.fixture()
     def wpilib_map(self):
-        global hal_data
-        return hal_data
+        return data.hal_data
 
 #
 # main test class
