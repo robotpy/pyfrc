@@ -16,10 +16,10 @@ from hal_impl import data, functions
 
 class PyFrcPlugin(object):
 
-    def __init__(self, robot_class, file_location):
+    def __init__(self, robot_class, file_location, hooks):
         self.robot_class = robot_class
         self.file_location = file_location
-
+        self.hooks = hooks
     
     def pytest_runtest_setup(self):
         print('PYTEST_RUNTEST_SETUP')
@@ -98,6 +98,7 @@ class PyFrcTest(object):
         self.hooks = pyfrc_hal_hooks.PyFrcSimHooks(fake_time.FakeTime())
         
         data.reset_hal_data(self.hooks)
+        print(dir(PyFrcPlugin))
         
-        return pytest.main(sys.argv[2:], plugins=[PyFrcPlugin(robot_class, file_location)])
+        return pytest.main(sys.argv[2:], plugins=[PyFrcPlugin(robot_class, file_location, self.hooks)])
 
