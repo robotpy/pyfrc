@@ -16,16 +16,17 @@ from hal_impl import data, functions
 
 class PyFrcPlugin(object):
 
-    def __init__(self, robot_class, file_location, hooks):
-        self.robot_class = robot_class
+    def __init__(self, robot, file_location, hooks):
+        self.robot_inst = robot
         self.file_location = file_location
         self.hooks = hooks
+        print(type(hooks))
     
     def pytest_runtest_setup(self):
         print('PYTEST_RUNTEST_SETUP')
         #reset the haldata
         data.reset_hal_data(self.hooks)
-        
+        print('after reset')
     
     #
     # Fixtures
@@ -35,25 +36,23 @@ class PyFrcPlugin(object):
     #
     
     @pytest.fixture()
-    def control(self):
-        print('CONTROL')
-        pass
+    def hal_hooks(self):
+        return self.hooks
     
     @pytest.fixture()
     def fake_time(self):
-        print('FAKE_TIME')
-        pass
+        return fake_time.FAKETIME
     
     @pytest.fixture()
     def robot(self):
-        return self.robot_class
+        return self.robot_inst
     
     @pytest.fixture()
     def robot_path(self):
         return file_location
     
     @pytest.fixture()
-    def wpilib_map(self):
+    def hal_map(self):
         return data.hal_data
 
 #
@@ -94,10 +93,11 @@ class PyFrcTest(object):
         os.chdir(test_directory)
         file_location = abspath(inspect.getfile(robot_class))
         
-        self.hooks = pyfrc_hal_hooks.PyFrcSimHooks(fake_time.FakeTime())
+        self.hooks = pyfrc_hal_hooks.PyFrcSimHooks(fake_time.FAKETIME)
+        
         
         data.reset_hal_data(self.hooks)
-        print(dir(PyFrcPlugin))
         
-        return pytest.main(sys.argv[2:], plugins=[PyFrcPlugin(robot_class, file_location, self.hooks)])
+        robot = robot_class()
+        return pytest.main('-s', plugins=[PyFrcPlugin(robot, file_location, self.hooks)])
 
