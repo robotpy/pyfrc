@@ -11,6 +11,8 @@ from pyfrc.support import pyfrc_hal_hooks, fake_time
 
 from hal_impl import data, functions
 
+from hal_impl import helpers as help_funcs
+
 # TODO: setting the plugins so that the end user can invoke py.test directly
 # could be a useful thing. Will have to consider that later.
 
@@ -20,13 +22,13 @@ class PyFrcPlugin(object):
         self.robot_inst = robot
         self.file_location = file_location
         self.hooks = hooks
-        print(type(hooks))
     
     def pytest_runtest_setup(self):
-        print('PYTEST_RUNTEST_SETUP')
-        #reset the haldata
-        data.reset_hal_data(self.hooks)
-        print('after reset')
+        '''Runs autonomous mode by itself'''
+        data.hal_data['control']['enabled'] = True
+        data.hal_data['control']['ds_attached'] = True
+        data.hal_data['control']['fms_attached'] = True
+
     
     #
     # Fixtures
@@ -54,6 +56,10 @@ class PyFrcPlugin(object):
     @pytest.fixture()
     def hal_map(self):
         return data.hal_data
+    
+    @pytest.fixture()
+    def helpers(self):
+        return help_funcs
 
 #
 # main test class
@@ -74,7 +80,6 @@ class PyFrcTest(object):
         
         root = abspath(os.getcwd())
         
-        print('root:' + root)
         try_dirs = [join(root, 'tests'), abspath(join(root, '..', 'tests'))]
         
         for d in try_dirs:
@@ -95,7 +100,7 @@ class PyFrcTest(object):
         
         self.hooks = pyfrc_hal_hooks.PyFrcSimHooks(fake_time.FAKETIME)
         
-        
+        functions.hooks = self.hooks
         data.reset_hal_data(self.hooks)
         
         robot = robot_class()

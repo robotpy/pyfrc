@@ -17,17 +17,13 @@ class PyFrcSimHooks:
     #
     
     def getTime(self):
-        print('getTime')
         return self.fake_time.Get()
     
     def getFPGATime(self):
-        print('getFPGATime')
         return int((self.fake_time.Get() - hal_data['program_start']) * 1000000)
     
     def delayMillis(self, ms):
-        print('delayMillis')
         self.fake_time.IncrementTimeBy(.001 * ms)
     
     def delaySeconds(self, s):
-        print('delaySeconds')
         self.fake_time.IncrementTimeBy(s)
