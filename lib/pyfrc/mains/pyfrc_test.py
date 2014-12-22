@@ -11,7 +11,8 @@ from pyfrc.support import pyfrc_hal_hooks, fake_time
 
 from hal_impl import data, functions
 
-from hal_impl import helpers as help_funcs
+from hal_impl import pwm_helpers as pwm_help_funcs
+from hal_impl import mode_helpers as mode_help_funcs
 
 # TODO: setting the plugins so that the end user can invoke py.test directly
 # could be a useful thing. Will have to consider that later.
@@ -25,6 +26,8 @@ class PyFrcPlugin(object):
     
     def pytest_runtest_setup(self):
         '''Runs autonomous mode by itself'''
+        fake_time.FAKETIME.reset()
+        robot = robot_class()
         data.hal_data['control']['enabled'] = True
         data.hal_data['control']['ds_attached'] = True
         data.hal_data['control']['fms_attached'] = True
@@ -58,8 +61,12 @@ class PyFrcPlugin(object):
         return data.hal_data
     
     @pytest.fixture()
-    def helpers(self):
-        return help_funcs
+    def pwm_helpers(self):
+        return pwm_help_funcs
+    
+    @pytest.fixture()
+    def mode_helpers(self):
+        return mode_help_funcs
 
 #
 # main test class

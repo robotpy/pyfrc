@@ -20,7 +20,7 @@ class PyFrcSimHooks:
         return self.fake_time.Get()
     
     def getFPGATime(self):
-        return int((self.fake_time.Get() - hal_data['program_start']) * 1000000)
+        return int((self.fake_time.Get() - hal_data['time']['program_start']) * 1000000)
     
     def delayMillis(self, ms):
         self.fake_time.IncrementTimeBy(.001 * ms)

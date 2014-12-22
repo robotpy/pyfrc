@@ -27,7 +27,6 @@ class FakeTime(object):
     def Reset(self):
         self.time = 0
         self.time_val = None
-        self.notifiers = []
         self.time_limit = None
 
     def Get(self):
