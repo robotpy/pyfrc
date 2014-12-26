@@ -5,6 +5,7 @@ __pycache__
 *.pyc
 .coverage
 lib/pyfrc.egg-info
+lib/pyfrc/version.py
 
 .settings
 docs/_build
