@@ -11,9 +11,9 @@ except ImportError:
     raise
     
 import queue
+from hal_impl.data import hal_data
 
 from ..version import __version__
-from ..wpilib._wpilib import _core, _fake_time
 
 from .field.field import RobotField
 
@@ -22,7 +22,7 @@ from .ui_widgets import CheckButtonWrapper, PanelIndicator, Tooltip, ValueWidget
 
 class SimUI(object):
     
-    def __init__(self, manager, field_size, px_per_ft):
+    def __init__(self, manager, fake_time, field_size, px_per_ft):
         '''
             initializes all default values and creates 
             a board, waits for run() to be called
@@ -32,6 +32,7 @@ class SimUI(object):
         '''
         
         self.manager = manager
+        self.fake_time = fake_time
         
         self.root = tk.Tk()
         self.root.wm_title("PyFRC Robot Simulator v%s" % __version__)
@@ -90,53 +91,52 @@ class SimUI(object):
             
             self.analog.append(vw)
         
+        
         slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
         
         # digital
         slot = tk.LabelFrame(top, text='Digital')
         
         label = tk.Label(slot, text='PWM')
-        label.grid(column=0, columnspan=2, row=0)
+        label.grid(column=0, columnspan=4, row=0)
         self.pwm = []
         
-        for i in range(1, 11):
+        for i in range(len(hal_data['pwm'])):
+            
+            c = i // 10
+            
             label = tk.Label(slot, text=str(i))
-            label.grid(column=0, row=i)
+            label.grid(column=0+2*c, row=1 + i % 10)
             
             vw = ValueWidget(slot)
-            vw.grid(column=1, row=i)
+            vw.grid(column=1+2*c, row=1 + i % 10)
             self.pwm.append(vw)
             
         label = tk.Label(slot, text='Digital I/O')
-        label.grid(column=2, columnspan=4, row=0)
+        label.grid(column=4, columnspan=6, row=0)
         self.dio = []
         
-        for i in range(1, 8):
+        for i in range(len(hal_data['dio'])):
+            
+            c = i // 9
+            
             label = tk.Label(slot, text=str(i))
-            label.grid(column=2, row=i)
+            label.grid(column=4+c*2, row=1 + i % 9)
             
             pi = PanelIndicator(slot, clickable=True)
-            pi.grid(column=3, row=i)
-            self.dio.append(pi)
-            
-        for i in range(8, 15):
-            label = tk.Label(slot, text=str(i))
-            label.grid(column=4, row=i-7)
-            
-            pi = PanelIndicator(slot, clickable=True)
-            pi.grid(column=5, row=i-7)
+            pi.grid(column=5+c*2, row=1 + i % 9)
             self.dio.append(pi)
             
         label = tk.Label(slot, text='Relay')
-        label.grid(column=6, columnspan=2, row=0, padx=5)
+        label.grid(column=10, columnspan=2, row=0, padx=5)
         self.relays = []
         
-        for i in range(1, 9):
+        for i in range(len(hal_data['relay'])):
             label = tk.Label(slot, text=str(i))
-            label.grid(column=6, row=i, sticky=tk.E)
+            label.grid(column=10, row=1 + i, sticky=tk.E)
             
             pi = PanelIndicator(slot)
-            pi.grid(column=7, row=i)
+            pi.grid(column=11, row=1 + i)
             self.relays.append(pi)
             
         
@@ -148,11 +148,11 @@ class SimUI(object):
         slot = tk.LabelFrame(csfm, text='Solenoid')
         self.solenoids = []
         
-        for i in range(1, 9):
+        for i in range(len(hal_data['solenoid'])):
             label = tk.Label(slot, text=str(i))
             
-            c = int((i-1)/2)*2
-            r = (i-1)%2
+            c = int(i/2)*2
+            r = i%2
             
             label.grid(column=0+c, row=r)
             
@@ -164,9 +164,9 @@ class SimUI(object):
         slot.pack(side=tk.TOP, fill=tk.BOTH, padx=5)
         
         # CAN
-        self.can_slot = tk.LabelFrame(csfm, text='CAN')
-        self.can_slot.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5)
-        self.can = {}
+        #self.can_slot = tk.LabelFrame(csfm, text='CAN')
+        #self.can_slot.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5)
+        #self.can = {}
         
         csfm.pack(side=tk.LEFT, fill=tk.Y)
         
@@ -175,12 +175,12 @@ class SimUI(object):
         
         self.joysticks = []
         
-        for i in range(1, 5):
+        for i in range(4):
         
             axes = []
             buttons = []
             
-            col = i*3
+            col = 1 + i*3
         
             label = tk.Label(slot, text='Stick %s' % i)
             label.grid(column=col, columnspan=3, row=0)
@@ -339,131 +339,136 @@ class SimUI(object):
     
     def update_widgets(self):
         
-        with _core._WPILibObject._sim_lock:
             
-            # TODO: support multiple slots?
-            
-            # analog module
-            # -> TODO: voltage and value should be the same?
-            
-            for i, ch in enumerate(_core.AnalogModule._channels):
-                analog = self.analog[i]
-                if ch is None:
-                    analog.set_disabled()
-                else:
-                    analog.set_disabled(False)
-                    self._set_tooltip(analog, ch)
-                    
-                    if isinstance(ch, _core.Gyro) and analog.maxval != 720:
-                        analog.set_range(-720, 720, 1)
-                    
-                    if hasattr(ch, 'voltage'):
-                        # determine which one changed, and set the appropriate one
-                        ret = analog.sync_value(ch.voltage)
-                        if ret is not None:
-                            ch.voltage = ret
-                    else:
-                        # determine which one changed, and set the appropriate one
-                        ret = analog.sync_value(ch.value)
-                        if ret is not None:
-                            ch.value = ret
-            
-            # digital module
-            for i, ch in enumerate(_core.DigitalModule._io):
-                dio = self.dio[i]
-                if ch is None:
-                    dio.set_disabled()
-                else:
-                    self._set_tooltip(dio, ch)
-                    
+        # TODO: support multiple slots?
+        
+        # analog module
+        # -> TODO: voltage and value should be the same?
+        
+        '''
+        for i, ch in enumerate(_core.AnalogModule._channels):
+            analog = self.analog[i]
+            if ch is None:
+                analog.set_disabled()
+            else:
+                analog.set_disabled(False)
+                self._set_tooltip(analog, ch)
+                
+                if isinstance(ch, _core.Gyro) and analog.maxval != 720:
+                    analog.set_range(-720, 720, 1)
+                
+                if hasattr(ch, 'voltage'):
                     # determine which one changed, and set the appropriate one
-                    ret = dio.sync_value(ch.value)
+                    ret = analog.sync_value(ch.voltage)
+                    if ret is not None:
+                        ch.voltage = ret
+                else:
+                    # determine which one changed, and set the appropriate one
+                    ret = analog.sync_value(ch.value)
                     if ret is not None:
                         ch.value = ret
-            
-            for i, ch in enumerate(_core.DigitalModule._pwm):
-                pwm = self.pwm[i]
-                if ch is None:
-                    pwm.set_disabled()
-                else:
-                    self._set_tooltip(pwm, ch)
-                    
-                    # determine which one changed, and set the appropriate one
-                    ret = pwm.sync_value(ch.value)
-                    if ret is not None:
-                        ch.value = ret
-                    
-            for i, ch in enumerate(_core.DigitalModule._relays):
-                relay = self.relays[i]
-                if ch is None:
-                    relay.set_disabled()
-                else:
-                    self._set_tooltip(relay, ch)
-                    
-                    if not ch.on:
-                        relay.set_off()
-                    elif ch.forward:
-                        relay.set_on()
-                    else:
-                        relay.set_back()
-            
-            # solenoid
-            for i, ch in enumerate(_core.Solenoid._channels):
-                sol = self.solenoids[i]
-                if ch is None:
-                    sol.set_disabled()
-                else:
-                    self._set_tooltip(sol, ch)
-                    # determine which one changed, and set the appropriate one
-                    ret = sol.sync_value(ch.value)
-                    if ret is not None:
-                        ch.value = ret
-            
-            # CAN
-            
-            # detect new devices
-            if len(self.can) != len(_core.CAN._devices):
-                existing = list(self.can.keys())
+        '''
+        
+        # digital module
+        for i, ch in enumerate(hal_data['dio']):
+            dio = self.dio[i]
+            if not ch['initialized']:
+                dio.set_disabled()
+            else:
+                self._set_tooltip(dio, ch)
                 
-                for k, v in sorted(_core.CAN._devices.items()):
-                    if k in existing:
-                        continue
-                    self._add_CAN(k, v)
-                    
-            for k, (motor, fl, rl) in self.can.items():
-                can = _core.CAN._devices[k]
-                
-                motor.set_value(can.value)
-                
-                ret = fl.sync_value(not can.forward_ok)
+                # determine which one changed, and set the appropriate one
+                ret = dio.sync_value(ch['value'])
                 if ret is not None:
-                    can.forward_ok = not ret
-                    
-                ret = rl.sync_value(not can.reverse_ok)
-                if ret is not None:
-                    can.reverse_ok = not ret    
+                    ch['value'] = ret
+        
+        for i, ch in enumerate(hal_data['pwm']):
+            pwm = self.pwm[i]
+            if not ch['initialized']:
+                pwm.set_disabled()
+            else:
+                self._set_tooltip(pwm, ch)
+                
+                # determine which one changed, and set the appropriate one
+                pwm.set_value(ch['value'])
+                
+        for i, ch in enumerate(hal_data['relay']):
+            relay = self.relays[i]
+            if not ch['initialized']:
+                relay.set_disabled()
+            else:
+                #self._set_tooltip(relay, ch)
+                
+                if ch['fwd']:
+                    relay.set_on()
+                elif ch['rev']:
+                    relay.set_back()
+                else:
+                    relay.set_off()
+        
+        # solenoid
+        for i, ch in enumerate(hal_data['solenoid']):
+            sol = self.solenoids[i]
+            if not ch['initialized']:
+                sol.set_disabled()
+            else:
+                self._set_tooltip(sol, ch)
+                # determine which one changed, and set the appropriate one
+                sol.set_value(ch['value'])
+        
+        # CAN
+        
+        # detect new devices
+        '''
+        if len(self.can) != len(_core.CAN._devices):
+            existing = list(self.can.keys())
             
-            # joystick/driver station
-            sticks = _core.DriverStation.GetInstance().sticks
-            stick_buttons = _core.DriverStation.GetInstance().stick_buttons
+            for k, v in sorted(_core.CAN._devices.items()):
+                if k in existing:
+                    continue
+                self._add_CAN(k, v)
+                
+        for k, (motor, fl, rl) in self.can.items():
+            can = _core.CAN._devices[k]
             
-            for i, (axes, buttons) in enumerate(self.joysticks):
-                for j, ax in enumerate(axes):
-                    sticks[i][j] = ax.get_value() 
+            motor.set_value(can.value)
             
-                for j, (ck, var) in enumerate(buttons):
-                    stick_buttons[i][j] = True if var.get() else False
-                    
-            self.field.update_widgets()
-            
-            tm = _fake_time.FAKETIME.Get()
-            mode_tm = tm - self.mode_start_tm
-            
-            self.status.config(text="Time: %.03f mode, %.03f total" % (mode_tm, tm))
+            ret = fl.sync_value(not can.forward_ok)
+            if ret is not None:
+                can.forward_ok = not ret
+                
+            ret = rl.sync_value(not can.reverse_ok)
+            if ret is not None:
+                can.reverse_ok = not ret    
+        '''
+        
+        # joystick/driver station
+        #sticks = _core.DriverStation.GetInstance().sticks
+        #stick_buttons = _core.DriverStation.GetInstance().stick_buttons
+        
+        for i, (axes, buttons) in enumerate(self.joysticks):
+            joy = hal_data['joysticks'][i]
+            jaxes = joy['axes']
+            for j, ax in enumerate(axes):
+                jaxes[j] = ax.get_value() 
+        
+            jbuttons = joy['buttons']
+            for j, (ck, var) in enumerate(buttons):
+                jbuttons[j]  = True if var.get() else False
+                
+        self.field.update_widgets()
+        
+        tm = self.fake_time.get()
+        mode_tm = tm - self.mode_start_tm
+        
+        self.status.config(text="Time: %.03f mode, %.03f total" % (mode_tm, tm))
             
     
         
     def _set_tooltip(self, widget, obj):
+        return
+        
+        # TODO: Fix this
         if not hasattr(widget, 'has_tooltip'):
             
             if hasattr(obj, 'label'):
@@ -480,7 +485,7 @@ class SimUI(object):
     def on_robot_mode_change(self, mode):
         self.mode.set(mode)
         
-        self.mode_start_tm = _fake_time.FAKETIME.Get()
+        self.mode_start_tm = self.fake_time.get()
         
         # this is not strictly true... a robot can actually receive joystick
         # commands from the driver station in disabled mode. However, most 
@@ -506,9 +511,9 @@ class SimUI(object):
             
     def on_pause(self, pause):
         if pause:
-            _fake_time.FAKETIME.Pause()
+            self.fake_time.pause()
         else:
-            _fake_time.FAKETIME.Resume()
+            self.fake_time.resume()
 
     def on_step_time(self):
         val = self.step_entry.get()
@@ -519,6 +524,6 @@ class SimUI(object):
             return
             
         if tm > 0:
-            _fake_time.FAKETIME.Resume(tm)
+            self.fake_time.resume(tm)
         
         

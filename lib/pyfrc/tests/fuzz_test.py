@@ -116,7 +116,7 @@ def test_iterative_fuzz(robot, wpilib):
     wpilib.internal.IterativeRobotTeleop(robot)
 
 @pytest.mark.skipif(pyfrc.config.coverage_mode == True, reason="Don't run this during coverage testing, will lead to imprecise coverage results")
-def test_simple_fuzz(robot, wpilib):
+def test_sample_fuzz(robot, wpilib):
     '''
         Fuzz test for simple framework
     '''

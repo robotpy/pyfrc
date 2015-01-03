@@ -1,3 +1,10 @@
+v2015.1.0
+---------
+* Use pure python WPILib for 2015, remove old wpilib stubs
+* Various roborio control system updates
+* Migrate samples to new WPILib API
+* Migrate non-pyfrc documentation to WPILib
+
 v2014.7.5
 ---------
 * Fix IterativeRobot support in simulator

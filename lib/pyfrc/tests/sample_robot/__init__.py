@@ -1,16 +1,16 @@
 '''
     These generic test modules can be applied to a
-    :class:`wpilib.IterativeRobot` based robot. To use these, add the
+    :class:`wpilib.samplerobot.SampleRobot` based robot. To use these, add the
     following to a python file in your tests directory::
     
-        from pyfrc.tests.iterative import *
+        from pyfrc.tests.sample_robot import *
 '''
 
 # import common test types
 from ..docstring_test import test_docstrings
 
-# iterative-specific test types
-from ..fuzz_test import test_iterative_fuzz as test_fuzz
+# simple-specific test types
+from ..fuzz_test import test_sample_fuzz as test_fuzz
 
 from .basic import (
     test_autonomous,

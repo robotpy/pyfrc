@@ -7,7 +7,9 @@ the simulator, run your robot.py with the following arguments:
 
 .. code-block:: sh
 
-    $ python3 robot.py sim
+    Windows:   py robot.py sim
+    
+    Linux/OSX: python3 robot.py sim
 
 As there is interest, I will add more features to the simulator. Please feel
 free to improve it and submit pull requests!
@@ -20,20 +22,22 @@ for early testing of autonomous movements.
    easier than it sounds!). Helper functions are provided to calculate robot
    position for common drivetrain types (see below for details). There are
    samples provided in pyfrc for each supported drivetrain type.
+   
+.. note:: This feature is currently broken for 2015. We expect it to be working
+          by week 3 in 2015.
 
-Adding custom tooltips to motors/sensors
-----------------------------------------
-
-If you move the mouse over the motors/sensors in the simulator user interface,
-you will notice that tooltips are shown which show which type of object is
-using the slot. pyfrc will now read the 'label' attribute from each object,
-and if present it will display that as the tooltip instead. For example::
-
-    motor = wpilib.Jaguar(1)
-    motor.label = 'whatzit motor'
-
-This does not affect operation on the robot, as RobotPy will just ignore
-the extra attribute.
+..  Adding custom tooltips to motors/sensors (doesn't work in 2015 yet!)
+	
+	If you move the mouse over the motors/sensors in the simulator user interface,
+	you will notice that tooltips are shown which show which type of object is
+	using the slot. pyfrc will now read the 'label' attribute from each object,
+	and if present it will display that as the tooltip instead. For example::
+	
+	    motor = wpilib.Jaguar(1)
+	    motor.label = 'whatzit motor'
+	
+	This does not affect operation on the robot, as RobotPy will just ignore
+	the extra attribute.
 
 .. _smartdashboard:
 
@@ -41,17 +45,15 @@ Communicating with SmartDashboard
 ---------------------------------
 
 If you have `pynetworktables <https://github.com/robotpy/pynetworktables>`_
-installed, the simulator can be used to communicate with the SmartDashboard or other NetworkTables clients. To do this, run the following.
+installed, the simulator can be used to communicate with the SmartDashboard or
+other NetworkTables clients. As of 2015, nothing special is required, just
+run it the way that you would normally run the simulator.
 
 .. code-block:: sh
 
-    $ python3 robot.py netsim
-
-Or you can use this instead:
-
-.. code-block:: sh
-
-    $ python3 robot.py sim --enable-pynetworktables
+    Windows: py robot.py sim
+    
+    Linux/OSX: python3 robot.py sim
 
 For this to work, you need to tell SmartDashboard to connect to the IP address
 that your simulator is listening on (typically this is 127.0.0.1). Using
@@ -73,6 +75,9 @@ the command line using the following command:
 
 Robot 'physics model'
 ---------------------
+
+.. warning:: Currently the physics model implementation is broken for pyfrc 2015, we
+             hope to fix it soon.
 
 .. automodule:: pyfrc.physics.core
    :members:

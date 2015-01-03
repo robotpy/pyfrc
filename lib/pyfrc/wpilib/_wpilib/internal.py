@@ -68,66 +68,10 @@ on_IsNewDataAvailable   = None
 #######################################################################
 
 
-def set_test_controller(controller_cls):
-    '''
-        Shortcut to assign a single object to the on_* functions,
-        instead of assigning individual functions to each on\_ variable. An
-        example of such an object is :class:`PracticeMatchTestController`.
-    '''
-    
-    this = sys.modules[__name__]
-    
-    controller = controller_cls
-    if inspect.isclass(controller_cls):
-        controller =  controller_cls()
-        
-    for name in ['IsAutonomous', 'IsOperatorControl', 'IsEnabled', 'IsSystemActive', 'IsNewDataAvailable', 'IsTest']:
-        if hasattr(controller, name):
-            setattr(this, 'on_%s' % name, getattr(controller, name))
-
-    return controller
 
 
-class PracticeMatchTestController(object):
-    '''
-        Sample test controller object you can inherit from to
-        control a practice match
-    '''
-    
-    autonomous_period = 10
-    operator_period = 120
-    
-    def _calc_mode(self, tm):
-        
-        autonomous = False
-        operator = False
-        
-        if tm < 5:
-            pass
-        
-        elif tm < 5 + self.autonomous_period:
-            autonomous = True
-            
-        elif tm < 5 + self.autonomous_period + 1:
-            pass
-        
-        elif tm < 5 + self.autonomous_period + 1 + self.operator_period:
-            operator = True
-            
-        return autonomous, operator 
-    
-    def IsAutonomous(self, tm):
-        '''Return True if robot should be in autonomous mode'''
-        return self._calc_mode(tm)[0]
-    
-    def IsOperatorControl(self, tm):
-        '''Return True if robot should be in teleoperated mode'''
-        return self._calc_mode(tm)[1]
-    
-    def IsEnabled(self, tm):
-        '''Return True if robot should be enabled'''
-        autonomous, operator = self._calc_mode(tm)
-        return autonomous or operator
+
+
 
 
 #################################################
@@ -136,30 +80,6 @@ class PracticeMatchTestController(object):
 #
 #################################################  
 
-def setup_networktables(enable_pynetworktables=False):
-    
-    if enable_pynetworktables:
-        try:
-            import pynetworktables as sdimpl
-        except ImportError:
-            print("pynetworktables does not appear to be installed!", file=sys.stderr)
-            raise
-        
-        try:
-            print("Using pynetworktables %s" % (sdimpl.__version__) )
-        except AttributeError:
-            print("WARNING: You are using an old version of pynetworktables!")
-    
-    else:
-        
-        from . import _smart_dashboard as sdimpl
-        
-        
-    # copy the class objects over to wpilib
-    from ... import wpilib
-    
-    for name, cls in inspect.getmembers(sdimpl, inspect.isclass):
-        setattr(wpilib, name, cls)
 
 
 def _default_isAutonomous(tm):

@@ -42,7 +42,7 @@ setup(name='pyfrc',
       author='Dustin Spicuzza, Sam Rosenblum',
       author_email='robotpy@googlegroups.com',
       url='https://github.com/robotpy/pyfrc',
-      license='Apache 2.0',
+      license='BSD',
       packages=find_packages(),
       package_dir={'': 'lib'},
       install_requires=install_requires,
@@ -54,8 +54,11 @@ setup(name='pyfrc',
         'Topic :: Software Development'
         ],
       entry_points={'robotpy': [
-        'test = pyfrc.mains.pyfrc_test:PyFrcTest',
-        'upload = pyfrc.mains.cli_upload:PyFrcUpload'
+        'coverage = pyfrc.mains.cli_coverage:PyFrcCoverage',
+        'profiler = pyfrc.mains.cli_profiler:PyFrcProfiler',
+        'sim = pyfrc.mains.cli_sim:PyFrcSim',
+        'test = pyfrc.mains.cli_test:PyFrcTest',
+        'upload = pyfrc.mains.cli_upload:PyFrcUpload',
       ]}
 )
 

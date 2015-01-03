@@ -19,38 +19,42 @@
 # object is created each time
 #
 
-def test_autonomous(robot, wpilib, fake_time):
+def test_autonomous(control, fake_time, robot):
     
     # run autonomous mode for 10 seconds
-    wpilib.internal.enabled = True
-    wpilib.internal.on_IsAutonomous = lambda tm: tm < 10
+    control.set_autonomous(enabled=True)
+    control.on_step = lambda tm: tm < 10
     
-    robot.Autonomous()
+    robot.robotInit()
+    robot.autonomous()
     
     # make sure autonomous mode ran for 10 seconds
-    assert int(fake_time.Get()) == 10
+    assert int(fake_time.get()) == 10
 
 
-def test_disabled(robot, fake_time, wpilib):
+def test_disabled(control, fake_time, robot):
     
     # run disabled mode for 5 seconds
-    wpilib.internal.on_IsEnabled = lambda: fake_time.Get() > 5.0 
-    robot.Disabled()
+    control.set_autonomous(enabled=False)
+    control.on_step = lambda tm: tm < 5
+    
+    robot.robotInit()
+    robot.disabled()
     
     # make sure disabled mode ran for 5 seconds
-    assert int(fake_time.Get()) == 5
+    assert int(fake_time.get()) == 5
 
 
-def test_operator_control(robot, wpilib):
+def test_operator_control(control, robot, hal_data):
     
-    class TestController(object):
+    class TestController:
         '''This object is only used for this test'''
     
         loop_count = 0
         
         stick_prev = 0
         
-        def IsOperatorControl(self, tm):
+        def on_step(self, tm):
             '''
                 Continue operator control for 1000 control loops
                 
@@ -64,20 +68,24 @@ def test_operator_control(robot, wpilib):
                 current value.
             '''
             self.loop_count += 1
+            #print(self.loop_count)
+            #print("STEP", tm)
+            #print("MOO", hal_data['joysticks'][1]['axes'][1])
             
             # motor value is equal to the previous value of the stick
-            assert robot.motor.value == self.stick_prev
+            assert abs(hal_data['pwm'][8]['value'] - self.stick_prev) < 0.1
             
             # set the stick value based on time
-            robot.lstick.y = (tm % 2.0) - 1.0
-            self.stick_prev = robot.lstick.y
-            
+            self.stick_prev = (tm % 2.0) - 1.0
+            hal_data['joysticks'][1]['axes'][1] = self.stick_prev
+            #print("Set", hal_data['joysticks'][1]['axes'][1])
             return not self.loop_count == 1000
     
-    wpilib.internal.set_test_controller(TestController)
-    wpilib.internal.enabled = True
+    control.set_operator_control(enabled=True)
+    control.on_step = TestController
     
-    robot.OperatorControl()
+    robot.robotInit()
+    robot.operatorControl()
     
     # do something like assert the motor == stick value
 

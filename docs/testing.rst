@@ -1,7 +1,9 @@
-.. unit_tests::
+.. unit_tests:
 
 Unit testing robot code
 =======================
+
+.. warning:: Currently unit testing is broken for pyfrc 2015, it will be fixed very soon.
 
 pyfrc supports testing robot code using the py.test python testing tool. To
 run the unit tests for your robot, just run your robot.py with the following
@@ -9,7 +11,9 @@ arguments:
 
 .. code-block:: sh
 
-    $ python3 robot.py test
+    Windows:   py robot.py test
+    
+    Linux/OSX: python3 robot.py test
 
 To find your tests, pyfrc will look for a directory called 'tests' either
 next to robot.py, or in the directory above where robot.py resides. See
@@ -28,13 +32,13 @@ simulated practice match. To use these standardized tests, just create a file
 in your tests directory called pyfrc_test.py, and put the following contents
 in the file:
 
-For a :class:`wpilib.SimpleRobot` based robot::
+For an :class:`wpilib.iterativerobot.IterativeRobot` based robot::
 
-    from pyfrc.tests.simple import *
+    from pyfrc.tests.iterative_robot import *
+    
+For a :class:`wpilib.samplerobot.SampleRobot` based robot::
 
-For an :class:`wpilib.IterativeRobot` based robot::
-
-    from pyfrc.tests.iterative import *
+    from pyfrc.tests.sample_robot import *
 
 Writing your own test functions
 -------------------------------
@@ -55,12 +59,13 @@ and if the condition is False, the test will fail.
 If your test functions have any of the following arguments, then that
 argument will be an object as listed below:
 
-* `control`: the :mod:`wpilib.internal` module
-* `fake_time`: the module that controls time for wpilib, use Get() to retrieve the
-  current simulation time
+* `control`: An instance of :class:`pyfrc.test_support.controller.TestController`
+* `fake_time`: An object that controls time for wpilib, use :meth:`get` to retrieve the
+  current simulation time from the object
+* `hal_data: Provides access to a dict with all the device data about the robot
 * `robot`: An instance of your robot class
-* `robot_file`: the filename your robot code is started from
-* `robot_path`: the directory that your robot is located
+* `robot_file`: The absolute filename your robot code is started from
+* `robot_path`: The absolute directory that your robot code is located at
 * `wpilib`: the wpilib module
 
 For more comprehensive examples of writing your own test functions, refer to
@@ -79,13 +84,17 @@ For example, to run the 'test' command to run unit tests:
 
 .. code-block:: sh
 
-    $ python3 robot.py coverage test
+    Windows:   py robot.py coverage test
+    
+    Linux/OSX: python3 robot.py coverage test
     
 Or to run coverage over the simulator:
 
 .. code-block:: sh
 
-    $ python3 robot.py coverage sim
+    Windows:   py robot.py coverage sim
+    
+    Linux/OSX: python3 robot.py coverage sim
     
 Running code coverage while the simulator is running is nice, because you
 don't have to write unit tests to make sure that you've completely covered
@@ -110,5 +119,8 @@ be reported as covered.
 Controlling the robot's state
 -----------------------------
 
-.. automodule:: pyfrc.wpilib._wpilib.internal
+.. automodule:: pyfrc.test_support.pytest_plugin
+   :members:
+
+.. automodule:: pyfrc.test_support.controller
    :members:

@@ -9,19 +9,19 @@ simulated practice match.
 SimpleRobot builtin tests
 -------------------------
 
-.. automodule:: pyfrc.tests.simple
+.. automodule:: pyfrc.tests.sample_robot
    :members:
 
-.. automodule:: pyfrc.tests.simple.basic
+.. automodule:: pyfrc.tests.sample_robot.basic
    :members:
 
 IterativeRobot builtin tests
 ----------------------------
 
-.. automodule:: pyfrc.tests.iterative
+.. automodule:: pyfrc.tests.iterative_robot
    :members:
 
-.. automodule:: pyfrc.tests.iterative.basic
+.. automodule:: pyfrc.tests.iterative_robot.basic
    :members:
 
 

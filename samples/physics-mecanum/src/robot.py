@@ -1,16 +1,12 @@
+#!/usr/bin/env python3
 
-try:
-    import wpilib
-except ImportError:
-    from pyfrc import wpilib
+import wpilib
 
-
-class MyRobot(wpilib.SimpleRobot):
+class MyRobot(wpilib.SampleRobot):
     '''Main robot class'''
     
-    def __init__(self):
-        '''Constructor'''
-        super().__init__()
+    def robotInit(self):
+        '''Robot-wide initialization code should go here'''
         
         self.lstick = wpilib.Joystick(1)
         self.rstick = wpilib.Joystick(2)
@@ -26,55 +22,40 @@ class MyRobot(wpilib.SimpleRobot):
         # The output function of a mecanum drive robot is always
         # +1 for all output wheels. However, traditionally wired
         # robots will be -1 on the left, 1 on the right.
-        self.robot_drive.SetInvertedMotor(wpilib.RobotDrive.kFrontLeftMotor, True)
-        self.robot_drive.SetInvertedMotor(wpilib.RobotDrive.kRearLeftMotor, True)
+        self.robot_drive.setInvertedMotor(wpilib.RobotDrive.MotorType.kFrontLeft, True)
+        self.robot_drive.setInvertedMotor(wpilib.RobotDrive.MotorType.kFrontRight, True)
         
         # Position gets automatically updated as robot moves
         self.gyro = wpilib.Gyro(1)
          
-    def Disabled(self):
+    def disabled(self):
         '''Called when the robot is disabled'''
-        while self.IsDisabled():
-            wpilib.Wait(0.01)
+        while self.isDisabled():
+            wpilib.Timer.delay(0.01)
 
-    def Autonomous(self):
+    def autonomous(self):
         '''Called when autonomous mode is enabled'''
         
         timer = wpilib.Timer()
-        timer.Start()
+        timer.start()
         
-        self.GetWatchdog().SetEnabled(False)
-        while self.IsAutonomous() and self.IsEnabled():
+        while self.isAutonomous() and self.isEnabled():
             
-            if timer.Get() < 2.0:
-                self.robot_drive.MecanumDrive_Cartesian(0, -1, 1)
+            if timer.get() < 2.0:
+                self.robot_drive.mecanumDrive_Cartesian(0, -1, 1)
             else:
-                self.robot_drive.MecanumDrive_Cartesian(0, 0, 0)
+                self.robot_drive.mecanumDrive_Cartesian(0, 0, 0)
             
-            wpilib.Wait(0.01)
+            wpilib.Timer.delay(0.01)
 
-    def OperatorControl(self):
+    def operatorControl(self):
         '''Called when operation control mode is enabled'''
-        
-        dog = self.GetWatchdog()
-        dog.SetEnabled(True)
-        dog.SetExpiration(0.25)
 
-        while self.IsOperatorControl() and self.IsEnabled():
-            dog.Feed()
+        while self.isOperatorControl() and self.isEnabled():
             
-            self.robot_drive.MecanumDrive_Cartesian(self.lstick.GetX(), self.lstick.GetY(), self.rstick.GetX())
+            self.robot_drive.mecanumDrive_Cartesian(self.lstick.getX(), self.lstick.getY(), self.rstick.getX())
 
-            wpilib.Wait(0.04)
-
-
-def run():
-    '''Called by RobotPy when the robot initializes'''
-    
-    robot = MyRobot()
-    robot.StartCompetition()
-    
-    return robot
+            wpilib.Timer.delay(0.04)
 
 
 if __name__ == '__main__':
@@ -84,5 +65,5 @@ if __name__ == '__main__':
     import physics
     wpilib.internal.physics_controller.setup(physics)
     
-    wpilib.run()
+    wpilib.run(MyRobot)
 
