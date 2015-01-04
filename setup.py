@@ -55,10 +55,10 @@ setup(name='pyfrc',
         ],
       entry_points={'robotpy': [
         'coverage = pyfrc.mains.cli_coverage:PyFrcCoverage',
+        'deploy = pyfrc.mains.cli_deploy:PyFrcDeploy',
         'profiler = pyfrc.mains.cli_profiler:PyFrcProfiler',
         'sim = pyfrc.mains.cli_sim:PyFrcSim',
-        'test = pyfrc.mains.cli_test:PyFrcTest',
-        'upload = pyfrc.mains.cli_upload:PyFrcUpload',
+        'test = pyfrc.mains.cli_test:PyFrcTest'
       ]}
 )
 
