@@ -13,7 +13,7 @@ except ImportError:
 import queue
 from hal_impl.data import hal_data
 
-from ..version import __version__
+from .. import __version__
 
 from .field.field import RobotField
 
