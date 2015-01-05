@@ -23,23 +23,17 @@ def test_autonomous(control, fake_time, robot):
     
     # run autonomous mode for 10 seconds
     control.set_autonomous(enabled=True)
-    control.on_step = lambda tm: tm < 10
+    control.run_test(lambda tm: tm < 15)
     
-    robot.robotInit()
-    robot.autonomous()
-    
-    # make sure autonomous mode ran for 10 seconds
-    assert int(fake_time.get()) == 10
+    # make sure autonomous mode ran for 15 seconds
+    assert int(fake_time.get()) == 15
 
 
 def test_disabled(control, fake_time, robot):
     
     # run disabled mode for 5 seconds
     control.set_autonomous(enabled=False)
-    control.on_step = lambda tm: tm < 5
-    
-    robot.robotInit()
-    robot.disabled()
+    control.run_test(lambda tm: tm < 5)
     
     # make sure disabled mode ran for 5 seconds
     assert int(fake_time.get()) == 5
@@ -66,6 +60,8 @@ def test_operator_control(control, robot, hal_data):
                 use assert to check a motor value, you have to check to see that
                 it matches the previous value that you set on the inputs, not the
                 current value.
+                
+                :param tm: The current robot time in seconds
             '''
             self.loop_count += 1
             #print(self.loop_count)
@@ -73,6 +69,8 @@ def test_operator_control(control, robot, hal_data):
             #print("MOO", hal_data['joysticks'][1]['axes'][1])
             
             # motor value is equal to the previous value of the stick
+            # -> Note that the PWM value isn't exact, because it was converted to
+            #    a raw PWM value and then back to -1 to 1
             assert abs(hal_data['pwm'][8]['value'] - self.stick_prev) < 0.1
             
             # set the stick value based on time
@@ -82,10 +80,5 @@ def test_operator_control(control, robot, hal_data):
             return not self.loop_count == 1000
     
     control.set_operator_control(enabled=True)
-    control.on_step = TestController
-    
-    robot.robotInit()
-    robot.operatorControl()
-    
-    # do something like assert the motor == stick value
+    control.run_test(TestController)
 
