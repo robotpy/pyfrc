@@ -4,11 +4,11 @@ import inspect
 from hal_impl import mode_helpers
 from hal_impl.data import hal_data
 
-from .fake_time import _DSCondition
+from .fake_time import TestEnded
 
 class _PracticeMatch:
       
-    autonomous_period = 10
+    autonomous_period = 15
     operator_period = 120
     
     def __init__(self, on_step):
@@ -34,8 +34,12 @@ class _PracticeMatch:
         else:
             return False
         
-        return self._on_step(tm)
-    
+        if self._on_step is not None:
+            retval = self._on_step(tm)
+            if retval is not None:
+                return retval
+        
+        return True
 
 class TestController:
     '''
@@ -44,34 +48,34 @@ class TestController:
     '''
     
     def __init__(self, fake_time_inst):
+        self._practice = False
+        self._test_running = False
         self._ds_cond = fake_time_inst._setup()
     
-    def _on_step(self, value):
+    def get_mode(self):
+        '''Returns the current mode that the robot is in
         
-        if inspect.isclass(value):
-            obj = value()
-            self._ds_cond._on_step = obj.on_step
-        
-        elif callable(value):
-            self._ds_cond._on_step = value
-          
-        else:
-            raise ValueError("Invalid object passed to on_step")
-    
-    #: Set this to a function that takes a single argument, and it
-    #: will be called when a new driver station packet would be received
-    #: If this is an object, then it will be constructed and it's on_step
-    #: function will be called
-    on_step = property(fset=_on_step)
-    
-    def setup_practice_match(self, on_step=lambda tm: True):
-        '''Call this function to enable a practice match. Just call
-        startCompetition() on your robot object
-        
-        :param on_step: If set, is called on each simulation step
+        :returns: 'autonomous', 'teleop', 'test', or 'disabled'
         '''
-        pm = _PracticeMatch(on_step)
-        self._ds_cond._on_step = pm.on_step
+        
+        ctrl = hal_data['control']
+        if not ctrl['enabled']:
+            return 'disabled'
+        if ctrl['autonomous']:
+            return 'autonomous'
+        if ctrl['test']:
+            return 'test'
+        
+        return 'teleop'
+        
+    
+    def set_practice_match(self):
+        '''Call this function to enable a practice match. Must only
+        be called before :meth:`run_test` is called.
+        '''
+        
+        assert not self._test_running
+        self._practice = True
    
     def set_autonomous(self, enabled=True):
         '''Puts the robot in autonomous mode'''
@@ -85,4 +89,66 @@ class TestController:
         '''Puts the robot in test mode'''
         mode_helpers.set_mode('test', enabled)
     
+    def run_test(self, controller=None):
+        """
+            Call this to execute the robot code. Cannot be called more than once
+            in a single test.
+            
+            If the controller argument is a class, it will be constructed and the
+            instance will be returned.
+        
+            :param controller: This can either be a function that takes a single
+                               argument, or a class that has an 'on_step' function.
+                               If it is a class, an instance will be created. Either
+                               the function or the on_step function will be called
+                               with a single parameter, which is the the current 
+                               robot time. If None, an error will be signaled unless
+                               :meth:`set_practice_match` has been called.
+        """
+        
+        # Can't call this twice!
+        assert not self._test_running
+        
+        on_step = None
+        retval = None
+        
+        if controller is not None:
+            
+            if inspect.isclass(controller):
+                retval = controller()
+                on_step = retval.on_step
+            
+            elif callable(controller):
+                on_step  = controller
+                  
+            else:
+                raise ValueError("Invalid controller parameter")
+        
+            info = inspect.getfullargspec(on_step)
+            if len(info.args) > 0 and info.args[0] == 'self':
+                info.args.remove('self')    
+            
+            if len(info.args) + len(info.kwonlyargs) != 1:
+                raise ValueError("%s must be a function that takes a single argument" % on_step)
+        
+        # Setup the time hooks
+        if self._practice:
+            pm = _PracticeMatch(on_step)
+            on_step = pm.on_step
+            
+        if on_step is not None:
+            self._ds_cond._on_step = on_step
+        else:
+            raise ValueError("The controller parameter must not be None OR you must call control.set_practice_match")
+        
+        self._test_running = True
+        
+        try:
+            self._robot.startCompetition()
+        except TestEnded:
+            pass
+        except:
+            raise
+        
+        return retval
 

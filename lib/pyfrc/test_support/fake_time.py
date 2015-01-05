@@ -3,6 +3,32 @@ import threading
 from hal_impl.mode_helpers import notify_new_ds_data
 
 
+class TestRanTooLong(BaseException):
+    '''
+        This is thrown when the time limit has expired
+        
+        This exception inherits from BaseException, so if you want to catch
+        it you must explicitly specify it, as a blanket except statement
+        will not catch this exception.'
+        
+        Generally, only internal pyfrc code needs to catch this
+    '''
+    pass
+    
+class TestEnded(BaseException):
+    '''
+        This is thrown when the controller has been signaled to end the test
+        
+        This exception inherits from BaseException, so if you want to catch
+        it you must explicitly specify it, as a blanket except statement
+        will not catch this exception.'
+        
+        Generally, only internal pyfrc code needs to catch this
+    '''
+    pass
+
+
+
 class FakeTime:
     '''
         Keeps track of time for robot code being tested, and makes sure the
@@ -12,15 +38,7 @@ class FakeTime:
         the fake_time fixture.
     '''
 
-    class FakeTimeException(BaseException):
-        '''
-            This is thrown when the time limit has expired
-            
-            This exception inherits from BaseException, so if you want to catch
-            it you must explicitly specify it, as a blanket except statement
-            will not catch this exception.
-        '''
-        pass
+    
     
     def __init__(self):
         self.reset()
@@ -40,15 +58,14 @@ class FakeTime:
 
     def __time_test__(self):
         if self.time_limit is not None and self.time_limit <= self.time:
-            raise FakeTime.FakeTimeException()
+            raise TestRanTooLong()
     
     def reset(self):
         '''
-            Resets the fake time to zero, and sets the time limit
+            Resets the fake time to zero, and sets the time limit to default
         '''
         self.time = 0
-        #self.time_limit = 500
-        self.time_limit = None
+        self.time_limit = 500
         self.in_increment = False
         
         self.next_ds_time = 0.020
@@ -114,7 +131,9 @@ class FakeTime:
     def set_time_limit(self, time_limit):
         '''
             Sets the amount of time that a robot will run. When time is
-            incremented past this time, a FakeTimeException is thrown 
+            incremented past this time, a TestRanTooLong is thrown.
+            
+            The default time limit is 500 seconds
             
             :param time_limit: Number of seconds
             :type time_limit: float
@@ -139,7 +158,7 @@ class _DSCondition(threading.Condition):
         
         retval = self._on_step(tm)
         if not retval:
-            raise FakeTime.FakeTimeException() 
+            raise TestEnded()
     
     def wait(self, timeout=None):
         

@@ -35,12 +35,10 @@ class PyFrcPlugin(object):
         
         self._test_controller = TestController(self._fake_time)
         
-        self._robot = self.robot_class()
-        
-        # patch the robot
+        self._test_controller._robot = self.robot_class()
     
     def pytest_runtest_teardown(self):
-        self._robot = None
+        self._test_controller = None
         
         import wpilib._impl.utils
         wpilib._impl.utils.reset_wpilib()
@@ -83,7 +81,7 @@ class PyFrcPlugin(object):
     @pytest.fixture()
     def robot(self):
         '''Your robot instance'''
-        return self._robot
+        return self._test_controller._robot
     
     @pytest.fixture()
     def robot_file(self):
