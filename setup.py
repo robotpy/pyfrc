@@ -3,10 +3,31 @@
 from os.path import dirname, exists, join
 import sys, subprocess
 from setuptools import find_packages, setup
+from urllib.request import urlretrieve
 
 setup_dir = dirname(__file__)
 base_package = 'pyfrc'
 version_file = join(setup_dir, 'lib', base_package, 'version.py')
+
+# Download plink/psftp
+ext_dir = join(setup_dir, 'lib', base_package, 'robotpy', 'win32')
+ext_files = {
+    'plink.exe': 'http://the.earth.li/~sgtatham/putty/latest/x86/plink.exe',
+    'psftp.exe': 'http://the.earth.li/~sgtatham/putty/latest/x86/psftp.exe'
+}
+
+for file, uri in ext_files.items():
+    if exists(join(ext_dir, file)):
+        continue
+    
+    print("Downloading %s" % file)
+    def _reporthook(count, blocksize, totalsize):
+        percent = int(count*blocksize*100/totalsize)
+        sys.stdout.write("\r%02d%%" % percent)
+        sys.stdout.flush()
+
+    urlretrieve(uri, join(ext_dir, file), _reporthook)
+    print()
 
 # Automatically generate a version.py based on the git version
 if exists(join(setup_dir, '.git')):
@@ -43,8 +64,10 @@ setup(name='pyfrc',
       author_email='robotpy@googlegroups.com',
       url='https://github.com/robotpy/pyfrc',
       license='BSD',
-      packages=find_packages(),
+      packages=find_packages(where='lib'),
       package_dir={'': 'lib'},
+      package_data={'pyfrc': ['robotpy/win32/plink.exe',
+                              'robotpy/win32/psftp.exe']},
       install_requires=install_requires,
       classifiers=[
         'Development Status :: 4 - Beta',
