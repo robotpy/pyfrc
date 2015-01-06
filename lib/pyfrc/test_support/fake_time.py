@@ -1,5 +1,7 @@
 
 import threading
+
+import hal
 from hal_impl.mode_helpers import notify_new_ds_data
 
 
