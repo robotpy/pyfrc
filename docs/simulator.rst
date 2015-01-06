@@ -24,9 +24,9 @@ for early testing of autonomous movements.
    samples provided in pyfrc for each supported drivetrain type.
    
 .. note:: This feature is currently broken for 2015. We expect it to be working
-          by week 3 in 2015.
+          by week 4 in 2015.
 
-..  Adding custom tooltips to motors/sensors (doesn't work in 2015 yet!)
+..  Adding custom tooltips to motors/sensors (doesn't work in 2015!)
 	
 	If you move the mouse over the motors/sensors in the simulator user interface,
 	you will notice that tooltips are shown which show which type of object is
@@ -77,7 +77,7 @@ Robot 'physics model'
 ---------------------
 
 .. warning:: Currently the physics model implementation is broken for pyfrc 2015, we
-             hope to fix it soon.
+             hope to fix it soon. It will almost certainly change this season.
 
 .. automodule:: pyfrc.physics.core
    :members:

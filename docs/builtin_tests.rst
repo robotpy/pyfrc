@@ -6,24 +6,11 @@ pyfrc comes with testing functions that can be used to test basic
 functionality of just about any robot, including running through a 
 simulated practice match.
 
-SimpleRobot builtin tests
--------------------------
-
-.. automodule:: pyfrc.tests.sample_robot
+.. automodule:: pyfrc.tests
    :members:
 
-.. automodule:: pyfrc.tests.sample_robot.basic
+.. automodule:: pyfrc.tests.basic
    :members:
-
-IterativeRobot builtin tests
-----------------------------
-
-.. automodule:: pyfrc.tests.iterative_robot
-   :members:
-
-.. automodule:: pyfrc.tests.iterative_robot.basic
-   :members:
-
 
 Fuzz tests
 ----------

@@ -3,8 +3,6 @@
 Unit testing robot code
 =======================
 
-.. warning:: Currently unit testing is broken for pyfrc 2015, it will be fixed very soon.
-
 pyfrc supports testing robot code using the py.test python testing tool. To
 run the unit tests for your robot, just run your robot.py with the following
 arguments:
@@ -30,15 +28,11 @@ pyfrc comes with testing functions that can be used to test basic
 functionality of just about any robot, including running through a 
 simulated practice match. To use these standardized tests, just create a file
 in your tests directory called pyfrc_test.py, and put the following contents
-in the file:
+in the file::
 
-For an :class:`wpilib.iterativerobot.IterativeRobot` based robot::
-
-    from pyfrc.tests.iterative_robot import *
+    from pyfrc.tests import *
     
-For a :class:`wpilib.samplerobot.SampleRobot` based robot::
-
-    from pyfrc.tests.sample_robot import *
+Unlike previous years, all tests work on all types of robots now.
 
 Writing your own test functions
 -------------------------------
@@ -56,17 +50,13 @@ occur the tests will fails. A simple test function might look like this::
 The `assert` keyword can be used to test whether something is True or False,
 and if the condition is False, the test will fail.
 
-If your test functions have any of the following arguments, then that
-argument will be an object as listed below:
+Pytest supports something called a 'fixture', which allows you to add an
+argument to your test function and it will call the fixture and pass the
+result to your test function as that argument. pyfrc has a custom pytest
+plugin that it uses to provide this special functionality to your tests.
 
-* `control`: An instance of :class:`pyfrc.test_support.controller.TestController`
-* `fake_time`: An object that controls time for wpilib, use :meth:`get` to retrieve the
-  current simulation time from the object
-* `hal_data: Provides access to a dict with all the device data about the robot
-* `robot`: An instance of your robot class
-* `robot_file`: The absolute filename your robot code is started from
-* `robot_path`: The absolute directory that your robot code is located at
-* `wpilib`: the wpilib module
+.. automodule:: pyfrc.test_support.pytest_plugin
+   :members:
 
 For more comprehensive examples of writing your own test functions, refer to
 the `pyfrc samples <https://github.com/robotpy/pyfrc/tree/master/samples>`_
@@ -119,8 +109,8 @@ be reported as covered.
 Controlling the robot's state
 -----------------------------
 
-.. automodule:: pyfrc.test_support.pytest_plugin
-   :members:
-
 .. automodule:: pyfrc.test_support.controller
+   :members:
+   
+.. automodule:: pyfrc.test_support.fake_time
    :members:

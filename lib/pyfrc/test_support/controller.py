@@ -43,8 +43,7 @@ class _PracticeMatch:
 
 class TestController:
     '''
-        An object that you can use to control tests. You control the tests
-        via the on_step function.
+        This object is used to control the robot during unit tests.
     '''
     
     def __init__(self, fake_time_inst):
@@ -86,7 +85,7 @@ class TestController:
         mode_helpers.set_mode('teleop', enabled)
         
     def set_test_mode(self, enabled=True):
-        '''Puts the robot in test mode'''
+        '''Puts the robot in test mode (the robot mode, not related to unit testing)'''
         mode_helpers.set_mode('test', enabled)
     
     def run_test(self, controller=None):

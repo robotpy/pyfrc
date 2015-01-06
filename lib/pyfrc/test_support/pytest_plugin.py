@@ -8,7 +8,12 @@ from . import fake_time, pyfrc_fake_hooks
 from .controller import TestController
 
 
-class PyFrcPlugin(object):
+class PyFrcPlugin:
+    '''
+        Pytest plugin. Each documented member function name can be an argument
+        to your test functions, and the data that these functions return will
+        be passed to your test function.
+    '''
 
     def __init__(self, robot_class, robot_file, robot_path):
         self.robot_class = robot_class
@@ -27,11 +32,9 @@ class PyFrcPlugin(object):
         hal_impl.functions.reset_hal()
     
     def pytest_runtest_setup(self):
-        '''
-            This function needs to do the same things that RobotBase.main does,
-            plus some extra things needed for testing
-        '''
-    
+        # This function needs to do the same things that RobotBase.main does,
+        # plus some extra things needed for testing
+        
         import networktables
         networktables.NetworkTable.setTestMode()
         
@@ -91,6 +94,9 @@ class PyFrcPlugin(object):
     def hal_data(self):
         '''
             Provides access to a dict with all the device data about the robot
+            
+            .. seealso:: For a listing of what the dict contains and some documentation, see
+                         https://github.com/robotpy/robotpy-wpilib/blob/master/hal-sim/hal_impl/data.py
         '''
         return hal_impl.data.hal_data
     
@@ -111,6 +117,6 @@ class PyFrcPlugin(object):
     
     @pytest.fixture()
     def wpilib(self):
-        '''The wpilib module. Provided for backwards compatibility'''
+        '''The :mod:`wpilib` module. Provided for backwards compatibility'''
         import wpilib
         return wpilib
