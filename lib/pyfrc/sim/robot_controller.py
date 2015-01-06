@@ -21,12 +21,12 @@ class RobotController:
         SimManager.MODE_OPERATOR_CONTROL: "OperatorControl"
     }
     
-    def __init__(self, myrobot, fake_time):
+    def __init__(self, robot_class, fake_time):
     
         self.mode = SimManager.MODE_DISABLED
         self.mode_callback = None
         
-        self.myrobot = myrobot
+        self.robot_class = robot_class
         self.fake_time = fake_time
         
         #self.physics_controller = _wpilib.internal.physics_controller
@@ -189,6 +189,6 @@ class RobotController:
         self.driver_station = wpilib.DriverStation.getInstance()
         
         try:
-            self.myrobot.startCompetition()
+            wpilib.RobotBase.main(self.robot_class)
         finally:
             self.set_mode(SimManager.MODE_DISABLED)

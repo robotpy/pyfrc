@@ -29,13 +29,10 @@ class PyFrcSim:
         fake_time = sim.FakeRealTime()
         hal_impl.functions.hooks = pyfrc_fake_hooks.PyFrcFakeHooks(fake_time)
         hal_impl.functions.reset_hal()
-        
-        
-        myrobot = robot_class()
     
         sim_manager = sim.SimManager()
         
-        controller = sim.RobotController(myrobot, fake_time)
+        controller = sim.RobotController(robot_class, fake_time)
         #if controller.has_physics():
         #    robot_element = sim.RobotElement(controller, px_per_ft)
         #else:
