@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 
+import sys
+if sys.version_info[0] < 3:
+    sys.stderr.write("ERROR: pyfrc requires python 3!")
+    exit(1)
+
 from os.path import dirname, exists, join
-import sys, subprocess
+import subprocess
 from setuptools import find_packages, setup
 from urllib.request import urlretrieve
 
