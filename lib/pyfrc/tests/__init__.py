@@ -1,9 +1,6 @@
 '''
     These generic test modules can be applied to :class:`wpilib.iterativerobot.IterativeRobot`
-    and :class:`wpilib.samplerobot.SampleRobot` based robots. To use these, add the
-    following to a python file in your tests directory::
-    
-        from pyfrc.tests import *
+    and :class:`wpilib.samplerobot.SampleRobot` based robots.
 '''
 
 # import basic tests
