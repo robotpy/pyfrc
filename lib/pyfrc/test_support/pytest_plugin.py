@@ -2,6 +2,7 @@
 import pytest
 
 import hal_impl
+from hal_impl.mode_helpers import notify_new_ds_data
 from . import fake_time, pyfrc_fake_hooks
 
 from .controller import TestController
@@ -26,6 +27,10 @@ class PyFrcPlugin(object):
         hal_impl.functions.reset_hal()
     
     def pytest_runtest_setup(self):
+        '''
+            This function needs to do the same things that RobotBase.main does,
+            plus some extra things needed for testing
+        '''
     
         import networktables
         networktables.NetworkTable.setTestMode()
@@ -35,9 +40,20 @@ class PyFrcPlugin(object):
         
         self._test_controller = TestController(self._fake_time)
         
+        import wpilib
+        wpilib.RobotBase.initializeHardwareConfiguration()
+        
+        # The DS task causes too many problems, do it ourselves instead
+        wpilib.DriverStation.getInstance().release()
+        notify_new_ds_data()
+        
         self._test_controller._robot = self.robot_class()
+        self._test_controller._robot.prestart()
+        
+        assert hasattr(self._test_controller._robot, '_RobotBase__initialized'), \
+                       "If your robot class has an __init__ function, it must call super().__init__()!"
     
-    def pytest_runtest_teardown(self):
+    def pytest_runtest_teardown(self, nextitem):
         self._test_controller = None
         
         import wpilib._impl.utils

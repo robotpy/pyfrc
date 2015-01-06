@@ -13,7 +13,7 @@ class MyRobot(wpilib.IterativeRobot):
 
     def autonomousInit(self):
         '''Called only at the beginning of autonomous mode'''
-        self.GetWatchdog().SetEnabled(False)
+        pass
 
     def autonomousPeriodic(self):
         '''Called every 20ms in autonomous mode'''

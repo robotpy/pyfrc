@@ -73,10 +73,6 @@ class MyRobot(wpilib.SampleRobot):
 
 if __name__ == '__main__':
     
-    wpilib.require_version('2014.7.2')
-    
-    import physics
-    wpilib.internal.physics_controller.setup(physics)
-    
-    wpilib.run()
+    wpilib.run(MyRobot,
+               physics_enabled=True)
 

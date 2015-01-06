@@ -60,6 +60,13 @@ def test_practice(control, fake_time, robot):
             
             
         def on_step(self, tm):
+            '''
+                Called on each simulation step. This runs through each mode,
+                and asserts that the robot didn't spend too much time in any
+                particular mode.
+            
+                :param tm: The current robot time
+            '''
             
             mode = control.get_mode()
             if mode == self.mode:

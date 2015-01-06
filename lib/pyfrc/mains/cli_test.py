@@ -58,9 +58,6 @@ class PyFrcTest(object):
         
         os.chdir(test_directory)
         
-        print("Sorry, testing support is still very broken at this point. Will be fixed soon!")
-        return 0
-        
         return pytest.main(pytest_args,
                            plugins=[pytest_plugin.PyFrcPlugin(robot_class,
                                                               robot_file,

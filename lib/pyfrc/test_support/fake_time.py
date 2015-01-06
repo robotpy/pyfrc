@@ -1,9 +1,6 @@
 
 import threading
 
-import hal
-from hal_impl.mode_helpers import notify_new_ds_data
-
 
 class TestRanTooLong(BaseException):
     '''
@@ -29,8 +26,6 @@ class TestEnded(BaseException):
     '''
     pass
 
-
-
 class FakeTime:
     '''
         Keeps track of time for robot code being tested, and makes sure the
@@ -50,10 +45,10 @@ class FakeTime:
         
         # Setup driver station hooks
         import wpilib
-        ds = wpilib.DriverStation.getInstance()
+        self._ds = wpilib.DriverStation.getInstance()
         
-        self._ds_cond = _DSCondition(self, ds.mutex)
-        ds.dataSem = self._ds_cond
+        self._ds_cond = _DSCondition(self, self._ds.mutex)
+        self._ds.dataSem = self._ds_cond
         
         self.thread_id = threading.current_thread().ident
         return self._ds_cond
@@ -110,7 +105,12 @@ class FakeTime:
                 if threading.current_thread().ident == self.thread_id:
                     self._ds_cond.on_step(self.time)
                 
-                notify_new_ds_data()
+                # Notify the DS thread to issue a new packet, but wait for it
+                # to do it.
+                # TODO: This breaks on iterative robot.. 
+                with self._ds_cond:
+                    self._ds_cond.notify_all()
+                    self._ds.getData()
                   
                 time -= next_ds
                 
@@ -146,7 +146,7 @@ class FakeTime:
 class _DSCondition(threading.Condition):
     '''
         Condition variable replacement to allow fake time to be used to hook
-        into the DriverStation packets
+        into the DriverStation packets.
     '''
     
     def __init__(self, fake_time_inst, lock):
@@ -169,14 +169,11 @@ class _DSCondition(threading.Condition):
         if timeout is not None:
             raise NotImplementedError("Didn't implement timeout support yet")
         
-        # If we're on the main thread, make sure a new DS packet is sent before waiting
+        # If we're on the robot's main thread, when this is called we just
+        # need to increment the time, no wait required. If we're not on the
+        # main thread, then we need to wait for a notification.. 
         if in_main:
             self.fake_time_inst.increment_new_packet()
-        
-        print("Waiting")
-        super().wait(self, timeout=timeout)
-        
-        print("Waiting done")
-        if in_main:
-            self.on_step(self.fake_time_inst.get())
-        
+        else:
+            super().wait(self, timeout=timeout)
+            

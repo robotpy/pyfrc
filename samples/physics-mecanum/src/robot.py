@@ -42,9 +42,9 @@ class MyRobot(wpilib.SampleRobot):
         while self.isAutonomous() and self.isEnabled():
             
             if timer.get() < 2.0:
-                self.robot_drive.mecanumDrive_Cartesian(0, -1, 1)
+                self.robot_drive.mecanumDrive_Cartesian(0, -1, 1, 0)
             else:
-                self.robot_drive.mecanumDrive_Cartesian(0, 0, 0)
+                self.robot_drive.mecanumDrive_Cartesian(0, 0, 0, 0)
             
             wpilib.Timer.delay(0.01)
 
@@ -53,17 +53,13 @@ class MyRobot(wpilib.SampleRobot):
 
         while self.isOperatorControl() and self.isEnabled():
             
-            self.robot_drive.mecanumDrive_Cartesian(self.lstick.getX(), self.lstick.getY(), self.rstick.getX())
+            self.robot_drive.mecanumDrive_Cartesian(self.lstick.getX(), self.lstick.getY(), self.rstick.getX(), 0)
 
             wpilib.Timer.delay(0.04)
 
 
 if __name__ == '__main__':
     
-    wpilib.require_version('2014.7.2')
-    
-    import physics
-    wpilib.internal.physics_controller.setup(physics)
-    
-    wpilib.run(MyRobot)
+    wpilib.run(MyRobot,
+               physics_enabled=True)
 

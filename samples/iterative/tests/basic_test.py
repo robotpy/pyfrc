@@ -19,65 +19,78 @@
 # object is created each time
 #
 
-def test_autonomous(robot, wpilib, fake_time):
+def test_autonomous(control, fake_time, robot):
     
     # run autonomous mode for 10 seconds
-    wpilib.internal.enabled = True
-    wpilib.internal.on_IsAutonomous = lambda tm: tm < 10
+    control.set_autonomous(enabled=True)
+    control.run_test(lambda tm: tm < 15)
     
-    wpilib.internal.IterativeRobotAutonomous(robot)
-    
-    # make sure autonomous mode ran for 10 seconds
-    assert int(fake_time.Get()) == 10
+    # make sure autonomous mode ran for 15 seconds
+    assert int(fake_time.get()) == 15
 
 
-def test_disabled(robot, fake_time, wpilib):
+def test_disabled(control, fake_time, robot):
     
     # run disabled mode for 5 seconds
-    wpilib.internal.on_IsEnabled = lambda: fake_time.Get() > 5.0 
-    wpilib.internal.IterativeRobotDisabled(robot, 1000)
+    control.set_autonomous(enabled=False)
+    control.run_test(lambda tm: tm < 5)
     
     # make sure disabled mode ran for 5 seconds
-    assert int(fake_time.Get()) == 5
+    assert int(fake_time.get()) == 5
 
 
-def test_operator_control(robot, wpilib):
+def test_operator_control(control, robot, hal_data):
     
-    class TestController(object):
+    class TestController:
         '''This object is only used for this test'''
     
-        loop_count = 0
+        step_count = 0
         
-        stick_prev = 0
+        # Use two values because we're never quite sure when the value will
+        # be changed by the robot... there's probably a better way to do this
+        expected_value = 0
         
-        def IsOperatorControl(self, tm):
+        def on_step(self, tm):
             '''
-                Continue operator control for 1000 control loops
+                Continue operator control for 1000 simulation steps. Each step
+                represents roughly 20ms of fake time.
                 
                 The idea is to change the joystick/other inputs, and see if the 
                 robot motors/etc respond the way that we expect. 
                 
                 Keep in mind that when you set a value, the robot code does not
-                see the value until after this function returns. So, when you
-                use assert to check a motor value, you have to check to see that
-                it matches the previous value that you set on the inputs, not the
-                current value.
+                see the value until after this function returns AND the driver
+                station delivers a new packet. Therefore when you use assert to
+                check a motor value, you have to check to see that it matches
+                the previous value that you set on the inputs, not the current
+                value.
+                
+                :param tm: The current robot time in seconds
             '''
-            self.loop_count += 1
+            self.step_count += 1
             
-            # motor value is equal to the previous value of the stick
-            assert robot.motor.value == self.stick_prev
+            pwm_val = hal_data['pwm'][8]['value']
+            if pwm_val is not None:
+                
+                # motor value is equal to the previous value of the stick
+                # -> Note that the PWM value isn't exact, because it was converted to
+                #    a raw PWM value and then back to -1 to 1
+                assert abs(pwm_val - self.expected_value) < 0.1
+                
+                # We do this so that we only check the value when it changes
+                hal_data['pwm'][8]['value'] = None
             
-            # set the stick value based on time
-            robot.lstick.y = (tm % 2.0) - 1.0
-            self.stick_prev = robot.lstick.y
+                # set the stick value based on time
+                
+                self.expected_value = (tm % 2.0) - 1.0
+                print("Set value", self.expected_value)
+                hal_data['joysticks'][1]['axes'][1] = self.expected_value
             
-            return not self.loop_count == 1000
+            return not self.step_count == 1000
     
-    wpilib.internal.set_test_controller(TestController)
-    wpilib.internal.enabled = True
+    # Initialize
+    hal_data['pwm'][8]['value'] = None
     
-    wpilib.internal.IterativeRobotTeleop(robot)
-    
-    # do something like assert the motor == stick value
+    control.set_operator_control(enabled=True)
+    control.run_test(TestController)
 
