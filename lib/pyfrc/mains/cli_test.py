@@ -56,11 +56,15 @@ class PyFrcTest(object):
                 print('- %s' % d)
             return 1
         
+        old_path = abspath(os.getcwd())
         os.chdir(test_directory)
         
-        return pytest.main(pytest_args,
-                           plugins=[pytest_plugin.PyFrcPlugin(robot_class,
-                                                              robot_file,
-                                                              robot_path)])
+        try:
+            return pytest.main(pytest_args,
+                               plugins=[pytest_plugin.PyFrcPlugin(robot_class,
+                                                                  robot_file,
+                                                                  robot_path)])
+        finally:
+            os.chdir(old_path)
 
 
