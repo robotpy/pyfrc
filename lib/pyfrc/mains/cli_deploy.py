@@ -4,6 +4,7 @@ import os
 
 import shutil
 import tempfile
+import threading
 
 from os.path import abspath, basename, dirname, exists, join, splitext
 
@@ -29,6 +30,9 @@ class PyFrcDeploy:
         
         parser.add_argument('--nonstandard', action='store_true', default=False,
                             help="When specified, allows you to deploy code in a file that isn't called robot.py")
+        
+        parser.add_argument('--nc', '--netconsole', action='store_true', default=False,
+                            help="Attach netconsole listener and show robot stdout")
     
     def run(self, options, robot_class, **static_options):
         
@@ -86,6 +90,8 @@ class PyFrcDeploy:
             'extra_cmd': extra_cmd
         }
         
+        nc_thread = None
+        
         try:
             controller = installer.SshController(cfg_filename)
             
@@ -112,12 +118,29 @@ class PyFrcDeploy:
             
             sshcmd %= (py_deploy_dir)
             
+            # start the netconsole listener now if requested, *before* we
+            # actually start the robot code, so we can see all messages
+            if options.nc:
+                from netconsole import run
+                nc_event = threading.Event()
+                nc_thread = threading.Thread(target=run,
+                                             kwargs={'init_event': nc_event},
+                                             daemon=True)
+                nc_thread.start()
+                nc_event.wait(5)
+                print("Netconsole is listening...")
+            
             controller.ssh(sshcmd)
             controller.close()
             
         except installer.Error as e:
             print("ERROR: %s" % e)
             return 1
+        else:
+            print("Deploy was successful!")
+        
+        if nc_thread is not None:
+            nc_thread.join()
         
         return 0
 
