@@ -545,6 +545,9 @@ class RobotpyInstaller(object):
         if options.basever is not None:
             options.packages = ['%s==%s' % (pkg, options.basever) for pkg in options.packages]
 
+        # Versioning for these packages are separate
+        options.packages.append('pynivision')
+
         if not options.no_tools:
             options.packages.append('robotpy-wpilib-utilities')
 
