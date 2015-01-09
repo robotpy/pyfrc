@@ -21,6 +21,8 @@ class PyFrcTest(object):
     
     def __init__(self, parser=None):
         if parser:
+            parser.add_argument('--builtin', default=False, action='store_true',
+                                help="Use pyfrc's builtin tests if no tests are specified")
             parser.add_argument('--coverage-mode', default=False, action='store_true',
                                 help='This flag is passed when trying to determine coverage')
             parser.add_argument('pytest_args', nargs='*',
@@ -33,9 +35,9 @@ class PyFrcTest(object):
         config.mode = 'test'
         config.coverage_mode = options.coverage_mode
         
-        return self.run_test(options.pytest_args, robot_class, **static_options)
+        return self.run_test(options.pytest_args, robot_class, options.builtin, **static_options)
         
-    def run_test(self, pytest_args, robot_class, **static_options):
+    def run_test(self, pytest_args, robot_class, use_builtin, **static_options):
     
         # find test directory, change current directory so py.test can find the tests
         # -> assume that tests reside in tests or ../tests
@@ -50,14 +52,24 @@ class PyFrcTest(object):
                 test_directory = d
                 break
         
-        if test_directory is None:
-            print("Cannot run robot tests, as test directory was not found. Looked for tests at:")
-            for d in try_dirs:
-                print('- %s' % d)
-            return 1
-        
         old_path = abspath(os.getcwd())
-        os.chdir(test_directory)
+        
+        if test_directory is None:
+            if not use_builtin:
+                print("ERROR: Cannot run robot tests, as test directory was not found!")
+                print()
+                print("Looked for tests at:")
+                for d in try_dirs:
+                    print('- %s' % d)
+                print()
+                print("If you don't want to write your own tests, use the --builtin option to run")
+                print("generic tests that should work on any robot.")
+                return 1
+            
+            from ..tests import basic
+            pytest_args.insert(0, abspath(inspect.getfile(basic)))
+        else:
+            os.chdir(test_directory)
         
         try:
             return pytest.main(pytest_args,

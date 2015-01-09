@@ -34,6 +34,9 @@ in the file::
     
 Unlike previous years, all tests work on all types of robots now.
 
+As of pyfrc 2015.0.2, the ``--builtin`` option allows you to run the builtin
+tests without needing to create a tests directory.
+
 Writing your own test functions
 -------------------------------
 

@@ -22,6 +22,9 @@ class PyFrcDeploy:
     
     def __init__(self, parser):
         ''' :type parser: argparse.ArgumentParser '''
+        parser.add_argument('--builtin', default=False, action='store_true',
+                                help="Use pyfrc's builtin tests if no tests are specified")
+        
         parser.add_argument('--skip-tests', action='store_true', default=False,
                             help="If specified, don't run tests before uploading code to robot (DANGEROUS)")
         
@@ -45,7 +48,7 @@ class PyFrcDeploy:
             
             tester = PyFrcTest()
             
-            retval = tester.run_test([], robot_class, ignore_missing_test=True)
+            retval = tester.run_test([], robot_class, options.builtin, ignore_missing_test=True)
             if retval != 0:
                 print("Your robot tests failed, aborting upload. Use --skip-tests if you want to upload anyways")
                 return retval
