@@ -41,7 +41,9 @@ python 2.
 You must have the following python packages installed:
 
 * py.test (http://pytest.org/)
+* setuptools
 * pynetworktables
+* pynetconsole
 * wpilib
 * robotpy-hal-base
 * robotpy-hal-sim
