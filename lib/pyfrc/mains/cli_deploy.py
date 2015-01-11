@@ -70,12 +70,14 @@ class PyFrcDeploy:
         deploy_dir = '/home/lvuser'
         py_deploy_dir = '%s/py' % deploy_dir
         
+        # note below: deployed_cmd appears that it only can be a single line
+        
         if options.debug:
-            deployed_cmd = 'cd %s \n/usr/local/frc/bin/netconsole-host /usr/local/bin/python3 %s -v run' % (py_deploy_dir, robot_filename)
+            deployed_cmd = 'env LD_PRELOAD=/lib/libstdc++.so.6.0.20 /usr/local/frc/bin/netconsole-host /usr/local/bin/python3 %s/%s -v run' % (py_deploy_dir, robot_filename)
             deployed_cmd_fname = 'robotDebugCommand'
             extra_cmd = 'touch /tmp/frcdebug; chown lvuser:ni /tmp/frcdebug'
         else:
-            deployed_cmd = 'cd %s \n/usr/local/frc/bin/netconsole-host /usr/local/bin/python3 -O %s run' % (py_deploy_dir, robot_filename)
+            deployed_cmd = 'env LD_PRELOAD=/lib/libstdc++.so.6.0.20 /usr/local/frc/bin/netconsole-host /usr/local/bin/python3 -O %s/%s run' % (py_deploy_dir, robot_filename)
             deployed_cmd_fname = 'robotCommand'
             extra_cmd = ''
         
