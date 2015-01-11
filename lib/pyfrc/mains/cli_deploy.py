@@ -104,8 +104,6 @@ class PyFrcDeploy:
             'extra_cmd': extra_cmd
         }
 
-        print(sshcmd)
-
         nc_thread = None
         
         try:
