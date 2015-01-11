@@ -20,6 +20,20 @@ mode and will not be able to communicate externally.
 Deploying code to the robot
 ---------------------------
 
+.. warning::
+   
+   If you used pyfrc 2015.0.x and uploaded code to your robot there was a
+   critical bug that may prevent your robot from running robot programs.
+   To fix this, please upgrade pyfrc to the latest version, and run the
+   following command::
+             
+       Windows:    py -m pyfrc.robotpy.fixbug
+             
+       Linux/OSX:  python3 -m pyfrc.robotpy.fixbug
+             
+   Alternatively, you can ssh in as admin, and execute
+   ``rm /var/local/natinst/log/FRC_UserProgram.log``.  
+
 This command will first run any unit tests on your robot code, and if they
 pass then it will upload the robot code to the cRio. Running the tests is
 really important, so you can catch errors in your code before you run it 

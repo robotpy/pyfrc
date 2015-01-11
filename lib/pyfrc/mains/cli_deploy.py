@@ -98,7 +98,9 @@ class PyFrcDeploy:
         nc_thread = None
         
         try:
-            controller = installer.SshController(cfg_filename)
+            controller = installer.SshController(cfg_filename,
+                                                 username='lvuser',
+                                                 password='')
             
             # Housekeeping first
             controller.ssh(sshcmd) 
@@ -114,8 +116,11 @@ class PyFrcDeploy:
             finally:
                 shutil.rmtree(tmp_dir)
             
+            fix_pyfrc_2015_0_x = '[ ! -f /var/local/natinst/log/FRC_UserProgram.log ] || rm -f /var/local/natinst/log/FRC_UserProgram.log;'
+            
             # Restart the robot code and we're done!
             sshcmd = "/bin/bash -ce '" + \
+                     fix_pyfrc_2015_0_x + \
                      '. /etc/profile.d/natinst-path.sh; ' + \
                      'chown -R lvuser:ni %s; ' + \
                      '/usr/local/frc/bin/frcKillRobot.sh -t -r' + \
