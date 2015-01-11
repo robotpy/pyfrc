@@ -36,6 +36,9 @@ class PyFrcDeploy:
         
         parser.add_argument('--nc', '--netconsole', action='store_true', default=False,
                             help="Attach netconsole listener and show robot stdout")
+
+        parser.add_argument('--in-place', action='store_true', default=False,
+                            help="Overwrite currently deployed code, don't delete anything, and don't restart running robot code.")
     
     def run(self, options, robot_class, **static_options):
         
@@ -80,21 +83,27 @@ class PyFrcDeploy:
             deployed_cmd = 'env LD_PRELOAD=/lib/libstdc++.so.6.0.20 /usr/local/frc/bin/netconsole-host /usr/local/bin/python3 -O %s/%s run' % (py_deploy_dir, robot_filename)
             deployed_cmd_fname = 'robotCommand'
             extra_cmd = ''
-        
+
+        if options.in_place:
+            del_cmd = ""
+        else:
+            del_cmd = "[ -d %(py_deploy_dir)s ] && rm -rf %(py_deploy_dir)s;"
+
+        del_cmd %= {"py_deploy_dir": py_deploy_dir}
         sshcmd = "/bin/bash -ce '" + \
-                 '[ -d %(py_deploy_dir)s ] && rm -rf %(py_deploy_dir)s; ' + \
+                 '%(del_cmd)s' + \
                  'echo "%(cmd)s" > %(deploy_dir)s/%(cmd_fname)s; ' + \
                  '%(extra_cmd)s' + \
                  "'"
               
         sshcmd %= {
+            'del_cmd': del_cmd,
             'deploy_dir': deploy_dir,
-            'py_deploy_dir': py_deploy_dir,
             'cmd': deployed_cmd,
             'cmd_fname': deployed_cmd_fname,
             'extra_cmd': extra_cmd
         }
-        
+
         nc_thread = None
         
         try:
@@ -112,21 +121,22 @@ class PyFrcDeploy:
                     
             try:
                 self._copy_to_tmpdir(py_tmp_dir, robot_path)
-                controller.sftp(py_tmp_dir, deploy_dir)
+                controller.sftp(py_tmp_dir, deploy_dir, mkdir=not options.in_place)
             finally:
                 shutil.rmtree(tmp_dir)
             
             fix_pyfrc_2015_0_x = '[ ! -f /var/local/natinst/log/FRC_UserProgram.log ] || rm -f /var/local/natinst/log/FRC_UserProgram.log;'
+
+            if not options.in_place:
+                # Restart the robot code and we're done!
+                sshcmd = "/bin/bash -ce '" + \
+                         fix_pyfrc_2015_0_x + \
+                         '. /etc/profile.d/natinst-path.sh; ' + \
+                         'chown -R lvuser:ni %s; ' + \
+                         '/usr/local/frc/bin/frcKillRobot.sh -t -r' + \
+                         "'"
             
-            # Restart the robot code and we're done!
-            sshcmd = "/bin/bash -ce '" + \
-                     fix_pyfrc_2015_0_x + \
-                     '. /etc/profile.d/natinst-path.sh; ' + \
-                     'chown -R lvuser:ni %s; ' + \
-                     '/usr/local/frc/bin/frcKillRobot.sh -t -r' + \
-                     "'"
-            
-            sshcmd %= (py_deploy_dir)
+                sshcmd %= (py_deploy_dir)
             
             # start the netconsole listener now if requested, *before* we
             # actually start the robot code, so we can see all messages
