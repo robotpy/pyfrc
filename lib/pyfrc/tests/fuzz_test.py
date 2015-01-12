@@ -17,7 +17,7 @@ import pytest
 import random
 import math
         
-def fuzz_bool( self ):
+def fuzz_bool():
                     
     if random.randrange(0,2,1) == 0:
         return False
