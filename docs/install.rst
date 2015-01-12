@@ -9,11 +9,11 @@ Via pip on Linux/OSX
 The easiest installation is by using pip. On a linux/OSX system that has pip
 installed, just run the following command::
 
-	$ pip3 install pyfrc
+    pip3 install pyfrc
 
 To upgrade, you can run this::
 
-    $ pip3 install pyfrc --upgrade
+    pip3 install pyfrc --upgrade
 
 Via pip on Windows
 ------------------
@@ -24,7 +24,7 @@ https://sites.google.com/site/pydatalog/python/pip-for-windows .
 Once you've downloaded it, run it to install pip, and run the following
 command in its window::
 
-	pip install pyfrc
+    pip install pyfrc
 
 Or to upgrade pyfrc, run this command::
 
@@ -51,7 +51,7 @@ You must have the following python packages installed:
 Once you have those installed, you can just install pyfrc the same way 
 you would install most other python programs::
 
-	$ python3 setup.py install
+    python3 setup.py install
 	
 code coverage support
 ---------------------
