@@ -15,5 +15,5 @@ from .basic import (
 from .docstring_test import test_docstrings
 
 # simple-specific test types
-from .fuzz_test import test_sample_fuzz as test_fuzz
+from .fuzz_test import test_fuzz
 
