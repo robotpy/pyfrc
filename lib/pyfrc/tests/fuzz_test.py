@@ -15,119 +15,107 @@
 import pyfrc.config
 import pytest
 import random
-
-
-class FuzzTestController(object):
-
-    def __init__(self, robot, wpilib):
-        self.robot = robot
-        self.wpilib = wpilib
+import math
         
-        self.dsc = wpilib.DriverStation
-        self.dsec = wpilib.DriverStationEnhancedIO
-        
-        self.ds = wpilib.DriverStation.GetInstance()
-        self.eio = self.ds.GetEnhancedIO()
-        
-        self.digital_eio = [0]*16
-        
-        # sticks[stick_num][ axes, buttons ]
-        self.sticks = []
-        for i in range(0, self.dsc.kJoystickPorts):
-            axes = [ 0.0 ] * self.dsc.kJoystickAxes
-            buttons = [ 0.0 ] * 16
-            self.sticks.append( (axes, buttons) )
-            
-        self.digital_inputs = [0]*14
-        self.analog_channels = [0]*8
-        
-    def _fuzz_bool(self, tm, i, dst, tms):
-                        
-        if random.randrange(0,2,1) == 0:
-            dst[i] = False
-        else:
-            dst[i] = True
-            
-        tms[i] = tm + random.random()
-        
-        
-    def IsOperatorControl(self, tm):
-    
-        # fuzz the eio switches    
-        for i, d_tm in enumerate(self.digital_eio):
-        
-            # inputs only
-            if self.eio.digital_config[i] not in self.dsec._kInputTypes:
-                continue
-                
-            # activate at random times
-            if tm > d_tm:
-                self._fuzz_bool(tm, i, self.eio.digital, self.digital_eio)
-
-                
-        # fuzz the joysticks
-        for i,stick in enumerate(self.sticks):
-            
-            # axes 
-            for j, a_tm in enumerate(stick[0]):
-                if tm > a_tm:
-                    self.ds.sticks[i][j] = random.uniform(-1,1)
-                    stick[0][j] = tm + random.random()
-            
-            # buttons
-            for j, b_tm in enumerate(stick[1]):
-                if tm > b_tm:
-                    self._fuzz_bool(tm, j, self.ds.stick_buttons[i], stick[1])
-    
-        # fuzz digital inputs
-        for i, d_tm in enumerate(self.digital_inputs):
-            di = self.wpilib.DigitalModule._io[i]
-            if isinstance(di, self.wpilib.DigitalInput):
-                if tm > d_tm:
-                    if random.randrange(0,2,1) == 0:
-                        di.value = False
-                    else:
-                        di.value = True
-                    self.digital_inputs[i] = tm + random.random()
+def fuzz_bool():
                     
-        # fuzz analog channels
-        for i, a_tm in enumerate(self.analog_channels):
-            ac = self.wpilib.AnalogModule._channels[i]
-            if isinstance(ac, self.wpilib.AnalogChannel):
-                if tm > a_tm:
-                    ac.voltage = random.uniform(0.0, 5.0)
-                    self.analog_channels[i] = tm + random.random()
-    
-        # run a full match
-        return tm < 105.0
+    if random.randrange(0,2,1) == 0:
+        return False
+    else:
+        return True
         
-
-
-@pytest.mark.skipif(pyfrc.config.coverage_mode == True, reason="Don't run this during coverage testing, will lead to imprecise coverage results")
-def test_iterative_fuzz(robot, wpilib):
-    '''
-        Fuzz test for iterative framework
-    '''
     
-    return # TODO
-
-    controller = FuzzTestController(robot, wpilib)
-    wpilib.internal.set_test_controller(controller)
-    wpilib.internal.enabled = True
     
-    wpilib.internal.IterativeRobotTeleop(robot)
+def fuzz_all(hal_data):
 
-@pytest.mark.skipif(pyfrc.config.coverage_mode == True, reason="Don't run this during coverage testing, will lead to imprecise coverage results")
-def test_sample_fuzz(robot, wpilib):
+    # fuzz the eio switches    
+    for dio in hal_data['dio']:
+    
+        # inputs only
+        if not dio['is_input'] or not dio['initialized'] :
+            continue
+            
+        # activate at random times
+        dio['value'] = fuzz_bool()
+
+            
+    # fuzz the joysticks
+    for stick in hal_data['joysticks']:
+        if stick['has_source']:
+            # axes 
+            for axes in stick['axes']:
+                if fuzz_bool():
+                    axes = random.uniform(-1,1)
+                    
+            # buttons
+            for button in stick['buttons']:
+                    self._fuzz_bool(tm, j, self.ds.stick_buttons[i], stick[1])
+
+                
+    # fuzz analog channels
+    for analog in hal_data['analog_in']:
+        if analog['has_source'] and fuzz_bool():
+            analog['voltage'] = analog[ 'avg_voltage']= random.uniform(0.0,5.0)
+            analog['value'] = analog['value'] = (analog['voltage']/5.0) * analog['offset']
+
+def test_fuzz(hal_data, control, fake_time, robot):
     '''
-        Fuzz test for simple framework
+        Runs through a whole game randomly setting components
     '''
+    class TestController:
     
-    return # TODO
+        def __init__(self):
+            self.mode = None
+            
+            self.disabled = 0
+            self.autonomous = 0
+            self.teleop = 0
+            
+            
+        def on_step(self, tm):
+            '''
+                Called on each simulation step. This runs through each mode,
+                and asserts that the robot didn't spend too much time in any
+                particular mode.This also calls fuzz_all and fuzzes all data
+            
+                :param tm: The current robot time
+            '''
+            
+            fuzz_all(hal_data)
+            mode = control.get_mode()
+            if mode == self.mode:
+                return
+            
+            if mode == 'autonomous':
+                self.autonomous += 1
+                assert int(math.floor(fake_time.get())) == 5
+                
+            elif mode == 'teleop':
+                self.teleop += 1
+                assert int(math.floor(fake_time.get())) == 21
+            
+            elif mode == 'disabled':
+                self.disabled += 1
+                
+                if self.disabled == 1:
+                    assert int(math.floor(fake_time.get())) == 0
+                else:
+                    assert int(math.floor(fake_time.get())) == 20
+            else:
+                assert False, "Internal error!"
+            
+            self.mode = mode
+    
+    control.set_practice_match()
+    tc = control.run_test(TestController)
+    
+    assert int(math.floor(fake_time.get())) == 141
+    
+    # If an error occurs here, for some reason a mode got called too many times
+    assert tc.disabled == 2
+    assert tc.autonomous == 1
+    assert tc.teleop == 1
 
-    controller = FuzzTestController(robot, wpilib)
-    wpilib.internal.set_test_controller(controller)
-    wpilib.internal.enabled = True
-    
-    robot.OperatorControl()
+
+     
 
