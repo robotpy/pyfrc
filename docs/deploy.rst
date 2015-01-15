@@ -16,7 +16,7 @@ Deploy robot code
    ``rm /var/local/natinst/log/FRC_UserProgram.log``.  
 
 This command will first run any unit tests on your robot code, and if they
-pass then it will upload the robot code to the cRio. Running the tests is
+pass then it will upload the robot code to the roboRIO. Running the tests is
 really important, so you can catch errors in your code before you run it 
 on the robot.
 
@@ -72,13 +72,10 @@ Internal details
 
 When the code is uploaded to the robot, the following steps occur:
 
-* SSH/sftp operations are performed as the 'lvuser' user (this is REALLY important!)
-* The directory containing ``robot.py`` is recursively copied to the
-the directory ``/home/lvuser/py``
+* SSH/sftp operations are performed as the ``lvuser`` user (this is REALLY important, don't use the ``admin`` user!)
+* The directory containing ``robot.py`` is recursively copied to the the directory ``/home/lvuser/py``
 * The files ``robotCommand`` and ``robotDebugCommand`` are created
-* ``/usr/local/frc/bin/frcKillRobot.sh -t -r`` is called, which
-causes any existing robot code to be killed, and the new code is
-launched
+* ``/usr/local/frc/bin/frcKillRobot.sh -t -r`` is called, which causes any existing robot code to be killed, and the new code is launched
 
 These steps are compatible with what C++/Java does when deployed by eclipse,
 so you should be able to seamlessly switch between python and other FRC
