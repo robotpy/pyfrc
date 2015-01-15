@@ -47,61 +47,16 @@ that are installed, you can use the use the ``--help`` command::
 Deploying code to the robot
 ---------------------------
 
-.. warning::
-   
-   If you used pyfrc 2015.0.x and uploaded code to your robot there was a
-   critical bug that may prevent your robot from running robot programs.
-   To fix this, please upgrade pyfrc to the latest version, and run the
-   following command::
-             
-       Windows:    py -m pyfrc.robotpy.fixbug
-             
-       Linux/OSX:  python3 -m pyfrc.robotpy.fixbug
-             
-   Alternatively, you can ssh in as admin, and execute
-   ``rm /var/local/natinst/log/FRC_UserProgram.log``.  
-
-This command will first run any unit tests on your robot code, and if they
-pass then it will upload the robot code to the cRio. Running the tests is
-really important, so you can catch errors in your code before you run it 
-on the robot.
+pyfrc makes it easy to deploy code to your robot!
 
 .. code-block:: sh
 
     Windows:   py robot.py deploy
     
     Linux/OSX: python3 robot.py deploy
-    
-A really useful option is ``--nc``, which will cause the deploy command to show
-your program's console output, by launching a netconsole listener.
 
-.. code-block:: sh
+For more details and troubleshooting steps, see :doc:`deploy`.
 
-    Windows:   py robot.py deploy --nc
-    
-    Linux/OSX: python3 robot.py deploy --nc
-
-Of course, maybe you really need to upload the code, and don't care about the
-tests. That's OK, you can still upload code to the robot:
-
-.. code-block:: sh
-
-    Windows: py robot.py deploy --skip-tests
-
-    Linux/OSX: python3 robot.py deploy --skip-tests
-
-.. note:: When the code is uploaded to the robot, the following steps occur:
-
-		  * The directory containing ``robot.py`` is recursively copied to the
-		    the directory ``/home/lvuser/py``
-		  * The files ``robotCommand`` and ``robotDebugCommand`` are created
-		  * ``/usr/local/frc/bin/frcKillRobot.sh -t -r`` is called, which
-		    causes any existing robot code to be killed, and the new code is
-		    launched
-		    
-		  These steps are compatible with what C++/Java does when deployed by
-		  eclipse, so you should be able to seamlessly switch between python
-		  and other FRC languages! 
 
 Running an interactive robot simulation
 ---------------------------------------

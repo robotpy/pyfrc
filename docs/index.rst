@@ -30,6 +30,7 @@ Contents
    
    install
    usage
+   deploy
    simulator
    testing
    builtin_tests
