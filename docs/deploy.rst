@@ -43,6 +43,11 @@ tests. That's OK, you can still upload code to the robot:
 
     Linux/OSX: python3 robot.py deploy --skip-tests
 
+Start code at boot
+------------------
+
+If you wish for the deployed code to be started up when the roboRIO boots up, you need to make sure that "Disable RT Startup App" is **not** checked in the roboRIO's web configuration. See the `FIRST documentation <http://wpilib.screenstepslive.com/s/4485/m/24166/l/262266-roborio-webdashboard>`_ for more information.
+
 Troubleshooting
 ---------------
 
@@ -76,6 +81,8 @@ When the code is uploaded to the robot, the following steps occur:
 * The directory containing ``robot.py`` is recursively copied to the the directory ``/home/lvuser/py``
 * The files ``robotCommand`` and ``robotDebugCommand`` are created
 * ``/usr/local/frc/bin/frcKillRobot.sh -t -r`` is called, which causes any existing robot code to be killed, and the new code is launched
+
+If you wish for the code to be started up when the roboRIO boots up, you need to make sure that "Disable RT Startup App" is **not** checked in the roboRIO's web configuration.
 
 These steps are compatible with what C++/Java does when deployed by eclipse,
 so you should be able to seamlessly switch between python and other FRC
