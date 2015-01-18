@@ -9,6 +9,8 @@ lib/pyfrc/version.py
 
 lib/pyfrc/robotpy/win32/plink.exe
 lib/pyfrc/robotpy/win32/psftp.exe
+lib/pyfrc/robotpy/roborio/netconsole-host
+
 
 .settings
 docs/_build
