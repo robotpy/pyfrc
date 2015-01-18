@@ -111,6 +111,10 @@ class PyFrcDeploy:
                                                  username='lvuser',
                                                  password='')
             
+            # This asks the user if not configured, so get the value first
+            hostname = controller.hostname
+            print("Deploying to robot at", hostname)
+
             # Housekeeping first
             controller.ssh(sshcmd) 
             
