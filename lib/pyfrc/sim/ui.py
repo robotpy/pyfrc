@@ -79,15 +79,11 @@ class SimUI(object):
         self.analog = []
         
         for i in range(1, 9):
-            label = tk.Label(slot, text=str(i))
+            label = tk.Label(slot, text=str(i-1))
             label.grid(column=0, row=i)
             
             vw = ValueWidget(slot, clickable=True, minval=-10.0, maxval=10.0)
             vw.grid(column=1, row=i)
-            
-            # driver station default voltage
-            if i == 8:
-                vw.set_value(7.6)
             
             self.analog.append(vw)
         
@@ -343,31 +339,18 @@ class SimUI(object):
         # TODO: support multiple slots?
         
         # analog module
-        # -> TODO: voltage and value should be the same?
-        
-        '''
-        for i, ch in enumerate(_core.AnalogModule._channels):
-            analog = self.analog[i]
-            if ch is None:
-                analog.set_disabled()
+        for i, (ain, aout) in enumerate(zip(hal_data['analog_in'],
+                                            hal_data['analog_out'])):
+            
+            aio = self.analog[i]
+            
+            if ain['initialized']:
+                aio.set_disabled(False)
+                ain['voltage'] = aio.get_value()
+            elif aout['initialized']:
+                aio.set_value(aout['voltage'])
             else:
-                analog.set_disabled(False)
-                self._set_tooltip(analog, ch)
-                
-                if isinstance(ch, _core.Gyro) and analog.maxval != 720:
-                    analog.set_range(-720, 720, 1)
-                
-                if hasattr(ch, 'voltage'):
-                    # determine which one changed, and set the appropriate one
-                    ret = analog.sync_value(ch.voltage)
-                    if ret is not None:
-                        ch.voltage = ret
-                else:
-                    # determine which one changed, and set the appropriate one
-                    ret = analog.sync_value(ch.value)
-                    if ret is not None:
-                        ch.value = ret
-        '''
+                aio.set_disabled()
         
         # digital module
         for i, ch in enumerate(hal_data['dio']):
@@ -375,6 +358,7 @@ class SimUI(object):
             if not ch['initialized']:
                 dio.set_disabled()
             else:
+                dio.set_disabled(False)
                 self._set_tooltip(dio, ch)
                 
                 # determine which one changed, and set the appropriate one
