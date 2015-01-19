@@ -11,9 +11,6 @@ from .basic import (
     test_practice
 )
 
-# import common test types
-from .docstring_test import test_docstrings
-
-# simple-specific test types
+# Other test types
 from .fuzz_test import test_fuzz
 
