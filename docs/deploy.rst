@@ -43,6 +43,13 @@ tests. That's OK, you can still upload code to the robot:
 
     Linux/OSX: python3 robot.py deploy --skip-tests
 
+
+.. warning:: Make sure that the version of WPILib on your computer matches the
+   version installed on the robot! You can check what version you have locally
+   by running::
+      
+      pip3 list
+
 Start code at boot
 ------------------
 
@@ -70,7 +77,21 @@ Problem: I deploy successfully, but the driver station still shows 'No Robot Cod
     
     python3 /home/lvuser/py/robot.py run
 
-    
+Problem: When I run deploy, it complains that the WPILib versions don't match
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Not surprisingly, the error message is correct.
+
+During deployment, pyfrc does a number of checks to ensure that your robot is setup properly for running python robot code. One of these checks is testing the WPILib version number against the version installed on your computer (it's installed when you install pyfrc).
+
+You should either:
+
+* Upgrade the RobotPy installation on the robot to match the newer version on your computer. See the `RobotPy install guide <http://robotpy.readthedocs.org/en/latest/getting_started.html#upgrading>`_ for more info.
+* Upgrade the pyfrc installation on your computer to match the version on the robot. Just run::
+
+      pip3 install pyfrc --upgrade
+
+If you `really` don't want pyfrc to do the version check and need to deploy the code `now`, you can specify the ``--no-version-check`` option. However, this isn't recommended.
 
 Internal details
 ----------------
@@ -78,6 +99,7 @@ Internal details
 When the code is uploaded to the robot, the following steps occur:
 
 * SSH/sftp operations are performed as the ``lvuser`` user (this is REALLY important, don't use the ``admin`` user!)
+* pyfrc does some checks to make sure the environment is setup properly
 * The directory containing ``robot.py`` is recursively copied to the the directory ``/home/lvuser/py``
 * The files ``robotCommand`` and ``robotDebugCommand`` are created
 * ``/usr/local/frc/bin/frcKillRobot.sh -t -r`` is called, which causes any existing robot code to be killed, and the new code is launched
