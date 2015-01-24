@@ -358,7 +358,6 @@ class SimUI(object):
             if not ch['initialized']:
                 dio.set_disabled()
             else:
-                dio.set_disabled(False)
                 self._set_tooltip(dio, ch)
                 
                 # determine which one changed, and set the appropriate one
