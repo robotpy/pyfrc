@@ -100,7 +100,7 @@ class PyFrcDeploy:
 
         del_cmd %= {"py_deploy_dir": py_deploy_dir}
         
-        check_version = '/usr/local/bin/python3 -c "exec(open(\\"/usr/local/lib/python3.4/site-packages/wpilib/version.py\\", \\"r\\").read(), globals()); print(\\"WPILib version on robot is \\" + __version__);exit(0) if __version__ == \\"%(wpilib_version)s\\" else exit(89)"'
+        check_version = '/usr/local/bin/python3 -c "exec(open(\\"/usr/local/lib/python3.4/site-packages/wpilib/version.py\\", \\"r\\").read(), globals()); print(\\"WPILib version on robot is \\" + __version__);exit(0) if __version__ == \\"%s\\" else exit(89)"' % wpilib.__version__
         if options.no_version_check:
             check_version = ''
         
