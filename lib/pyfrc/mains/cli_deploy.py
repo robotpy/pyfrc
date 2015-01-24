@@ -39,6 +39,9 @@ class PyFrcDeploy:
 
         parser.add_argument('--in-place', action='store_true', default=False,
                             help="Overwrite currently deployed code, don't delete anything, and don't restart running robot code.")
+        
+        parser.add_argument('--buffer', action='store_true', default=False,
+                            help="Enable buffered output (don't specify -u when launching robot)")
     
     def run(self, options, robot_class, **static_options):
         
@@ -62,6 +65,8 @@ class PyFrcDeploy:
         robot_filename = basename(robot_file)
         cfg_filename = join(robot_path, '.deploy_cfg')
         
+        nc_filename = abspath(join(dirname(__file__), '..', 'robotpy', 'roborio', 'netconsole-host'))
+        
         if not options.nonstandard and robot_filename != 'robot.py':
             print("ERROR: Your robot code must be in a file called robot.py (launched from %s)!" % robot_filename)
             print()
@@ -72,15 +77,19 @@ class PyFrcDeploy:
         
         deploy_dir = '/home/lvuser'
         py_deploy_dir = '%s/py' % deploy_dir
+        if options.buffer:
+            buf_arg = ''
+        else:
+            buf_arg = '-u'
         
         # note below: deployed_cmd appears that it only can be a single line
         
         if options.debug:
-            deployed_cmd = 'env LD_PRELOAD=/lib/libstdc++.so.6.0.20 /usr/local/frc/bin/netconsole-host /usr/local/bin/python3 %s/%s -v run' % (py_deploy_dir, robot_filename)
+            deployed_cmd = 'env LD_PRELOAD=/lib/libstdc++.so.6.0.20 %s/netconsole-host /usr/local/bin/python3 %s %s/%s -v run' % (deploy_dir, buf_arg, py_deploy_dir, robot_filename)
             deployed_cmd_fname = 'robotDebugCommand'
             extra_cmd = 'touch /tmp/frcdebug; chown lvuser:ni /tmp/frcdebug'
         else:
-            deployed_cmd = 'env LD_PRELOAD=/lib/libstdc++.so.6.0.20 /usr/local/frc/bin/netconsole-host /usr/local/bin/python3 -O %s/%s run' % (py_deploy_dir, robot_filename)
+            deployed_cmd = 'env LD_PRELOAD=/lib/libstdc++.so.6.0.20 %s/netconsole-host /usr/local/bin/python3 %s -O %s/%s run' % (deploy_dir, buf_arg, py_deploy_dir, robot_filename)
             deployed_cmd_fname = 'robotCommand'
             extra_cmd = ''
 
@@ -91,6 +100,7 @@ class PyFrcDeploy:
 
         del_cmd %= {"py_deploy_dir": py_deploy_dir}
         sshcmd = "/bin/bash -ce '" + \
+                 'killall netconsole-host;' + \
                  '%(del_cmd)s' + \
                  'echo "%(cmd)s" > %(deploy_dir)s/%(cmd_fname)s; ' + \
                  '%(extra_cmd)s' + \
@@ -115,9 +125,12 @@ class PyFrcDeploy:
             # This asks the user if not configured, so get the value first
             hostname = controller.hostname
             print("Deploying to robot at", hostname)
-
+            
             # Housekeeping first
-            controller.ssh(sshcmd) 
+            controller.ssh(sshcmd)
+            
+            # Copy over netconsole-host to /home/lvuser
+            controller.sftp(nc_filename, deploy_dir, mkdir=False)
             
             # Copy the files over, copy to a temporary directory first
             # -> this is inefficient, but it's easier in sftp
@@ -136,12 +149,13 @@ class PyFrcDeploy:
                 # Restart the robot code and we're done!
                 sshcmd = "/bin/bash -ce '" + \
                          fix_pyfrc_2015_0_x + \
+                         'chmod +x %s/netconsole-host;' + \
                          '. /etc/profile.d/natinst-path.sh; ' + \
                          'chown -R lvuser:ni %s; ' + \
                          '/usr/local/frc/bin/frcKillRobot.sh -t -r' + \
                          "'"
             
-                sshcmd %= (py_deploy_dir)
+                sshcmd %= (deploy_dir, py_deploy_dir)
             
             # start the netconsole listener now if requested, *before* we
             # actually start the robot code, so we can see all messages
