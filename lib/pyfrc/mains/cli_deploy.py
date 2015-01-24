@@ -109,7 +109,8 @@ class PyFrcDeploy:
         try:
             controller = installer.SshController(cfg_filename,
                                                  username='lvuser',
-                                                 password='')
+                                                 password='',
+                                                 allow_mitm=True)
             
             # This asks the user if not configured, so get the value first
             hostname = controller.hostname
