@@ -18,7 +18,8 @@ class RobotController:
     mode_map = {
         SimManager.MODE_AUTONOMOUS: "Autonomous",
         SimManager.MODE_DISABLED: "Disabled",
-        SimManager.MODE_OPERATOR_CONTROL: "OperatorControl"
+        SimManager.MODE_OPERATOR_CONTROL: "OperatorControl",
+        SimManager.MODE_TEST: "Test"
     }
     
     def __init__(self, robot_class, fake_time):
@@ -125,7 +126,8 @@ class RobotController:
         
         if mode not in [SimManager.MODE_DISABLED, 
                         SimManager.MODE_AUTONOMOUS, 
-                        SimManager.MODE_OPERATOR_CONTROL]:
+                        SimManager.MODE_OPERATOR_CONTROL,
+                        SimManager.MODE_TEST]:
             raise ValueError("Invalid value for mode: %s" % mode)
         
         with self._lock:
@@ -147,6 +149,8 @@ class RobotController:
                 mode_helpers.set_autonomous(True)
             elif mode == SimManager.MODE_OPERATOR_CONTROL:
                 mode_helpers.set_teleop_mode(True)
+            elif mode == SimManager.MODE_TEST:
+                mode_helpers.set_test_mode(True)
             
             #self.physics_controller._set_robot_enabled(mode != SimManager.MODE_DISABLED)
             

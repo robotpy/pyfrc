@@ -270,6 +270,11 @@ class SimUI(object):
         button.pack(fill=tk.X)
         self.state_buttons.append(button)
         
+        button = tk.Radiobutton(sim, text='Test', variable=self.mode, \
+                                value=self.manager.MODE_TEST, command=_set_mode)
+        button.pack(fill=tk.X)
+        self.state_buttons.append(button)
+        
         self.robot_dead = tk.Label(sim, text='Robot died!', fg='red')
         
         sim.pack(side=tk.TOP, fill=tk.BOTH, expand=1)

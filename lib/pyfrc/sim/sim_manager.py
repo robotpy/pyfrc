@@ -12,10 +12,12 @@ class SimManager(object):
     MODE_DISABLED = 0
     MODE_AUTONOMOUS = 1
     MODE_OPERATOR_CONTROL = 2
+    MODE_TEST = 3
     
     mode_map = {MODE_DISABLED: 'Disabled', 
                 MODE_AUTONOMOUS: 'Autonomous',
-                MODE_OPERATOR_CONTROL: 'OperatorControl'}
+                MODE_OPERATOR_CONTROL: 'OperatorControl',
+                MODE_TEST: 'Test'}
     
     def __init__(self):
         
@@ -77,7 +79,8 @@ class SimManager(object):
         
         if mode not in [SimManager.MODE_DISABLED, 
                         SimManager.MODE_AUTONOMOUS, 
-                        SimManager.MODE_OPERATOR_CONTROL]:
+                        SimManager.MODE_OPERATOR_CONTROL,
+                        SimManager.MODE_TEST]:
             raise ValueError("Invalid value for mode: %s" % mode)
         
         with self._lock:
