@@ -442,7 +442,7 @@ class SimUI(object):
         
             jbuttons = joy['buttons']
             for j, (ck, var) in enumerate(buttons):
-                jbuttons[j]  = True if var.get() else False
+                jbuttons[j+1]  = True if var.get() else False
                 
         self.field.update_widgets()
         
