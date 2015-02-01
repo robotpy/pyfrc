@@ -1,6 +1,6 @@
 pytest
-wpilib>=2015.0.6
-robotpy-hal-sim>=2015.0.6
+wpilib>=2015.0.8
+robotpy-hal-sim>=2015.0.8
 pynetconsole>=1.1.0
 
 # coverage isn't in here because it requires an installed compiler, which
