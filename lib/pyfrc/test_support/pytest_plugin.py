@@ -63,6 +63,7 @@ class PyFrcPlugin:
         wpilib._impl.utils.reset_wpilib()
         
         import networktables
+        networktables.NetworkTable._staticProvider.close()
         networktables.NetworkTable._staticProvider = None
     
     #
