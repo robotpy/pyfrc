@@ -1,7 +1,10 @@
 pytest
-wpilib>=2015.0.8
+wpilib>=2015.0.9
 robotpy-hal-sim>=2015.0.8
 pynetconsole>=1.1.0
+
+# Not really a requirement, but this is on the robot, so just install by default
+robotpy-wpilib-utilities>=2015.1.0
 
 # coverage isn't in here because it requires an installed compiler, which
 # many students may not have installed
