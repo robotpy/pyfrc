@@ -160,9 +160,9 @@ class SimUI(object):
         slot.pack(side=tk.TOP, fill=tk.BOTH, padx=5)
         
         # CAN
-        #self.can_slot = tk.LabelFrame(csfm, text='CAN')
-        #self.can_slot.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5)
-        #self.can = {}
+        self.can_slot = tk.LabelFrame(csfm, text='CAN')
+        self.can_slot.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5)
+        self.can = {}
         
         csfm.pack(side=tk.LEFT, fill=tk.Y)
         
@@ -407,28 +407,26 @@ class SimUI(object):
         # CAN
         
         # detect new devices
-        '''
-        if len(self.can) != len(_core.CAN._devices):
+        if len(self.can) != len(hal_data['CAN']):
             existing = list(self.can.keys())
-            
-            for k, v in sorted(_core.CAN._devices.items()):
+            for k in sorted(hal_data['CAN'].keys()):
                 if k in existing:
                     continue
-                self._add_CAN(k, v)
+                self._add_CAN(k, hal_data['CAN'][k])
                 
         for k, (motor, fl, rl) in self.can.items():
-            can = _core.CAN._devices[k]
+            can = hal_data['CAN'][k]
             
-            motor.set_value(can.value)
+            motor.set_value(can['value'])
             
-            ret = fl.sync_value(not can.forward_ok)
+            ret = fl.sync_value(not can['limit_switch_closed_for'])
             if ret is not None:
-                can.forward_ok = not ret
+                can['limit_switch_closed_for'] = not ret
                 
-            ret = rl.sync_value(not can.reverse_ok)
+            ret = rl.sync_value(not can['limit_switch_closed_rev'])
             if ret is not None:
-                can.reverse_ok = not ret    
-        '''
+                can['limit_switch_closed_rev'] = not ret 
+        
         
         # joystick/driver station
         #sticks = _core.DriverStation.GetInstance().sticks
