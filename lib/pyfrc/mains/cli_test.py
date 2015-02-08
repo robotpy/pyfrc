@@ -26,7 +26,7 @@ class PyFrcTest(object):
             parser.add_argument('--coverage-mode', default=False, action='store_true',
                                 help='This flag is passed when trying to determine coverage')
             parser.add_argument('pytest_args', nargs='*',
-                                help="To pass args to pytest, specify --, then the args")
+                                help="To pass args to pytest, specify --<space>, then the args")
     
     def run(self, options, robot_class, **static_options):
         # wrapper around run_test that sets the appropriate mode
