@@ -12,6 +12,7 @@ except ImportError:
     
 import queue
 from hal_impl.data import hal_data
+from hal import TalonSRXConst as tsrxc
 
 from .. import __version__
 
@@ -417,7 +418,24 @@ class SimUI(object):
         for k, (motor, fl, rl) in self.can.items():
             can = hal_data['CAN'][k]
             
-            motor.set_value(can['value'])
+            #change how output works based on control mode
+            if can['mode_select'] == tsrxc.kMode_DutyCycle :  
+                #based on the fact that the vbus has 1023 steps
+                motor.set_value(can['value']/1023)
+                
+            elif can['mode_select'] == tsrxc.kMode_VoltCompen:
+                #assume voltage is 12 divide by muliplier in cantalon code (256)
+                motor.set_value(can['value']/12/256)
+                
+            elif can['mode_select'] == tsrxc.kMode_SlaveFollower:
+                #follow the value of the motor value is equal too
+                motor.set_value(self.can[can['value']].get_value())
+                
+            #
+            # currently other control modes are not correctly implemented
+            #
+            else:
+                motor.set_value(can['value'])
             
             ret = fl.sync_value(not can['limit_switch_closed_for'])
             if ret is not None:
