@@ -163,6 +163,15 @@ class SimUI(object):
         # CAN
         self.can_slot = tk.LabelFrame(csfm, text='CAN')
         self.can_slot.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5)
+        self.can_mode_map = {
+                        tsrxc.kMode_CurrentCloseLoop: 'PercentVbus',
+                        tsrxc.kMode_DutyCycle:'PercentVbus',
+                        tsrxc.kMode_NoDrive:'Disabled',
+                        tsrxc.kMode_PositionCloseLoop:'Position',
+                        tsrxc.kMode_SlaveFollower:'Follower',
+                        tsrxc.kMode_VelocityCloseLoop:'Speed',
+                        tsrxc.kMode_VoltCompen:'Voltage'
+                     }
         self.can = {}
         
         csfm.pack(side=tk.LEFT, fill=tk.Y)
@@ -302,7 +311,11 @@ class SimUI(object):
         Tooltip.create(fl, 'Forward limit switch')
         Tooltip.create(rl, 'Reverse limit switch')
         
-        self.can[canId] = (motor, fl, rl)
+        mode_lbl_txt = tk.StringVar(value = self.can_mode_map[device['mode_select']])
+        mode_label = tk.Label(self.can_slot, textvariable=mode_lbl_txt)
+        mode_label.grid(column=4, row=row)
+        
+        self.can[canId] = (motor, fl, rl, mode_lbl_txt)
         
     def idle_add(self, callable, *args):
         '''Call this with a function as the argument, and that function
@@ -415,22 +428,22 @@ class SimUI(object):
                     continue
                 self._add_CAN(k, hal_data['CAN'][k])
                 
-        for k, (motor, fl, rl) in self.can.items():
+        for k, (motor, fl, rl, mode_lbl_txt) in self.can.items():
             can = hal_data['CAN'][k]
-            
+            mode = can['mode_select']
+            mode_lbl_txt.set(self.can_mode_map[mode])
             #change how output works based on control mode
-            if can['mode_select'] == tsrxc.kMode_DutyCycle :  
+            if   mode == tsrxc.kMode_DutyCycle :  
                 #based on the fact that the vbus has 1023 steps
                 motor.set_value(can['value']/1023)
                 
-            elif can['mode_select'] == tsrxc.kMode_VoltCompen:
+            elif mode == tsrxc.kMode_VoltCompen:
                 #assume voltage is 12 divide by muliplier in cantalon code (256)
                 motor.set_value(can['value']/12/256)
                 
-            elif can['mode_select'] == tsrxc.kMode_SlaveFollower:
+            elif mode == tsrxc.kMode_SlaveFollower:
                 #follow the value of the motor value is equal too
-                motor.set_value(self.can[can['value']].get_value())
-                
+                motor.set_value(self.can[can['value']][0].get_value())
             #
             # currently other control modes are not correctly implemented
             #
