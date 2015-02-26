@@ -64,6 +64,12 @@ def test_practice(control, fake_time, robot):
                 Called on each simulation step. This runs through each mode,
                 and asserts that the robot didn't spend too much time in any
                 particular mode.
+                
+                If you get an assertion error here, it can mean a lot of
+                different things, but typically it means you called Timer.delay()
+                somewhere with a parameter greater than a few milliseconds.. 
+                which is almost always a bad idea, and your robot will ignore
+                your input for a few seconds.
             
                 :param tm: The current robot time
             '''
@@ -84,6 +90,11 @@ def test_practice(control, fake_time, robot):
                 self.disabled += 1
                 
                 if self.disabled == 1:
+                    # Time must be pretty close to zero at this point.
+                    # If it's not, you called Timer.delay() somewhere you
+                    # shouldn't have before the test started... you can
+                    # try getting rid of the delay by only doing it when
+                    # RobotBase.isSimulation() returns False
                     assert int(math.floor(fake_time.get())) == 0
                 else:
                     assert int(math.floor(fake_time.get())) == 20
