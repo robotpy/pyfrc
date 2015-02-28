@@ -9,16 +9,16 @@ class MyRobot(wpilib.SampleRobot):
     def robotInit(self):
         '''Robot-wide initialization code should go here'''
         
-        self.lstick = wpilib.Joystick(1)
-        self.rstick = wpilib.Joystick(2)
+        self.lstick = wpilib.Joystick(0)
+        self.rstick = wpilib.Joystick(1)
         
         self.lr_motor = wpilib.Jaguar(1)
         self.rr_motor = wpilib.Jaguar(2)
         self.lf_motor = wpilib.Jaguar(3)
         self.rf_motor = wpilib.Jaguar(4)
         
-        self.robot_drive = wpilib.RobotDrive(self.lr_motor, self.rr_motor,
-                                             self.lf_motor, self.rf_motor)
+        self.robot_drive = wpilib.RobotDrive(self.lf_motor, self.lr_motor,
+                                             self.rf_motor, self.rr_motor)
         
         # Position gets automatically updated as robot moves
         self.gyro = wpilib.Gyro(1)

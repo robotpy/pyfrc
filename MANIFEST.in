@@ -3,4 +3,4 @@ include requirements.txt
 include CHANGELOG.md
 
 recursive-include samples *.py
-recursive-include tests *.py *.sh
+recursive-include tests *.py *.sh *.json

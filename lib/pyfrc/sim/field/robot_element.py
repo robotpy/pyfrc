@@ -8,18 +8,23 @@ class RobotElement(CompositeElement):
         TODO: allow user customization
     '''
     
-    def __init__(self, controller, px_per_ft):
+    def __init__(self, controller, config_obj):
         
         super().__init__()
+        
+        # Load params from the user's sim/config.json
+        px_per_ft = config_obj['pyfrc']['field']['px_per_ft']
+        
+        robot_w = config_obj['pyfrc']['robot']['w']
+        robot_h = config_obj['pyfrc']['robot']['h']
+        center_x = config_obj['pyfrc']['robot']['starting_x']
+        center_y = config_obj['pyfrc']['robot']['starting_y']
+        angle = config_obj['pyfrc']['robot']['starting_angle']
         
         self.controller = controller
         self.controller.robot_face = 0
         self.position = (0, 0, 0)
         self.px_per_ft = px_per_ft
-        
-        # get robot starting position, size from physics engine
-        robot_params = self.controller.physics_controller._get_robot_params()
-        robot_w, robot_h, center_x, center_y, angle = robot_params[:5]
         
         robot_w *= px_per_ft
         robot_h *= px_per_ft

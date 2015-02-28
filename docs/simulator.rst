@@ -22,9 +22,6 @@ for early testing of autonomous movements.
    easier than it sounds!). Helper functions are provided to calculate robot
    position for common drivetrain types (see below for details). There are
    samples provided in pyfrc for each supported drivetrain type.
-   
-.. note:: This feature is currently broken for 2015. We expect it to be working
-          by week 4 in 2015.
 
 ..  Adding custom tooltips to motors/sensors (doesn't work in 2015!)
 	
@@ -75,9 +72,6 @@ the command line using the following command:
 
 Robot 'physics model'
 ---------------------
-
-.. warning:: Currently the physics model implementation is broken for pyfrc 2015, we
-             hope to fix it soon. It will almost certainly change this season.
 
 .. automodule:: pyfrc.physics.core
    :members:

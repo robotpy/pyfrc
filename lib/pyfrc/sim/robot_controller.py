@@ -7,13 +7,12 @@ import time
 
 import wpilib
 
+from ..physics.core import PhysicsInterface
 from .sim_manager import SimManager
 
 class RobotController:
     '''
-        This manages the active state of the robot. At the moment, this
-        isn't coded as a singleton, but because of the references to 
-        wpilib.internal, it's essentially a singleton.
+        This manages the active state of the robot
     '''
     
     mode_map = {
@@ -23,7 +22,7 @@ class RobotController:
         SimManager.MODE_TEST: "Test"
     }
     
-    def __init__(self, robot_class, fake_time):
+    def __init__(self, robot_class, robot_path, fake_time, config_obj):
     
         self.mode = SimManager.MODE_DISABLED
         self.mode_callback = None
@@ -31,7 +30,7 @@ class RobotController:
         self.robot_class = robot_class
         self.fake_time = fake_time
         
-        #self.physics_controller = _wpilib.internal.physics_controller
+        self.physics_controller = PhysicsInterface(robot_path, fake_time, config_obj)
         
         # any data shared with the ui must be protected by
         # this since it's running in a different thread
@@ -95,40 +94,6 @@ class RobotController:
         with self._lock:
             self.mode_callback = callable
     
-    def set_joystick(self, x, y):
-        '''
-            Receives joystick values from the ui
-            
-            TODO: needs to be more sophisticated to drive mechanum
-        '''
-        with self._lock:
-            
-            joysticks = self.physics_controller._get_robot_params()[5]
-            
-            if len(joysticks) == 1:
-                
-                # Single stick drive
-                drive_stick = self.driver_station.sticks[joysticks[0]-1]
-                drive_stick[0] = x
-                drive_stick[1] = y
-                
-            elif len(joysticks) == 2:
-                
-                # Tank drive
-                drive_stick1 = self.driver_station.sticks[joysticks[0]-1]
-                drive_stick2 = self.driver_station.sticks[joysticks[1]-1]
-                
-                l = x - y
-                r = x + y
-                
-                drive_stick1[1] = -l
-                drive_stick2[1] = r
-                
-            else:
-                
-                raise ValueError("Invalid joystick values")
-                
-            
     def set_mode(self, mode):
         
         if mode not in [SimManager.MODE_DISABLED, 
@@ -159,7 +124,7 @@ class RobotController:
             elif mode == SimManager.MODE_TEST:
                 mode_helpers.set_test_mode(True)
             
-            #self.physics_controller._set_robot_enabled(mode != SimManager.MODE_DISABLED)
+            self.physics_controller._set_robot_enabled(mode != SimManager.MODE_DISABLED)
             
             if callback is not None:
                 callback(mode)

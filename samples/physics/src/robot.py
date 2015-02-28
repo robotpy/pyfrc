@@ -8,8 +8,8 @@ class MyRobot(wpilib.SampleRobot):
     def robotInit(self):
         '''Robot-wide initialization code should go here'''
         
-        self.lstick = wpilib.Joystick(1)
-        self.rstick = wpilib.Joystick(2)
+        self.lstick = wpilib.Joystick(0)
+        self.rstick = wpilib.Joystick(1)
         
         self.l_motor = wpilib.Jaguar(1)
         self.r_motor = wpilib.Jaguar(2)

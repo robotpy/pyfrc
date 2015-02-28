@@ -15,96 +15,106 @@
     .. note::
 
        One limitation to be aware of is that the physics implementation
-       currently assumes that you are only calling :func:`wpilib.Wait` once
-       per main loop iteration. If you do it more than that, you may get some
-       rather funky results.
+       currently assumes that you are only calling :func:`wpilib.Timer.delay`
+       once per main loop iteration. If you do it more than that, you may get
+       some rather funky results.
 
     By default, pyfrc doesn't modify any of your inputs/outputs without being
-    told to do so by your code or the simulation GUI, except for :class:`wpilib.Gyroscope`.
-    When you update the robot's position using :func:`Physics.drive` or
-    :func:`Physics.vector_drive`, the simulation will automatically update
-    the robot angle in any :class:`wpilib.Gyroscope` objects that have been
-    created.
-
-    See the physics sample for more details. The API has changed a bit as of 
-    pyfrc 2014.7.0
+    told to do so by your code or the simulation GUI.
+    
+    See the physics sample for more details.
 
     Enabling physics support
     ------------------------
 
-    You must create a python module (for example, physics.py), and import
-    it in your __main__ block in robot.py. The imported module must be passed
-    to :func:`wpilib.internal.physics_controller.setup`. Your __main__ block
-    should end up looking something like this::
-
-        if __name__ == '__main__':
-            
-            wpilib.require_version('2014.7.2')
-            
-            import physics
-            wpilib.internal.physics_controller.setup(physics)
-            
-            wpilib.run()
-
-    A physics module must have a class called :class:`PhysicsEngine` which
-    must have a function called update_sim. When initialized, it will
-    be passed an instance of this object, which can also be found at
-    :obj:`wpilib.internal.physics_control`
+    You must create a python module called ``physics.py`` next to your 
+    ``robot.py``. A physics module must have a class called
+    :class:`PhysicsEngine` which must have a function called ``update_sim``.
+    When initialized, it will be passed an instance of this object.
+    
+    You must also create a 'sim' directory, and place a ``config.json``
+    file there, with the following JSON information::
+    
+        {
+          "pyfrc": {
+            "robot": {
+              "w": 2,
+              "h": 3,
+              "starting_x": 2,
+              "starting_y": 20,
+              "starting_angle": 0
+            },
+            "field": {
+              "w": 25,
+              "h": 27,
+              "px_per_ft": 10
+            }
+          }
+        }
+    
 '''
 
-# TODO: a better way to implement this is have something track all of
-# the input values, and have that in a data structure, while also
-# providing the override capability.
-
-import inspect
+import imp
 import math
+from os.path import exists, join
 import threading
 
+import logging
+logger = logging.getLogger('pyfrc.physics')
 
-class PhysicsEngine(object):
+from hal_impl.data import hal_data
+
+
+class PhysicsInitException(Exception):
+    pass
+
+class PhysicsEngine:
     '''
-        Your physics module must contain a class called PhysicsEngine, 
+        Your physics module must contain a class called ``PhysicsEngine``, 
         and it must implement the same functions as this class.
-
-        The constructor must take the following parameters:
-
-        :param physics_controller: An instance of :class:`Physics`
+        
+        Alternatively, you can inherit from this object. However, that is
+        not required.
     '''
-
-    #: Width/height of robot in feet
-    ROBOT_WIDTH = 2
-
-    #: Height of the robot specified in feet
-    ROBOT_HEIGHT = 3
-    
-    #: Starting X position of robot on the field, in feet
-    ROBOT_STARTING_X = 18.5
-
-    #: Starting Y position of robot on the field, in feet
-    ROBOT_STARTING_Y = 12
-    
-    #: Starting angle of robot in degrees; 0 is east, 90 is south
-    STARTING_ANGLE = 180
 
     def __init__(self, physics_controller):
+        '''
+            The constructor must take the following arguments:
+            
+            :param physics_controller: The physics controller interface
+            :type  physics_controller: :class:`.PhysicsInterface`
+        '''
         self.physics_controller = physics_controller
+        
+    def initialize(self, hal_data):
+        '''
+            Called with the hal_data dictionary before the robot has started
+            running. Some values may be overwritten when devices are
+            initialized... it's not consistent yet, sorry.
+        '''
+        pass
 
-    def update_sim(self, now, tm_diff):
+    def update_sim(self, hal_data, now, tm_diff):
         '''
             Called when the simulation parameters for the program need to be
-            updated. This is mostly when wpilib.Wait is called.
+            updated. This is mostly when ``wpilib.Timer.delay()`` is called.
             
-            :param now: The current time as a float
+            :param hal_data: A giant dictionary that has all data about the robot. See
+                             ``hal-sim/hal_impl/data.py`` in robotpy-wpilib's repository
+                             for more information on the contents of this dictionary.
+            :param now: The current time
+            :type  now: float
             :param tm_diff: The amount of time that has passed since the last
                             time that this function was called
+            :type  tm_diff: float
         '''
         pass
 
 
-def _create_wrapper(cls, fname, new_fn, old_fn):
-    setattr(cls, fname, lambda s, *args, **kwargs: new_fn(s, lambda *oargs, **okwargs: old_fn(s, *oargs, **okwargs), *args, **kwargs))
+#def _create_wrapper(cls, fname, new_fn, old_fn):
+#    setattr(cls, fname, lambda s, *args, **kwargs: new_fn(s, lambda *oargs, **okwargs: old_fn(s, *oargs, **okwargs), *args, **kwargs))
 
-class Physics(object):
+class PhysicsInterface:
     '''
         An instance of this is passed to the constructor of your
         :class:`PhysicsEngine` object. This instance is used to communicate
@@ -112,7 +122,7 @@ class Physics(object):
         field displayed to the user.
     '''
     
-    def __init__(self):
+    def __init__(self, robot_path, fake_time, config_obj):
         self.last_tm = None
         self._lock = threading.Lock()
         
@@ -120,77 +130,55 @@ class Physics(object):
         self.y = 0
         self.angle = 0
         
+        self.fake_time = fake_time
         self.robot_enabled = False
         
+        self.config_obj = config_obj
         self.engine = None
+        self.gyro_channels = []
+        
+        self.hal_data = hal_data
+        
+        physics_module_path = join(robot_path, 'physics.py')
+        if exists(physics_module_path):
+            
+            # Load the user's physics module if it exists
+            try:
+                physics_module = imp.load_source('physics', physics_module_path)
+            except:
+                logger.exception("Error loading user physics module")
+                raise PhysicsInitException()
+            
+            if not hasattr(physics_module, 'PhysicsEngine'):
+                logger.error("User physics module does not have a PhysicsEngine object")
+                raise PhysicsInitException()
+            
+            # for now, look for a class called PhysicsEngine
+            try:
+                self.engine = physics_module.PhysicsEngine(self)
+                
+                if hasattr(self.engine, 'initialize'):
+                    self.engine.initialize(self.hal_data)
+                
+            except:
+                logger.exception("Error creating user's PhysicsEngine object")
+                raise PhysicsInitException()
+            
+            self.fake_time.physics_fn = self._on_increment_time
+            logger.info("Physics support successfully enabled")
+            
+        else:
+            logger.warning("Cannot enable physics support, %s not found", physics_module_path)
+            
+        
 
     def __repr__(self):
         return 'Physics'
-    
-    def setup(self, physics):
-        '''
-            Pass your physics module to this function, and it will initialize
-            the :class:`PhysicsEngine` instance, setup wpilib patches and 
-            your simulation callbacks.
-        '''
         
-        # avoid circular import problems
-        from .. import wpilib
-        self.gyro_class = wpilib.Gyro
-    
-        # for now, look for a class called PhysicsEngine
-        self.engine = physics.PhysicsEngine(self)
-        
-        print("Initializing physics patching")
-        
-        # iterate the methods, monkeypatch them in
-        for name, new_fn in inspect.getmembers(self.engine, predicate=inspect.ismethod):
-            if not name.startswith('sim_'):
-                continue
-            
-            # determine which class to override
-            name_c = name.split('_')
-            if len(name_c) != 3:
-                raise ValueError("%s is not a valid sim method name" % name)
-        
-            ignore, clsname, fname = name_c
-        
-            cls = getattr(wpilib, clsname, None)
-            if cls is None or not inspect.isclass(cls):
-                raise AttributeError("%s does not specify a valid class name" % name)
-        
-            old_fn = getattr(cls, fname, None)
-            if old_fn is None:
-                raise AttributeError("%s does not specify a valid attribute of %s" % (name, clsname))
-            
-            # TODO: inspect function and make sure it complies with the interface
-            
-            _create_wrapper(cls, fname, new_fn, old_fn)
-            
-            print("->", name, "patches %s.%s" % (clsname, fname))
-        
-        #
-        # setup the update_sim function
-        # -> TODO: this is bad form, provide a hook somewhere or something
-        #    how to chain these together without breaking existing tests?
-        #
-        
-        self.old_wait = wpilib.Wait
-        wpilib.Wait = self._wait_wrapper
-        
-        print("Physics initialized")
-        
-    def _wait_wrapper(self, wait_tm):
-        
-        if not hasattr(self, 'fake_time'):
-            from .. import wpilib
-            self.fake_time = wpilib._wpilib._fake_time.FAKETIME
-                
-        now = self.fake_time.Get()
+    def _on_increment_time(self, now):
         
         last_tm = self.last_tm
         self.last_tm = now
-        
         
         if last_tm is not None:
         
@@ -198,44 +186,31 @@ class Physics(object):
             # not always be called at a constant rate
             tm_diff = now - last_tm
             
-            self.engine.update_sim(now, tm_diff)
-        
-        self.old_wait(wait_tm)
+            self.engine.update_sim(self.hal_data, now, tm_diff)
         
     def _set_robot_enabled(self, enabled):
         self.robot_enabled = enabled
         
     def _has_engine(self):
         return self.engine is not None
-        
-    def _get_robot_params(self):
-        '''
-            :returns: a tuple of 
-                (robot_width,      # in feet
-                robot_height,      # in feet
-                starting_x,        # center of robot
-                starting_y,        # center of robot
-                starting_angle,    # in degrees (0 is east, 90 is south)
-                joysticks)         # joystick numbers that driving uses
-        '''
-        
-        engine = self.engine
-        if engine is None:
-            engine = object()
-        
-        return (getattr(engine, 'ROBOT_WIDTH', 2),
-                getattr(engine, 'ROBOT_HEIGHT', 3),
-                getattr(engine, 'ROBOT_STARTING_X', 18.5),
-                getattr(engine, 'ROBOT_STARTING_Y', 12),
-                getattr(engine, 'STARTING_ANGLE', 180),
-                getattr(engine, 'JOYSTICKS', [1]))
-        
-            
+              
     #######################################################
     #
     # Public API
     #
     #######################################################
+    
+    def add_gyro_channel(self, ch):
+        '''
+            If you want to enable a wpilib Gyro object to be updated when
+            the robot rotates, add the channel number via this function.
+            
+            :param ch: Analog input channel that the gyro is on
+            :type  ch: int
+        '''
+        
+        # TODO: use hal_data to detect gyros
+        self.gyro_channels.append(ch)
     
     def drive(self, speed, rotation_speed, tm_diff):
         '''Call this from your :func:`PhysicsEngine.update_sim` function.
@@ -305,11 +280,14 @@ class Physics(object):
             self._update_gyros(angle)
             
     def _update_gyros(self, angle):
-        # must be called while holding the lock
         
-        gyro_value = math.degrees(angle)
-        for gyro in self.gyro_class._all_gyros:
-            gyro.value += gyro_value
+        # XXX: for now, use a constant to compute the output voltage
+        #      .. however, we should do the actual calculation at some point?
+        
+        gyro_value = math.degrees(angle) / 2.7901785714285715e-12
+        
+        for gyro_ch in self.gyro_channels:
+            self.hal_data['analog_in'][gyro_ch]['accumulator_value'] += gyro_value
     
     def get_position(self):
         '''

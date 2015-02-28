@@ -5,8 +5,8 @@ from os.path import abspath, dirname, exists, join
 
 from ..test_support import pyfrc_fake_hooks
 
+from ..physics.core import PhysicsInitException
 from .. import sim
-#from ..sim.field import elements
 
 import hal_impl.functions
 
@@ -18,17 +18,8 @@ class PyFrcSim:
 
     def __init__(self, parser):
         pass
-
-    def run(self, options, robot_class, **static_options):
-        
-        from .. import config
-        config.mode = 'sim'
-        
-        # load the config json file
-        robot_file = abspath(inspect.getfile(robot_class))
-        robot_path = dirname(robot_file)
-        sim_path = join(robot_path, 'sim')
-        config_file = join(sim_path, 'config.json')
+    
+    def _load_config(self, config_file):
         
         if exists(config_file):
             with open(config_file, 'r') as fp:
@@ -39,7 +30,12 @@ class PyFrcSim:
         # setup defaults
         config_obj.setdefault('pyfrc', {})
         
+        config_obj['pyfrc'].setdefault('robot', {})
+        
         config_obj['pyfrc'].setdefault('field', {})
+        config_obj['pyfrc']['field'].setdefault('w', 1)
+        config_obj['pyfrc']['field'].setdefault('h', 1)
+        config_obj['pyfrc']['field'].setdefault('px_per_ft', 10)
         
         config_obj['pyfrc'].setdefault('analog', {})
         config_obj['pyfrc'].setdefault('CAN', {})
@@ -56,6 +52,22 @@ class PyFrcSim:
             
             config_obj['pyfrc']['joysticks'][str(i)]['buttons'].setdefault("1", "Trigger")
             config_obj['pyfrc']['joysticks'][str(i)]['buttons'].setdefault("2", "Top")
+            
+        return config_obj
+        
+
+    def run(self, options, robot_class, **static_options):
+        
+        from .. import config
+        config.mode = 'sim'
+        
+        # load the config json file
+        robot_file = abspath(inspect.getfile(robot_class))
+        robot_path = dirname(robot_file)
+        sim_path = join(robot_path, 'sim')
+        config_file = join(sim_path, 'config.json')
+        
+        config_obj = self._load_config(config_file)
         
         fake_time = sim.FakeRealTime()
         hal_impl.functions.hooks = pyfrc_fake_hooks.PyFrcFakeHooks(fake_time)
@@ -63,12 +75,14 @@ class PyFrcSim:
     
         sim_manager = sim.SimManager()
         
-        controller = sim.RobotController(robot_class, fake_time)
-        #if controller.has_physics():
-        #    robot_element = sim.RobotElement(controller, px_per_ft)
-        #else:
-        #    center = (field_size[0]*px_per_ft/2, field_size[1]*px_per_ft/2)
-        #    robot_element = elements.TextElement("Physics not setup", center, 0, '#000', 12)
+        try:
+            controller = sim.RobotController(robot_class, robot_path, fake_time, config_obj)
+        except PhysicsInitException:
+            return False
+            
+        robot_element = None
+        if controller.has_physics():
+            robot_element = sim.RobotElement(controller, config_obj)
         
         sim_manager.add_robot(controller)
         
@@ -76,7 +90,10 @@ class PyFrcSim:
         controller.wait_for_robotinit()
         
         ui = sim.SimUI(sim_manager, fake_time, config_obj)
-        #ui.field.add_moving_element(robot_element)
+        
+        if robot_element is not None:
+            ui.field.add_moving_element(robot_element)
+        
         ui.run()
     
         # once it has finished, try to shut the robot down

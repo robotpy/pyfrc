@@ -19,9 +19,9 @@ class RobotField(object):
         self.manager = manager
         self.elements = []      # robots, walls, missles, etc
         
-        field_size = config_obj['pyfrc']['field'].get('w', 1), \
-                     config_obj['pyfrc']['field'].get('h', 1)
-        px_per_ft = config_obj['pyfrc']['field'].get('px_per_ft', 10)
+        field_size = config_obj['pyfrc']['field']['w'], \
+                     config_obj['pyfrc']['field']['h']
+        px_per_ft = config_obj['pyfrc']['field']['px_per_ft']
         
         # setup board characteristics -- cell size is 1ft
         self.rows, self.cols = field_size
@@ -54,6 +54,10 @@ class RobotField(object):
             right, likely to actually be based on a joystick event... not sure
             yet
         '''
+        
+        return
+    
+        # TODO
         
         if event.keysym == "Up":
             self.manager.set_joystick(0.0, -1.0, 0)

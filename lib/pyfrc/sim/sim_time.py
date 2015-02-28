@@ -1,12 +1,6 @@
-'''
-    Monkeypatches in wpilib pieces needed to make the sim work in real
-    time, instead of fake time. 
-'''
 
 import time
 import threading
-
-import math
 
 class FakeRealTime:
     '''
@@ -25,6 +19,8 @@ class FakeRealTime:
     def __init__(self):
         self.lock = threading.Condition()
         self.reset()
+        
+        self.physics_fn = None
 
     def get(self):
         with self.lock:         
@@ -54,6 +50,9 @@ class FakeRealTime:
             self.tm = self.pause_at
             self.paused = True
             self.pause_at = None
+            
+        if self.physics_fn is not None:
+            self.physics_fn(self.tm)
         
     def increment_time_by(self, secs):
         '''This is called when wpilib.Timer.delay() occurs'''
