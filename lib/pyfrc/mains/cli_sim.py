@@ -42,6 +42,7 @@ class PyFrcSim:
         sim_manager.add_robot(controller)
         
         controller.run()
+        controller.wait_for_robotinit()
         
         ui = sim.SimUI(sim_manager, fake_time, field_size, px_per_ft)
         #ui.field.add_moving_element(robot_element)

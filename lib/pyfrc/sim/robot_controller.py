@@ -1,5 +1,6 @@
 
 from hal_impl import mode_helpers
+from hal_impl.data import hal_data
 
 import threading
 import time
@@ -46,7 +47,13 @@ class RobotController:
         self._run_code = True
         self.thread.start()
         self.ds_thread.start()
+    
+    def wait_for_robotinit(self):
         
+        # Do this so that we don't initialize the UI until robotInit is done
+        while hal_data['user_program_state'] is None:
+            time.sleep(0.025)
+    
     def stop(self):
         
         # Since we're using OperatorControl, there isn't a way to kill

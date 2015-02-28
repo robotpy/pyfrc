@@ -80,11 +80,14 @@ class SimUI(object):
         self.analog = []
         
         for i in range(1, 9):
-            label = tk.Label(slot, text=str(i-1))
-            label.grid(column=0, row=i)
-            
-            vw = ValueWidget(slot, clickable=True, minval=-10.0, maxval=10.0)
-            vw.grid(column=1, row=i)
+            if hal_data['analog_in'][i-1]['initialized'] or hal_data['analog_out'][i-1]['initialized']:
+                label = tk.Label(slot, text=str(i-1))
+                label.grid(column=0, row=i)
+                
+                vw = ValueWidget(slot, clickable=True, minval=-10.0, maxval=10.0)
+                vw.grid(column=1, row=i)
+            else:
+                vw = None
             
             self.analog.append(vw)
         
@@ -99,14 +102,16 @@ class SimUI(object):
         self.pwm = []
         
         for i in range(len(hal_data['pwm'])):
-            
-            c = i // 10
-            
-            label = tk.Label(slot, text=str(i))
-            label.grid(column=0+2*c, row=1 + i % 10)
-            
-            vw = ValueWidget(slot)
-            vw.grid(column=1+2*c, row=1 + i % 10)
+            if hal_data['pwm'][i]['initialized']:
+                c = i // 10
+                
+                label = tk.Label(slot, text=str(i))
+                label.grid(column=0+2*c, row=1 + i % 10)
+                
+                vw = ValueWidget(slot)
+                vw.grid(column=1+2*c, row=1 + i % 10)
+            else:
+                vw = None
             self.pwm.append(vw)
             
         label = tk.Label(slot, text='Digital I/O')
@@ -115,13 +120,18 @@ class SimUI(object):
         
         for i in range(len(hal_data['dio'])):
             
-            c = i // 9
+            if hal_data['dio'][i]['initialized']:
             
-            label = tk.Label(slot, text=str(i))
-            label.grid(column=4+c*2, row=1 + i % 9)
+                c = i // 9
+                
+                label = tk.Label(slot, text=str(i))
+                label.grid(column=4+c*2, row=1 + i % 9)
+                
+                pi = PanelIndicator(slot, clickable=True)
+                pi.grid(column=5+c*2, row=1 + i % 9)
+            else:
+                pi = None
             
-            pi = PanelIndicator(slot, clickable=True)
-            pi.grid(column=5+c*2, row=1 + i % 9)
             self.dio.append(pi)
             
         label = tk.Label(slot, text='Relay')
@@ -129,11 +139,15 @@ class SimUI(object):
         self.relays = []
         
         for i in range(len(hal_data['relay'])):
-            label = tk.Label(slot, text=str(i))
-            label.grid(column=10, row=1 + i, sticky=tk.E)
-            
-            pi = PanelIndicator(slot)
-            pi.grid(column=11, row=1 + i)
+            if hal_data['relay'][i]['initialized']:
+                label = tk.Label(slot, text=str(i))
+                label.grid(column=10, row=1 + i, sticky=tk.E)
+                
+                pi = PanelIndicator(slot)
+                pi.grid(column=11, row=1 + i)
+            else:
+                pi = None
+                
             self.relays.append(pi)
             
         
@@ -362,33 +376,30 @@ class SimUI(object):
                                             hal_data['analog_out'])):
             
             aio = self.analog[i]
-            
-            if ain['initialized']:
-                aio.set_disabled(False)
-                ain['voltage'] = aio.get_value()
-            elif aout['initialized']:
-                aio.set_value(aout['voltage'])
-            else:
-                aio.set_disabled()
+            if aio is not None:
+                if ain['initialized']:
+                    aio.set_disabled(False)
+                    ain['voltage'] = aio.get_value()
+                elif aout['initialized']:
+                    aio.set_value(aout['voltage'])
         
         # digital module
         for i, ch in enumerate(hal_data['dio']):
             dio = self.dio[i]
-            if not ch['initialized']:
-                dio.set_disabled()
-            else:
-                self._set_tooltip(dio, ch)
-                
-                # determine which one changed, and set the appropriate one
-                ret = dio.sync_value(ch['value'])
-                if ret is not None:
-                    ch['value'] = ret
+            if dio is not None:
+                if not ch['initialized']:
+                    dio.set_disabled()
+                else:
+                    self._set_tooltip(dio, ch)
+                    
+                    # determine which one changed, and set the appropriate one
+                    ret = dio.sync_value(ch['value'])
+                    if ret is not None:
+                        ch['value'] = ret
         
         for i, ch in enumerate(hal_data['pwm']):
             pwm = self.pwm[i]
-            if not ch['initialized']:
-                pwm.set_disabled()
-            else:
+            if pwm is not None:
                 self._set_tooltip(pwm, ch)
                 
                 # determine which one changed, and set the appropriate one
@@ -396,11 +407,7 @@ class SimUI(object):
                 
         for i, ch in enumerate(hal_data['relay']):
             relay = self.relays[i]
-            if not ch['initialized']:
-                relay.set_disabled()
-            else:
-                #self._set_tooltip(relay, ch)
-                
+            if relay is not None:
                 if ch['fwd']:
                     relay.set_on()
                 elif ch['rev']:
