@@ -23,7 +23,7 @@ from .ui_widgets import CheckButtonWrapper, PanelIndicator, Tooltip, ValueWidget
 
 class SimUI(object):
     
-    def __init__(self, manager, fake_time, field_size, px_per_ft):
+    def __init__(self, manager, fake_time, config_obj):
         '''
             initializes all default values and creates 
             a board, waits for run() to be called
@@ -34,6 +34,7 @@ class SimUI(object):
         
         self.manager = manager
         self.fake_time = fake_time
+        self.config_obj = config_obj
         
         self.root = tk.Tk()
         self.root.wm_title("PyFRC Robot Simulator v%s" % __version__)
@@ -42,7 +43,7 @@ class SimUI(object):
         frame = tk.Frame(self.root)
         frame.pack(side=tk.TOP, anchor=tk.W)
                
-        self._setup_widgets(frame, field_size, px_per_ft)
+        self._setup_widgets(frame)
        
         self.root.resizable(width=0, height=0)
         
@@ -60,7 +61,7 @@ class SimUI(object):
         self.timer_fired()
         
         
-    def _setup_widgets(self, frame, field_size, px_per_ft):
+    def _setup_widgets(self, frame):
         
         top = tk.Frame(frame)
         top.grid(column=0, row=0)
@@ -68,7 +69,7 @@ class SimUI(object):
         bottom = tk.Frame(frame)
         bottom.grid(column=0, row=1)
         
-        self.field = RobotField(frame, self.manager, field_size, px_per_ft)
+        self.field = RobotField(frame, self.manager, self.config_obj)
         self.field.grid(column=1, row=0, rowspan=2)
         
         # status bar
@@ -79,13 +80,14 @@ class SimUI(object):
         slot = tk.LabelFrame(top, text='Analog')
         self.analog = []
         
-        for i in range(1, 9):
-            if hal_data['analog_in'][i-1]['initialized'] or hal_data['analog_out'][i-1]['initialized']:
-                label = tk.Label(slot, text=str(i-1))
-                label.grid(column=0, row=i)
+        for i in range(len(hal_data['analog_in'])):
+            if hal_data['analog_in'][i]['initialized'] or hal_data['analog_out'][i]['initialized']:
+                label = tk.Label(slot, text=str(i))
+                label.grid(column=0, row=i+1)
                 
                 vw = ValueWidget(slot, clickable=True, minval=-10.0, maxval=10.0)
-                vw.grid(column=1, row=i)
+                vw.grid(column=1, row=i+1)
+                self.set_tooltip(vw, 'analog', i)
             else:
                 vw = None
             
@@ -110,6 +112,7 @@ class SimUI(object):
                 
                 vw = ValueWidget(slot)
                 vw.grid(column=1+2*c, row=1 + i % 10)
+                self.set_tooltip(vw, 'pwm', i)
             else:
                 vw = None
             self.pwm.append(vw)
@@ -129,6 +132,7 @@ class SimUI(object):
                 
                 pi = PanelIndicator(slot, clickable=True)
                 pi.grid(column=5+c*2, row=1 + i % 9)
+                self.set_tooltip(pi, 'dio', i)
             else:
                 pi = None
             
@@ -145,6 +149,7 @@ class SimUI(object):
                 
                 pi = PanelIndicator(slot)
                 pi.grid(column=11, row=1 + i)
+                self.set_tooltip(pi, 'relay', i)
             else:
                 pi = None
                 
@@ -169,6 +174,7 @@ class SimUI(object):
             
             pi = PanelIndicator(slot)
             pi.grid(column=1+c, row=r)
+            self.set_tooltip(pi, 'solenoid', i)
             
             self.solenoids.append(pi)
         
@@ -187,6 +193,11 @@ class SimUI(object):
                         tsrxc.kMode_VoltCompen:'Voltage'
                      }
         self.can = {}
+        
+        # detect new devices
+        for k in sorted(hal_data['CAN'].keys()):
+            self._add_CAN(k, hal_data['CAN'][k])
+        
         
         csfm.pack(side=tk.LEFT, fill=tk.Y)
         
@@ -211,6 +222,7 @@ class SimUI(object):
                 
                 vw = ValueWidget(slot, clickable=True, default=0.0)
                 vw.grid(column=col+1, row=j+1, columnspan=2)
+                self.set_joy_tooltip(vw, i, 'axes', t)
                 
                 axes.append(vw)
             
@@ -218,12 +230,9 @@ class SimUI(object):
                 var = tk.IntVar()
                 ck = tk.Checkbutton(slot, text=str(j), variable=var)
                 ck.grid(column=col+1+(1-j%2), row=5 + int((j - 1) / 2))
-                buttons.append((ck, var))
+                self.set_joy_tooltip(ck, i, 'buttons', j)
                 
-                if j == 1:
-                    Tooltip.create(ck, 'Trigger')
-                elif j == 2:
-                    Tooltip.create(ck, 'Top')
+                buttons.append((ck, var))
                 
             self.joysticks.append((axes, buttons))
             
@@ -314,6 +323,7 @@ class SimUI(object):
         
         motor = ValueWidget(self.can_slot, default=0.0)
         motor.grid(column=1, row=row)
+        self.set_tooltip(motor, 'CAN', canId)
         
         fl = CheckButtonWrapper(self.can_slot, text='F')
         fl.grid(column=2, row=row)
@@ -321,7 +331,6 @@ class SimUI(object):
         rl = CheckButtonWrapper(self.can_slot, text='R')
         rl.grid(column=3, row=row)
         
-        self._set_tooltip(motor, device)
         Tooltip.create(fl, 'Forward limit switch')
         Tooltip.create(rl, 'Reverse limit switch')
         
@@ -390,8 +399,6 @@ class SimUI(object):
                 if not ch['initialized']:
                     dio.set_disabled()
                 else:
-                    self._set_tooltip(dio, ch)
-                    
                     # determine which one changed, and set the appropriate one
                     ret = dio.sync_value(ch['value'])
                     if ret is not None:
@@ -400,9 +407,6 @@ class SimUI(object):
         for i, ch in enumerate(hal_data['pwm']):
             pwm = self.pwm[i]
             if pwm is not None:
-                self._set_tooltip(pwm, ch)
-                
-                # determine which one changed, and set the appropriate one
                 pwm.set_value(ch['value'])
                 
         for i, ch in enumerate(hal_data['relay']):
@@ -421,20 +425,9 @@ class SimUI(object):
             if not ch['initialized']:
                 sol.set_disabled()
             else:
-                self._set_tooltip(sol, ch)
-                # determine which one changed, and set the appropriate one
                 sol.set_value(ch['value'])
         
-        # CAN
-        
-        # detect new devices
-        if len(self.can) != len(hal_data['CAN']):
-            existing = list(self.can.keys())
-            for k in sorted(hal_data['CAN'].keys()):
-                if k in existing:
-                    continue
-                self._add_CAN(k, hal_data['CAN'][k])
-                
+        # CAN        
         for k, (motor, fl, rl, mode_lbl_txt) in self.can.items():
             can = hal_data['CAN'][k]
             mode = can['mode_select']
@@ -489,21 +482,15 @@ class SimUI(object):
             
     
         
-    def _set_tooltip(self, widget, obj):
-        return
+    def set_tooltip(self, widget, cat, idx):
         
-        # TODO: Fix this
-        if not hasattr(widget, 'has_tooltip'):
+        tooltip = self.config_obj['pyfrc'][cat].get(str(idx))
+        if tooltip is not None:
+            Tooltip.create(widget, tooltip)
             
-            if hasattr(obj, 'label'):
-                tooltip = obj.label
-            else:
-                # only show the parent object, otherwise the tip is confusing
-                while hasattr(obj, '_parent'):
-                    obj = obj._parent
-                    
-                tooltip = obj.__class__.__name__.strip('_')
-                    
+    def set_joy_tooltip(self, widget, idx, typ, idx2):
+        tooltip = self.config_obj['pyfrc']['joysticks'][str(idx)][typ].get(str(idx2))
+        if tooltip is not None:
             Tooltip.create(widget, tooltip)
             
     def on_robot_mode_change(self, mode):

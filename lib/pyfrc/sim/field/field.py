@@ -4,7 +4,7 @@ import tkinter as tk
 
 class RobotField(object):
     
-    def __init__(self, root, manager, field_size, px_per_ft):
+    def __init__(self, root, manager, config_obj):
         '''
             initializes all default values and creates 
             a board, waits for run() to be called
@@ -18,6 +18,10 @@ class RobotField(object):
         
         self.manager = manager
         self.elements = []      # robots, walls, missles, etc
+        
+        field_size = config_obj['pyfrc']['field'].get('w', 1), \
+                     config_obj['pyfrc']['field'].get('h', 1)
+        px_per_ft = config_obj['pyfrc']['field'].get('px_per_ft', 10)
         
         # setup board characteristics -- cell size is 1ft
         self.rows, self.cols = field_size
