@@ -1,6 +1,7 @@
 
 import argparse
 import inspect
+from os.path import abspath
 import subprocess
 import sys
 
@@ -12,6 +13,8 @@ class PyFrcProfiler:
     """
 
     def __init__(self, parser):
+        parser.add_argument('-o', '--outfile', default=None,
+                            help="Save stats to <outfile>")
         parser.add_argument('args', nargs=argparse.REMAINDER,
                             help='Arguments to pass to robot.py')
 
@@ -30,9 +33,14 @@ class PyFrcProfiler:
             print("ERROR: Profiler command requires arguments to run other commands")
             return 1
         
-        file_location = inspect.getfile(robot_class)
+        file_location = abspath(inspect.getfile(robot_class))
     
+        if options.outfile:
+            profile_args = ['-o', options.outfile]
+        else:
+            profile_args = ['-s', 'tottime']
+        
         # construct the arguments to run the profiler
-        args = [sys.executable, '-m', 'cProfile', '-s', 'tottime', file_location] + options.args
+        args = [sys.executable, '-m', 'cProfile'] + profile_args + [file_location] + options.args
         
         return subprocess.call(args)
