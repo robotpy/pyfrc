@@ -36,10 +36,10 @@ class RobotController:
         # this since it's running in a different thread
         self._lock = threading.RLock()
         
-        self.thread = threading.Thread(target=self._robot_thread)
+        self.thread = threading.Thread(target=self._robot_thread, name="Robot Thread")
         self.thread.daemon = True
         
-        self.ds_thread = threading.Thread(target=self._ds_thread)
+        self.ds_thread = threading.Thread(target=self._ds_thread, name="Fake DS Thread")
         self.ds_thread.daemon = True
         
     def run(self):
