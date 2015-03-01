@@ -14,7 +14,7 @@ from ..test_support import pytest_plugin
 #
 # main test class
 #
-class PyFrcTest(object):
+class PyFrcTest:
     """
         Executes unit tests on the robot code using a special py.test plugin
     """
@@ -41,9 +41,22 @@ class PyFrcTest(object):
     
         # find test directory, change current directory so py.test can find the tests
         # -> assume that tests reside in tests or ../tests
+        
+        curdir = abspath(os.getcwd())
+        
         robot_file = abspath(inspect.getfile(robot_class))
         robot_path = dirname(robot_file)
         test_directory = None
+        
+        if robot_file.endswith('cProfile.py'):
+            # so, the module for the robot class is __main__, and __main__ is
+            # cProfile so try to find it
+            robot_file = join(curdir, 'robot.py')
+            robot_path = curdir
+            
+            if not exists(robot_file):
+                "ERROR: Cannot run profiling from a directory that does not contain robot.py"
+                return 1
         
         try_dirs = [join(robot_path, 'tests'), abspath(join(robot_path, '..', 'tests'))]
         
@@ -51,8 +64,6 @@ class PyFrcTest(object):
             if exists(d):
                 test_directory = d
                 break
-        
-        old_path = abspath(os.getcwd())
         
         if test_directory is None:
             if not use_builtin:
@@ -77,6 +88,6 @@ class PyFrcTest(object):
                                                                   robot_file,
                                                                   robot_path)])
         finally:
-            os.chdir(old_path)
+            os.chdir(curdir)
 
 
