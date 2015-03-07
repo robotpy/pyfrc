@@ -20,7 +20,10 @@ class FakeRealTime:
         self.lock = threading.Condition()
         self.reset()
         
-        self.physics_fn = None
+        self.local = threading.local()
+        
+    def set_physics_fn(self, fn):
+        self.local.physics_fn = fn
 
     def get(self):
         with self.lock:         
@@ -50,9 +53,10 @@ class FakeRealTime:
             self.tm = self.pause_at
             self.paused = True
             self.pause_at = None
-            
-        if self.physics_fn is not None:
-            self.physics_fn(self.tm)
+        
+        physics_fn = getattr(self.local, 'physics_fn', None)
+        if physics_fn is not None:
+            physics_fn(self.tm)
         
     def increment_time_by(self, secs):
         '''This is called when wpilib.Timer.delay() occurs'''

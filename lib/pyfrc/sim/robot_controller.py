@@ -161,6 +161,10 @@ class RobotController:
     
     def _robot_thread(self):
         
+        # Initialize physics time hook -- must be done on
+        # robot thread, since it uses a threadlocal variable to work
+        self.physics_controller.setup_main_thread()
+        
         # setup things for the robot
         self.driver_station = wpilib.DriverStation.getInstance()
         

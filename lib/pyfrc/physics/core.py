@@ -164,29 +164,34 @@ class PhysicsInterface:
                 logger.exception("Error creating user's PhysicsEngine object")
                 raise PhysicsInitException()
             
-            self.fake_time.physics_fn = self._on_increment_time
             logger.info("Physics support successfully enabled")
             
         else:
             logger.warning("Cannot enable physics support, %s not found", physics_module_path)
             
-        
-
+    def setup_main_thread(self):
+        if self.engine is not None:
+            self.fake_time.set_physics_fn(self._on_increment_time)
+            
     def __repr__(self):
         return 'Physics'
-        
+    
     def _on_increment_time(self, now):
         
         last_tm = self.last_tm
-        self.last_tm = now
         
-        if last_tm is not None:
+        if last_tm is None:
+            self.last_tm = now
+        else:
         
             # When using time, always do it based on a differential! You may
             # not always be called at a constant rate
             tm_diff = now - last_tm
             
-            self.engine.update_sim(self.hal_data, now, tm_diff)
+            # Don't run physics calculations more than 100hz
+            if tm_diff > 0.010:
+                self.engine.update_sim(self.hal_data, now, tm_diff)
+                self.last_tm = now
         
     def _set_robot_enabled(self, enabled):
         self.robot_enabled = enabled
