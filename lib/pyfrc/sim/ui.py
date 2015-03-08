@@ -461,13 +461,13 @@ class SimUI(object):
             enc_txt.set('E: %s' % can['enc_position'])
             sen_txt.set('S: %s' % can['sensor_position'])
             
-            ret = fl.sync_value(not can['limit_switch_closed_for'])
+            ret = fl.sync_value(can['limit_switch_closed_for'])
             if ret is not None:
-                can['limit_switch_closed_for'] = not ret
+                can['limit_switch_closed_for'] = ret
                 
-            ret = rl.sync_value(not can['limit_switch_closed_rev'])
+            ret = rl.sync_value(can['limit_switch_closed_rev'])
             if ret is not None:
-                can['limit_switch_closed_rev'] = not ret 
+                can['limit_switch_closed_rev'] = ret 
         
         
         # joystick/driver station
