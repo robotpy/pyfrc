@@ -126,9 +126,10 @@ class PhysicsInterface:
         self.last_tm = None
         self._lock = threading.Lock()
         
-        self.x = 0
-        self.y = 0
-        self.angle = 0
+        # These are in units of feet relative to the field
+        self.x = config_obj['pyfrc']['robot']['starting_x']
+        self.y = config_obj['pyfrc']['robot']['starting_y']
+        self.angle = config_obj['pyfrc']['robot']['starting_angle']
         
         self.fake_time = fake_time
         self.robot_enabled = False

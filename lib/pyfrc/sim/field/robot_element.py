@@ -23,13 +23,15 @@ class RobotElement(CompositeElement):
         
         self.controller = controller
         self.controller.robot_face = 0
-        self.position = (0, 0, 0)
         self.px_per_ft = px_per_ft
         
         robot_w *= px_per_ft
         robot_h *= px_per_ft
         center_x *= px_per_ft
         center_y *= px_per_ft
+        
+        # Store in px
+        self.position = (center_x, center_y, angle)
         
         # create a bunch of drawable objects that represent the robot
         center = (center_x, center_y)
@@ -69,15 +71,18 @@ class RobotElement(CompositeElement):
         
     def move_robot(self):
         
-        x, y, a = self.controller.get_position()
-        ox, oy, oa = self.position
+        px_per_ft = self.px_per_ft
         
-        x *= self.px_per_ft
-        y *= self.px_per_ft
+        x, y, a = self.controller.get_position()    # units: ft
+        ox, oy, oa = self.position                  # units: px
+        
+        x *= px_per_ft
+        y *= px_per_ft
         
         dx = x - ox
         dy = y - oy
         da = a - oa
+
         
         if da != 0:
             self.rotate(da)
