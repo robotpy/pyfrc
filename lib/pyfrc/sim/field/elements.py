@@ -83,8 +83,7 @@ class DrawableElement(object):
             self.canvas.coords(self.id, *pts)
         
     def perform_move(self):
-        #self.update_coordinates()
-        pass
+        self.update_coordinates()
         
 class CompositeElement(object):
     '''A composite element can contain a number of drawable elements, and 
