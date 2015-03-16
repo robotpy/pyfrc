@@ -16,7 +16,7 @@
 '''
 
     
-def two_motor_drivetrain(l_motor, r_motor, wheelbase=2, speed=5):
+def two_motor_drivetrain(l_motor, r_motor, x_wheelbase=2, speed=5):
     '''
         Two center-mounted motors with a simple drivetrain. The 
         motion equations are as follows::
@@ -36,7 +36,7 @@ def two_motor_drivetrain(l_motor, r_motor, wheelbase=2, speed=5):
         
         :param l_motor:    Left motor value (-1 to 1); -1 is forward
         :param r_motor:    Right motor value (-1 to 1); 1 is forward
-        :param wheelbase:  Distance between wheels, in feet
+        :param x_wheelbase: The distance in feet between right and left wheels.
         :param speed:      Speed of robot in feet per second (see above)
         
         :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
@@ -47,12 +47,12 @@ def two_motor_drivetrain(l_motor, r_motor, wheelbase=2, speed=5):
 
     # Motion equations
     fwd = (l + r) * 0.5
-    rcw = (l - r) / float(wheelbase)
+    rcw = (l - r) / float(x_wheelbase)
         
     return fwd, rcw
 
 
-def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, speed=5):
+def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, x_wheelbase=2, speed=5):
     '''
         Four motors, each side chained together. The motion equations are
         as follows::
@@ -74,7 +74,7 @@ def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, s
         :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
         :param lf_motor:   Left front motor value (-1 to 1); -1 is forward
         :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
-        :param wheelbase:  Distance between wheels, in feet
+        :param x_wheelbase: The distance in feet between right and left wheels.
         :param speed:      Speed of robot in feet per second (see above)
         
         :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
@@ -85,12 +85,12 @@ def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheelbase=2, s
     
     # Motion equations
     fwd = (l + r) * 0.5
-    rcw = (l - r) / float(wheelbase)
+    rcw = (l - r) / float(x_wheelbase)
         
     return fwd, rcw
 
 
-def mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheel_size=(8/12), speed=5):
+def mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, x_wheelbase=2, y_wheelbase=3, speed=5):
     '''
         Four motors, each with a mechanum wheel attached to it.
         
@@ -104,41 +104,41 @@ def mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, wheel_size=(8/12)
         :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
         :param lf_motor:   Left front motor value (-1 to 1); 1 is forward
         :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
-        :param wheel_size: Size of robot wheels
+        :param x_wheelbase: The distance in feet between right and left wheels.
+        :param y_wheelbase: The distance in feet between forward and rear wheels.
         :param speed:      Speed of robot in feet per second (see above)
         
         :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s), 
                   clockwise rotation of robot (radians/s)
     '''
-    
-    lr = lr_motor * speed
-    rr = rr_motor * speed
-    lf = lf_motor * speed
-    rf = rf_motor * speed
-    
+
     #
     # From http://www.chiefdelphi.com/media/papers/download/2722 pp7-9
     # [F] [omega](r) = [V]
     #
-    # F is 
+    # F is
     # .25  .25  .25 .25
     # -.25 .25 -.25 .25
     # -.25k -.25k .25k .25k
     #
     # omega is
     # [lf lr rr rf]
+
+    # Calculate speed of each wheel
+    lr = lr_motor * speed
+    rr = rr_motor * speed
+    lf = lf_motor * speed
+    rf = rf_motor * speed
+
+    # Calculate K
+    k = abs(x_wheelbase/2) + abs(y_wheelbase/2)
+
+    # Calculate resulting motion
+    Vy = .25 * (lf + lr + rr + rf)
+    Vx = .25 * (lf + -lr + rr + -rf)
+    Vw = (.25/k) * (lf + lr + -rr + -rf)
     
-    r = wheel_size
-    
-    Vy = r * .25 * (lf + lr + rr + rf)
-    Vx = -r * .25 * (-lf + lr + -rr + rf)
-    
-    # For best results, k must be > 1
-    k = max(abs(Vx) + abs(Vy), 1.0)
-    
-    Vw = r * (.25/k) * (-lf + -lr + rr + rf)
-    
-    return Vx, Vy, -Vw
+    return Vx, Vy, Vw
     
     
 
