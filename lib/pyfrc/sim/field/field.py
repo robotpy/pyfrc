@@ -1,6 +1,7 @@
 
 import tkinter as tk
 
+from .elements import DrawableElement
 
 class RobotField(object):
     
@@ -24,7 +25,7 @@ class RobotField(object):
         px_per_ft = config_obj['pyfrc']['field']['px_per_ft']
         
         # setup board characteristics -- cell size is 1ft
-        self.rows, self.cols = field_size
+        self.cols, self.rows = field_size
         self.margin = 5
         self.cellSize = px_per_ft
         self.canvasWidth = 2*self.margin + self.cols*self.cellSize
@@ -38,6 +39,22 @@ class RobotField(object):
         
         # Draw the field initially
         self.draw_field()
+        
+        # Load elements from the config
+        # -> This probably belongs somewhere else
+        self._load_field_elements(px_per_ft, config_obj['pyfrc']['field']['objects'])
+        
+    def _load_field_elements(self, px_per_ft, objects):
+        
+        for obj in objects:
+            
+            color = obj['color']
+            pts = [(self.margin + int(pt[0]*px_per_ft),
+                    self.margin + int(pt[1]*px_per_ft)) for pt in obj['points']]
+            
+            element = DrawableElement(pts, None, None, color)
+            self.add_moving_element(element)
+        
         
     def add_moving_element(self, element):
         '''Add elements to the board'''

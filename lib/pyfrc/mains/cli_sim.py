@@ -36,6 +36,7 @@ class PyFrcSim:
         config_obj['pyfrc']['field'].setdefault('w', 1)
         config_obj['pyfrc']['field'].setdefault('h', 1)
         config_obj['pyfrc']['field'].setdefault('px_per_ft', 10)
+        config_obj['pyfrc']['field'].setdefault('objects', [])
         
         config_obj['pyfrc'].setdefault('analog', {})
         config_obj['pyfrc'].setdefault('CAN', {})
