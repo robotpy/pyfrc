@@ -246,13 +246,7 @@ class PhysicsInterface:
         x = distance*math.cos(angle)
         y = distance*math.sin(angle)
         
-        # something here
-        with self._lock:
-            self.x += x
-            self.y += y 
-            self.angle += angle
-            
-            self._update_gyros(angle)
+        self._move(x, y, angle)
             
     def vector_drive(self, vx, vy, vw, tm_diff):
         '''Call this from your :func:`PhysicsEngine.update_sim` function.
@@ -278,13 +272,17 @@ class PhysicsInterface:
         x = vx*math.sin(angle) + vy*math.cos(angle)
         y = vx*math.cos(angle) + vy*math.sin(angle)
         
+        self._move(x, y, angle)
+    
+    def _move(self, x, y, angle):
+        
         with self._lock:
             self.x += x
-            self.y += y
+            self.y += y 
             self.angle += angle
-                 
-            self._update_gyros(angle)
             
+            self._update_gyros(angle)
+        
     def _update_gyros(self, angle):
         
         # XXX: for now, use a constant to compute the output voltage
