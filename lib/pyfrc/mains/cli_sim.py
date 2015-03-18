@@ -31,6 +31,9 @@ class PyFrcSim:
         config_obj.setdefault('pyfrc', {})
         
         config_obj['pyfrc'].setdefault('robot', {})
+        config_obj['pyfrc']['robot'].setdefault('starting_x', 0)
+        config_obj['pyfrc']['robot'].setdefault('starting_y', 0)
+        config_obj['pyfrc']['robot'].setdefault('starting_angle', 0)
         
         config_obj['pyfrc'].setdefault('field', {})
         config_obj['pyfrc']['field'].setdefault('w', 1)
