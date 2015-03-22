@@ -10,12 +10,13 @@ class DrawableElement(object):
         Represents some polygon on the canvas that can move around and such
     '''
 
-    def __init__(self, pts, center, angle, color):
+    def __init__(self, pts, center, angle, color, solid):
         
         self.color = color
         self.pts = pts          # list of (x,y)
         self.center = center    # (x,y)
         self.angle = angle      # radians 
+        self.solid = solid
 
     def initialize(self, canvas):
         

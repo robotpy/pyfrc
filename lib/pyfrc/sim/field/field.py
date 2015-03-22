@@ -51,8 +51,8 @@ class RobotField(object):
             color = obj['color']
             pts = [(self.margin + int(pt[0]*px_per_ft),
                     self.margin + int(pt[1]*px_per_ft)) for pt in obj['points']]
-            
-            element = DrawableElement(pts, None, None, color)
+            solid = obj['solid']
+            element = DrawableElement(pts, None, None, color, solid)
             self.add_moving_element(element)
         
         
