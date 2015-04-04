@@ -42,7 +42,7 @@ class RobotElement(CompositeElement):
             (center_x - robot_w/2, center_y + robot_h/2),
         ]
         
-        robot = DrawableElement(pts, center, 0, 'red', True)
+        robot = DrawableElement(pts, center, 0, 'red')
         self.elements.append(robot)
         
         pts = [
@@ -51,7 +51,7 @@ class RobotElement(CompositeElement):
             (center_x - robot_w/2, center_y + robot_h/2),
         ]
         
-        robot_pt = DrawableElement(pts, center, 0, 'green', False)
+        robot_pt = DrawableElement(pts, center, 0, 'green')
         self.elements.append(robot_pt)
         
         if angle != 0:
