@@ -20,6 +20,9 @@ from .field.field import RobotField
 
 from .ui_widgets import CheckButtonWrapper, PanelIndicator, Tooltip, ValueWidget
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class SimUI(object):
     
@@ -58,8 +61,18 @@ class SimUI(object):
         self.manager.on_mode_change(lambda mode: self.idle_add(self.on_robot_mode_change, mode))
         self.on_robot_mode_change(self.manager.get_mode())
         
-        self.timer_fired()
+        # create pygame joystick if supported
+        try:
+            from .pygame_joysticks import UsbJoysticks
+        except ImportError:
+            logger.warn('pygame not detected, real joystick support not loaded')
+            self.usb_joysticks = None
+        else:
+            self.usb_joysticks = UsbJoysticks(self)
+            logger.info('pygame was detected, real joystick support loaded!')
+              
         
+        self.timer_fired()      
         
     def _setup_widgets(self, frame):
         
@@ -388,6 +401,10 @@ class SimUI(object):
             
         # TODO: support multiple slots?
         
+        #joystick stuff
+        if self.usb_joysticks is not None:
+            self.usb_joysticks.update()
+        
         # analog module
         for i, (ain, aout) in enumerate(zip(hal_data['analog_in'],
                                             hal_data['analog_out'])):
@@ -478,7 +495,7 @@ class SimUI(object):
             joy = hal_data['joysticks'][i]
             jaxes = joy['axes']
             for j, ax in enumerate(axes):
-                jaxes[j] = ax.get_value() 
+                jaxes[j] = ax.get_value()
         
             jbuttons = joy['buttons']
             for j, (ck, var) in enumerate(buttons):

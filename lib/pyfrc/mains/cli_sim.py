@@ -5,9 +5,6 @@ from os.path import abspath, dirname, exists, join
 
 from ..test_support import pyfrc_fake_hooks
 
-from ..physics.core import PhysicsInitException
-from .. import sim
-
 import hal_impl.functions
 
 class PyFrcSim:
@@ -64,6 +61,10 @@ class PyFrcSim:
         
         from .. import config
         config.mode = 'sim'
+        
+        # Load these late so tk isn't loaded each time we run a test
+        from ..physics.core import PhysicsInitException
+        from .. import sim
         
         # load the config json file
         robot_file = abspath(inspect.getfile(robot_class))
