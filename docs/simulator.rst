@@ -69,6 +69,19 @@ the command line using the following command:
 
   $ javac -jar sfx.jar 127.0.0.1
 
+Real Joystick support via pygame
+--------------------------------
+
+If you have pygame installed for Python 3, when you run the simulator any
+supported joysticks you have plugged in should automatically provide joystick
+input to the simulator. 
+
+.. note:: Installing pygame requires having a compiler installed, as it has
+          many binary dependencies. It can be a tricky thing to accomplish,
+          please refer to the pygame documentation for the right way to install
+          it for your platform. 
+
+.. versionadded:: 2015.3.6
 
 Robot 'physics model'
 ---------------------
