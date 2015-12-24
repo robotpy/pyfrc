@@ -51,7 +51,9 @@ class PyFrcPlugin:
         notify_new_ds_data()
         
         self._test_controller._robot = self.robot_class()
-        self._test_controller._robot.prestart()
+        
+        # TODO: Remove after 2016
+        getattr(self._test_controller._robot, 'prestart', lambda: True)()
         
         assert hasattr(self._test_controller._robot, '_RobotBase__initialized'), \
                        "If your robot class has an __init__ function, it must call super().__init__()!"

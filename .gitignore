@@ -4,6 +4,7 @@ MANIFEST
 __pycache__
 *.pyc
 .coverage
+.cache
 lib/pyfrc.egg-info
 lib/pyfrc/version.py
 
