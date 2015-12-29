@@ -1,4 +1,3 @@
-
 import inspect
 import json
 from os.path import abspath, dirname, exists, join
@@ -6,6 +5,7 @@ from os.path import abspath, dirname, exists, join
 from ..test_support import pyfrc_fake_hooks
 
 import hal_impl.functions
+
 
 class PyFrcSim:
     """
@@ -15,31 +15,6 @@ class PyFrcSim:
 
     def __init__(self, parser):
         pass
-    
-    def _load_config(self, config_file):
-        
-
-        
-        # setup defaults
-        config_obj.setdefault('pyfrc', {})
-        
-        config_obj['pyfrc'].setdefault('analog', {})
-        config_obj['pyfrc'].setdefault('CAN', {})
-        config_obj['pyfrc'].setdefault('dio', {})
-        config_obj['pyfrc'].setdefault('pwm', {})
-        config_obj['pyfrc'].setdefault('relay', {})
-        config_obj['pyfrc'].setdefault('solenoid', {})
-        
-        config_obj['pyfrc'].setdefault('joysticks', {})
-        for i in range(6):
-            config_obj['pyfrc']['joysticks'].setdefault(str(i), {})
-            config_obj['pyfrc']['joysticks'][str(i)].setdefault('axes', {})
-            config_obj['pyfrc']['joysticks'][str(i)].setdefault('buttons', {})
-            
-            config_obj['pyfrc']['joysticks'][str(i)]['buttons'].setdefault("1", "Trigger")
-            config_obj['pyfrc']['joysticks'][str(i)]['buttons'].setdefault("2", "Top")
-            
-        return config_obj
 
     def run(self, options, robot_class, **static_options):
         
