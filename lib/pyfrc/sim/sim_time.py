@@ -37,10 +37,10 @@ class FakeRealTime:
             return
         
         now = time.time()
-        
+        dt = (now - self.last_tm)
         # normal usage
         if secs is None or self.pause_at is None:
-            self.tm += (now - self.last_tm)
+            self.tm += dt
             self.last_tm = now
         else:
             # used by IncrementTimeBy to determine if a further
@@ -56,7 +56,7 @@ class FakeRealTime:
         
         physics_fn = getattr(self.local, 'physics_fn', None)
         if physics_fn is not None:
-            physics_fn(self.tm)
+            physics_fn(dt)
         
     def increment_time_by(self, secs):
         '''This is called when wpilib.Timer.delay() occurs'''

@@ -98,4 +98,6 @@ class SimManager(object):
     def get_mode(self):
         with self._lock:
             return self.mode
-        
+
+    def get_state(self):
+        return self.robots[0].get_state()

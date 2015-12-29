@@ -72,7 +72,6 @@ class MyRobot(wpilib.SampleRobot):
             wpilib.Timer.delay(0.04)
 
 if __name__ == '__main__':
-    
-    wpilib.run(MyRobot,
-               physics_enabled=True)
+    from physics import MyPhysics
+    wpilib.run(MyRobot, physics_class=MyPhysics)
 

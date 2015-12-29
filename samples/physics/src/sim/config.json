@@ -2,16 +2,24 @@
   "pyfrc": {
   
   	"robot": {
-  	  "w": 2,
-  	  "h": 3,
-      "starting_x": 2, 
-      "starting_y": 20,
-      "starting_angle": 0
+      "field_position_state": "drivetrain.position",
+
+  	  "robot_dimensions": [2, 3],
+      "wheel_dimensions": [0.2, 0.5],
+
+      "init_state": {
+
+        "drivetrain": {
+          "position": [2, 20, 0],
+          "velocity": [0, 0, 0]
+        },
+
+        "lift": 0
+      }
   	},
   	
   	"field": {
-      "w": 25,
-      "h": 27,
+      "dimensions": [54, 27],
       "px_per_ft": 10,
       
       "objects": [
