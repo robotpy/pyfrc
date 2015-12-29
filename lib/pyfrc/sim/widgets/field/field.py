@@ -1,28 +1,29 @@
 
 import tkinter as tk
 
-from .elements import DrawableElement
+from .elements import DrawableElement, RobotElement
 
-class RobotField(object):
+
+class RobotField:
     
-    def __init__(self, root, manager, config_obj):
+    def __init__(self, root, manager, config):
         '''
             initializes all default values and creates 
             a board, waits for run() to be called
             to start the board
-            
-            manager - sim manager class instance
-            board_size - a tuple with values (rows, cols)
+
+            :param root: The parent tk object.
+            :param manager: - An instance of SimManager
+            :param config: - A dictionary with configuration parameters
         '''
         
-        # TODO: support drawing an actual field?
-        
+        # TODO: support drawing a background image?
+
         self.manager = manager
         self.elements = []      # robots, walls, missles, etc
         
-        field_size = config_obj['pyfrc']['field']['w'], \
-                     config_obj['pyfrc']['field']['h']
-        px_per_ft = config_obj['pyfrc']['field']['px_per_ft']
+        field_size = config.get('dimensions', [27, 54])
+        px_per_ft = config.get('px_per_ft', 10)
         
         # setup board characteristics -- cell size is 1ft
         self.cols, self.rows = field_size
@@ -39,27 +40,18 @@ class RobotField(object):
         
         # Draw the field initially
         self.draw_field()
-        
-        # Load elements from the config
-        # -> This probably belongs somewhere else
-        self._load_field_elements(px_per_ft, config_obj['pyfrc']['field']['objects'])
-        
-    def _load_field_elements(self, px_per_ft, objects):
-        
-        for obj in objects:
-            
-            color = obj['color']
-            pts = [(self.margin + int(pt[0]*px_per_ft),
-                    self.margin + int(pt[1]*px_per_ft)) for pt in obj['points']]
-            element = DrawableElement(pts, None, None, color)
-            self.add_moving_element(element)
-        
-        
-    def add_moving_element(self, element):
-        '''Add elements to the board'''
-        
-        element.initialize(self.canvas)
-        self.elements.append(element)
+
+        # Add custom field elements
+        field_elements = DrawableElement(self.canvas, [0, 0, 0], scale=px_per_ft)
+        for obj in config.get("objects", []):
+            vertices = [(self.margin + int(pt[0]),
+                        self.margin + int(pt[1])) for pt in obj['points']]
+            field_elements.create_polygon(vertices, obj['color'])
+        self.elements.append(field_elements)
+
+        # Add robots
+        for robot in manager.robots:
+            self.elements.append(RobotElement(self.canvas, robot, px_per_ft))
     
     def grid(self, *args, **kwargs):
         self.canvas.grid(*args, **kwargs)
@@ -95,11 +87,8 @@ class RobotField(object):
         self.canvas.focus_set()
     
     def update_widgets(self):
-        
-        # TODO: process collisions and such too
-        
         for element in self.elements:
-            element.perform_move()
+            element.update_canvas()
             
     def draw_field(self):
         for row in range(self.rows):

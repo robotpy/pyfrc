@@ -9,16 +9,15 @@ try:
 except ImportError:
     print("pyfrc robot simulation requires python tkinter support to be installed")
     raise
-    
+
+import logging
 import queue
-from hal_impl.data import hal_data
+
 from hal import TalonSRXConst as tsrxc
+from hal_impl.data import hal_data
 
+from pyfrc.sim import widgets
 from .. import __version__
-
-from .field.field import RobotField
-
-from .ui_widgets import CheckButtonWrapper, PanelIndicator, Tooltip, ValueWidget
 
 import logging
 logger = logging.getLogger(__name__)
@@ -49,8 +48,7 @@ class SimUI(object):
         self._setup_widgets(frame)
        
         self.root.resizable(width=0, height=0)
-        
-        
+
         self.mode_start_tm = 0
         self.text_id = None
         
@@ -70,8 +68,7 @@ class SimUI(object):
         else:
             self.usb_joysticks = UsbJoysticks(self)
             logger.info('pygame was detected, real joystick support loaded!')
-              
-        
+
         self.timer_fired()      
         
     def _setup_widgets(self, frame):
@@ -81,13 +78,18 @@ class SimUI(object):
                 
         bottom = tk.Frame(frame)
         bottom.grid(column=0, row=1)
-        
-        self.field = RobotField(frame, self.manager, self.config_obj)
+
+        # Field
+        self.field = widgets.RobotField(frame, self.manager, self.config_obj.get("field", {}))
         self.field.grid(column=1, row=0, rowspan=2)
+
+        # State display
+        self.state_display = widgets.StateDisplay(frame, "Robot State", self.config_obj.get("state_display", {}))
+        self.state_display.grid(column=2, row=0, rowspan=2)
         
         # status bar
         self.status = tk.Label(frame, bd=1, relief=tk.SUNKEN, anchor=tk.E)
-        self.status.grid(column=0, row=2, columnspan=2, sticky=tk.W+tk.E)
+        self.status.grid(column=0, row=2, columnspan=3, sticky=tk.W+tk.E)
         
         # analog
         slot = tk.LabelFrame(top, text='Analog')
@@ -98,14 +100,13 @@ class SimUI(object):
                 label = tk.Label(slot, text=str(i))
                 label.grid(column=0, row=i+1)
                 
-                vw = ValueWidget(slot, clickable=True, minval=-10.0, maxval=10.0)
+                vw = widgets.ValueWidget(slot, clickable=True, minval=-10.0, maxval=10.0)
                 vw.grid(column=1, row=i+1)
                 self.set_tooltip(vw, 'analog', i)
             else:
                 vw = None
             
             self.analog.append(vw)
-        
         
         slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
         
@@ -123,7 +124,7 @@ class SimUI(object):
                 label = tk.Label(slot, text=str(i))
                 label.grid(column=0+2*c, row=1 + i % 10)
                 
-                vw = ValueWidget(slot)
+                vw = widgets.ValueWidget(slot)
                 vw.grid(column=1+2*c, row=1 + i % 10)
                 self.set_tooltip(vw, 'pwm', i)
             else:
@@ -143,7 +144,7 @@ class SimUI(object):
                 label = tk.Label(slot, text=str(i))
                 label.grid(column=4+c*2, row=1 + i % 9)
                 
-                pi = PanelIndicator(slot, clickable=True)
+                pi = widgets.PanelIndicator(slot, clickable=True)
                 pi.grid(column=5+c*2, row=1 + i % 9)
                 self.set_tooltip(pi, 'dio', i)
             else:
@@ -160,7 +161,7 @@ class SimUI(object):
                 label = tk.Label(slot, text=str(i))
                 label.grid(column=10, row=1 + i, sticky=tk.E)
                 
-                pi = PanelIndicator(slot)
+                pi = widgets.PanelIndicator(slot)
                 pi.grid(column=11, row=1 + i)
                 self.set_tooltip(pi, 'relay', i)
             else:
@@ -185,7 +186,7 @@ class SimUI(object):
             
             label.grid(column=0+c, row=r)
             
-            pi = PanelIndicator(slot)
+            pi = widgets.PanelIndicator(slot)
             pi.grid(column=1+c, row=r)
             self.set_tooltip(pi, 'solenoid', i)
             
@@ -233,7 +234,7 @@ class SimUI(object):
                 label = tk.Label(slot, text=t)
                 label.grid(column=col, row=j+1)
                 
-                vw = ValueWidget(slot, clickable=True, default=0.0)
+                vw = widgets.ValueWidget(slot, clickable=True, default=0.0)
                 vw.grid(column=col+1, row=j+1, columnspan=2)
                 self.set_joy_tooltip(vw, i, 'axes', t)
                 
@@ -286,8 +287,8 @@ class SimUI(object):
         self.step_entry.set("0.025")
         step_entry = tk.Entry(timing_control, width=6, textvariable=self.step_entry)
         
-        Tooltip.create(step_button, 'Click this to increment time by the step value')
-        Tooltip.create(step_entry, 'Time to step (in seconds)')
+        widgets.Tooltip.create(step_button, 'Click this to increment time by the step value')
+        widgets.Tooltip.create(step_entry, 'Time to step (in seconds)')
         realtime_mode.set(0)
         
         timing_control.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
@@ -334,18 +335,18 @@ class SimUI(object):
         lbl = tk.Label(self.can_slot, text=str(canId))
         lbl.grid(column=0, row=row)
         
-        motor = ValueWidget(self.can_slot, default=0.0)
+        motor = widgets.ValueWidget(self.can_slot, default=0.0)
         motor.grid(column=1, row=row)
         self.set_tooltip(motor, 'CAN', canId)
         
-        fl = CheckButtonWrapper(self.can_slot, text='F')
+        fl = widgets.CheckButtonWrapper(self.can_slot, text='F')
         fl.grid(column=2, row=row)
         
-        rl = CheckButtonWrapper(self.can_slot, text='R')
+        rl = widgets.CheckButtonWrapper(self.can_slot, text='R')
         rl.grid(column=3, row=row)
         
-        Tooltip.create(fl, 'Forward limit switch')
-        Tooltip.create(rl, 'Reverse limit switch')
+        widgets.Tooltip.create(fl, 'Forward limit switch')
+        widgets.Tooltip.create(rl, 'Reverse limit switch')
         
         mode_lbl_txt = tk.StringVar(value = self.can_mode_map[device['mode_select']])
         mode_label = tk.Label(self.can_slot, textvariable=mode_lbl_txt)
@@ -394,14 +395,12 @@ class SimUI(object):
         # call next timer_fired (or we'll never call timer_fired again!)
         delay = 100 # milliseconds
         self.root.after(delay, self.timer_fired) # pause, then call timer_fired again
-        
-    
+
     def update_widgets(self):
-        
-            
+
         # TODO: support multiple slots?
         
-        #joystick stuff
+        # joystick stuff
         if self.usb_joysticks is not None:
             self.usb_joysticks.update()
         
@@ -500,8 +499,12 @@ class SimUI(object):
             jbuttons = joy['buttons']
             for j, (ck, var) in enumerate(buttons):
                 jbuttons[j+1]  = True if var.get() else False
-                
+
+        # Field
         self.field.update_widgets()
+
+        # State display
+        self.state_display.update_widgets(self.manager.get_state())
         
         tm = self.fake_time.get()
         mode_tm = tm - self.mode_start_tm
@@ -512,14 +515,14 @@ class SimUI(object):
         
     def set_tooltip(self, widget, cat, idx):
         
-        tooltip = self.config_obj['pyfrc'][cat].get(str(idx))
+        tooltip = self.config_obj.get(cat, {}).get(str(idx))
         if tooltip is not None:
-            Tooltip.create(widget, tooltip)
+            widgets.Tooltip.create(widget, tooltip)
             
     def set_joy_tooltip(self, widget, idx, typ, idx2):
-        tooltip = self.config_obj['pyfrc']['joysticks'][str(idx)][typ].get(str(idx2))
+        tooltip = self.config_obj.get("joysticks", {}).get(str(idx), {}).get(typ, {}).get(str(idx2), "")
         if tooltip is not None:
-            Tooltip.create(widget, tooltip)
+            widgets.Tooltip.create(widget, tooltip)
             
     def on_robot_mode_change(self, mode):
         self.mode.set(mode)
@@ -529,7 +532,7 @@ class SimUI(object):
         # this is not strictly true... a robot can actually receive joystick
         # commands from the driver station in disabled mode. However, most 
         # people aren't going to use that functionality... 
-        controls_disabled = False if mode == self.manager.MODE_OPERATOR_CONTROL else True 
+        controls_disabled = False if mode == self.manager.MODE_OPERATOR_CONTROL else True
         state = tk.DISABLED if controls_disabled else tk.NORMAL
         
         for axes, buttons in self.joysticks:

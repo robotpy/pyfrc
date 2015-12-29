@@ -1,20 +1,16 @@
-
 from hal_impl import mode_helpers
 from hal_impl.data import hal_data
 
 import threading
 import time
-
 import wpilib
-
-from ..physics.core import PhysicsInterface
 from .sim_manager import SimManager
 
 class RobotController:
     '''
         This manages the active state of the robot
     '''
-    
+
     mode_map = {
         SimManager.MODE_AUTONOMOUS: "Autonomous",
         SimManager.MODE_DISABLED: "Disabled",
@@ -22,15 +18,19 @@ class RobotController:
         SimManager.MODE_TEST: "Test"
     }
     
-    def __init__(self, robot_class, robot_path, fake_time, config_obj):
-    
+    def __init__(self, robot_class, physics_class, fake_time, config):
+        self.config = config
         self.mode = SimManager.MODE_DISABLED
         self.mode_callback = None
         
         self.robot_class = robot_class
         self.fake_time = fake_time
-        
-        self.physics_controller = PhysicsInterface(robot_path, fake_time, config_obj)
+
+        # Initialize physics engine if provided
+        self.physics_engine = None
+        if physics_class is not None:
+            self.physics_engine = physics_class(hal_data)
+            self.physics_engine.set_state(config.get("init_state", {}))
         
         # any data shared with the ui must be protected by
         # this since it's running in a different thread
@@ -52,39 +52,13 @@ class RobotController:
         # Do this so that we don't initialize the UI until robotInit is done
         while hal_data['user_program_state'] is None:
             time.sleep(0.025)
-    
-    def stop(self):
-        
-        # Since we're using OperatorControl, there isn't a way to kill
-        # the robot. Just exit and hopefully everything is ok
-        return True
-        
-        #with self._lock:
-        #    self._run_code = False
-        
-            # if the robot code is spinning in any of the modes, then
-            # we need to change the mode so it returns back to us
-        #    if self.mode == SimManager.MODE_DISABLED:
-        #        self.mode = SimManager.MODE_OPERATOR_CONTROL
-        #    else:
-        #        self.mode = SimManager.MODE_DISABLED
-        
-        # resume the robot just in case it's hung somewhere
-        #self.fake_time.resume()
-        
-        #try:
-        #    self.thread.join(timeout=5.0)
-        #except RuntimeError:
-        #    return False
-        
-        #return not self.thread.is_alive()
         
     #
     # API used by the ui
     #
     
     def has_physics(self):
-        return self.physics_controller._has_engine()
+        return self.physics_engine is not None
     
     def is_alive(self):
         return self.thread.is_alive()
@@ -96,8 +70,8 @@ class RobotController:
     
     def set_mode(self, mode):
         
-        if mode not in [SimManager.MODE_DISABLED, 
-                        SimManager.MODE_AUTONOMOUS, 
+        if mode not in [SimManager.MODE_DISABLED,
+                        SimManager.MODE_AUTONOMOUS,
                         SimManager.MODE_OPERATOR_CONTROL,
                         SimManager.MODE_TEST]:
             raise ValueError("Invalid value for mode: %s" % mode)
@@ -124,23 +98,39 @@ class RobotController:
             elif mode == SimManager.MODE_TEST:
                 mode_helpers.set_test_mode(True)
             
-            self.physics_controller._set_robot_enabled(mode != SimManager.MODE_DISABLED)
-            
             if callback is not None:
                 callback(mode)
 
     def get_mode(self):
         with self._lock:
             return self.mode
+
+    def get_config(self):
+        return self.config
         
+    def get_state(self):
+        """Returns the physics state dictionary"""
+        if self.physics_engine is not None:
+            return self.physics_engine.get_state()
+        return {}
+
     def get_position(self):
-        '''Returns x,y,angle'''
-        return self.physics_controller.get_position()
+        position_state = self.config.get("field_position_state", "drivetrain.position")
+        state = self.get_state()
+        for key in position_state.split("."):
+            if key in state:
+                state = state.get(key, None)
+            if state is None:
+                break
+        return state
+
+    def update_physics(self, dt):
+        if self.physics_engine is not None:
+            self.physics_engine.update_physics(hal_data, self.get_mode() != SimManager.MODE_DISABLED, dt)
         
     #
     # Runs the code
     #
-    
     def _check_sleep(self, idx):
         '''This ensures that the robot code called Wait() at some point'''
         
@@ -157,13 +147,12 @@ class RobotController:
         while True:
             time.sleep(0.020)
             mode_helpers.notify_new_ds_data()
-        
-    
+
     def _robot_thread(self):
         
         # Initialize physics time hook -- must be done on
         # robot thread, since it uses a threadlocal variable to work
-        self.physics_controller.setup_main_thread()
+        self.fake_time.set_physics_fn(self.update_physics)
         
         # setup things for the robot
         self.driver_station = wpilib.DriverStation.getInstance()
