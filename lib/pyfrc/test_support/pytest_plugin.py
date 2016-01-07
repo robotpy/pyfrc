@@ -7,6 +7,9 @@ from . import fake_time, pyfrc_fake_hooks
 
 from .controller import TestController
 
+class ThreadStillRunningError(Exception):
+    pass
+
 
 class PyFrcPlugin:
     '''
@@ -59,6 +62,9 @@ class PyFrcPlugin:
                        "If your robot class has an __init__ function, it must call super().__init__()!"
     
     def pytest_runtest_teardown(self, nextitem):
+        # Let any child threads run in realtime to allow cancelling if it
+        # has been implemented.
+        self._fake_time.teardown()
         self._test_controller = None
         
         import wpilib._impl.utils
@@ -67,7 +73,12 @@ class PyFrcPlugin:
         import networktables
         networktables.NetworkTable._staticProvider.close()
         networktables.NetworkTable._staticProvider = None
-    
+
+        if not self._fake_time.children_stopped():
+            raise ThreadStillRunningError("Make sure spawning class has free() "
+            "method to stop thread and is registered with "
+            "Resource.add_global_resource().")
+
     #
     # Fixtures
     #
