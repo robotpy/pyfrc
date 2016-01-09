@@ -13,6 +13,9 @@ from ..robotpy import installer
 
 import wpilib
 
+import logging
+logger = logging.getLogger('deploy')
+
 
 def relpath(path):
     '''Path helper, gives you a path relative to this file'''
@@ -84,12 +87,15 @@ class PyFrcDeploy:
         
         # note below: deployed_cmd appears that it only can be a single line
         
+        # In 2015, there were stdout/stderr issues. In 2016, they seem to
+        # have been fixed, but need to use -u for it to really work properly
+        
         if options.debug:
-            deployed_cmd = 'env LD_PRELOAD=/lib/libstdc++.so.6.0.20 /usr/local/frc/bin/netconsole-host /usr/local/bin/python3 %s/%s -v run' % (py_deploy_dir, robot_filename)
+            deployed_cmd = 'env LD_LIBRARY_PATH=/usr/local/frc/rpath-lib/ /usr/local/frc/bin/netconsole-host /usr/local/bin/python3 -u %s/%s -v run' % (py_deploy_dir, robot_filename)
             deployed_cmd_fname = 'robotDebugCommand'
             extra_cmd = 'touch /tmp/frcdebug; chown lvuser:ni /tmp/frcdebug'
         else:
-            deployed_cmd = 'env LD_PRELOAD=/lib/libstdc++.so.6.0.20 /usr/local/frc/bin/netconsole-host /usr/local/bin/python3 -O %s/%s run' % (py_deploy_dir, robot_filename)
+            deployed_cmd = 'env LD_LIBRARY_PATH=/usr/local/frc/rpath-lib/ /usr/local/frc/bin/netconsole-host /usr/local/bin/python3 -u -O %s/%s run' % (py_deploy_dir, robot_filename)
             deployed_cmd_fname = 'robotCommand'
             extra_cmd = ''
 
@@ -100,14 +106,15 @@ class PyFrcDeploy:
 
         del_cmd %= {"py_deploy_dir": py_deploy_dir}
         
-        check_version = '/usr/local/bin/python3 -c "exec(open(\\"/usr/local/lib/python3.4/site-packages/wpilib/version.py\\", \\"r\\").read(), globals()); print(\\"WPILib version on robot is \\" + __version__);exit(0) if __version__ == \\"%s\\" else exit(89)"' % wpilib.__version__
+        check_version = '/usr/local/bin/python3 -c "exec(open(\\"$SITEPACKAGES/wpilib/version.py\\", \\"r\\").read(), globals()); print(\\"WPILib version on robot is \\" + __version__);exit(0) if __version__ == \\"%s\\" else exit(89)"' % wpilib.__version__
         if options.no_version_check:
             check_version = ''
         
         # This is a nasty bit of code now...
         sshcmd = inspect.cleandoc("""
             /bin/bash -ce '[ -x /usr/local/bin/python3 ] || exit 87
-            [ -f /usr/local/lib/python3.4/site-packages/wpilib/version.py ] || exit 88
+            SITEPACKAGES=$(/usr/local/bin/python3 -c "import site; print(site.getsitepackages()[0])")
+            [ -f $SITEPACKAGES/wpilib/version.py ] || exit 88
             %(check_version)s
             %(del_cmd)s
             echo "%(cmd)s" > %(deploy_dir)s/%(cmd_fname)s
@@ -136,8 +143,9 @@ class PyFrcDeploy:
             # This asks the user if not configured, so get the value first
             hostname = controller.hostname
             print("Deploying to robot at", hostname)
-
+            
             # Housekeeping first
+            logger.debug('SSH: %s', sshcmd)
             controller.ssh(sshcmd)
             
             # Copy the files over, copy to a temporary directory first
@@ -151,12 +159,9 @@ class PyFrcDeploy:
             finally:
                 shutil.rmtree(tmp_dir)
             
-            fix_pyfrc_2015_0_x = '[ ! -f /var/local/natinst/log/FRC_UserProgram.log ] || rm -f /var/local/natinst/log/FRC_UserProgram.log;'
-
             if not options.in_place:
                 # Restart the robot code and we're done!
                 sshcmd = "/bin/bash -ce '" + \
-                         fix_pyfrc_2015_0_x + \
                          '. /etc/profile.d/natinst-path.sh; ' + \
                          'chown -R lvuser:ni %s; ' + \
                          '/usr/local/frc/bin/frcKillRobot.sh -t -r' + \
@@ -174,8 +179,9 @@ class PyFrcDeploy:
                                              daemon=True)
                 nc_thread.start()
                 nc_event.wait(5)
-                print("Netconsole is listening...")
+                logger.info("Netconsole is listening...")
             
+            logger.debug('SSH: %s', sshcmd)
             controller.ssh(sshcmd)
             controller.close()
             
@@ -193,7 +199,6 @@ class PyFrcDeploy:
                 print_err()
                 print_err("Alternatively, you can specify --no-version-check to skip this check")
             else:
-                print("hm", e.retval)
                 print_err("ERROR: %s" % e)
             return 1
         except installer.Error as e:
