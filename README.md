@@ -55,6 +55,8 @@ Dustin Spicuzza (dustin@virtualroadside.com)
 Contributors:
 
 * Sam Rosenblum
+* James Ward
+* Christian Balcom
 * Others
 
 pyfrc is originally derived from (and supercedes) fake_wpilib, which was
