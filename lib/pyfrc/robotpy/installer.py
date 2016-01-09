@@ -22,6 +22,7 @@ import getpass
 import hashlib
 import inspect
 import os
+import string
 from os.path import abspath, basename, dirname, exists, isdir, join, relpath
 import shutil
 import subprocess
@@ -30,7 +31,7 @@ import tempfile
 
 from collections import OrderedDict
 from distutils.version import LooseVersion
-from urllib.request import urlopen, urlretrieve
+from urllib.request import urlretrieve
 
 
 is_windows = hasattr(sys, 'getwindowsversion')
@@ -45,6 +46,17 @@ def md5sum(fname):
             buf = fp.read(65536)
     return md5.hexdigest()
 
+def _urlretrieve(url, fname):
+    # Get it
+    print("Downloading", url)
+    
+    def _reporthook(count, blocksize, totalsize):
+        percent = min(int(count*blocksize*100/totalsize), 100)
+        sys.stdout.write("\r%02d%%" % percent)
+        sys.stdout.flush()
+    
+    urlretrieve(url, fname, _reporthook)
+    sys.stdout.write('\n')
 
 class OpkgError(Exception):
     pass
@@ -52,55 +64,70 @@ class OpkgError(Exception):
 class OpkgRepo(object):
     '''Simplistic OPkg Manager'''
     
-    def __init__(self, feedurl, arch, opkg_cache):
-        self.pkgs = {}
-        
-        self.feedurl = feedurl
+    sys_packages = ['libc6']
+    
+    def __init__(self, opkg_cache, arch):
+        self.feeds = []
         self.opkg_cache = opkg_cache
-        self.db_fname = join(opkg_cache, 'Packages')
         self.arch = arch
-        
         if not exists(self.opkg_cache):
             os.makedirs(self.opkg_cache)
-        
-        if exists(self.db_fname):
-            with open(self.db_fname, 'r') as fp:
-                self._read_pkgs(fp.readlines())
+        self.pkg_dbs = join(self.opkg_cache, 'Packages')
+        if not exists(self.pkg_dbs):
+            os.makedirs(self.pkg_dbs)
+
+    def add_feed(self, url):
+        # Snippet from https://gist.github.com/seanh/93666
+        valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+        safe_url = ''.join(c for c in url if c in valid_chars)
+        safe_url = safe_url.replace(' ','_')
+        feed = {
+            "url": url,
+            "db_fname": join(self.pkg_dbs, safe_url),
+            "pkgs": OrderedDict()
+        }
+        if exists(feed["db_fname"]):
+            self.load_package_db(feed)
+        self.feeds.append(feed)
         
     def update_packages(self):
-        pkgurl = self.feedurl + '/Packages'
-        r = urlopen(pkgurl)
-        self._read_pkgs(line.decode('utf-8').strip() for line in r.readlines())
-        self.save()
-    
-    def _read_pkgs(self, lines):
+        for feed in self.feeds:
+            pkgurl = feed["url"] + '/Packages'
+            _urlretrieve(pkgurl, feed['db_fname'])
+            self.load_package_db(feed)
+
+    def load_package_db(self, feed):
     
         # dictionary of lists of packages sorted by version
         pkg = OrderedDict()
-    
-        for line in lines:
-            line = line.strip()
-            if len(line) == 0:
-                self._add_pkg(pkg)
-                pkg = OrderedDict()
-            else:
-                k, v = [i.strip() for i in line.split(':', 1)]
-                if k == 'Version':
-                    v = LooseVersion(v)
-                pkg[k] = v            
+        with open(feed["db_fname"], 'r') as fp:
+            for line in fp.readlines():
+                line = line.strip()
+                if len(line) == 0:
+                    self._add_pkg(pkg, feed)
+                    pkg = OrderedDict()
+                else:
+                    if ":" in line:
+                        k, v = [i.strip() for i in line.split(':', 1)]
+                        if k == 'Version':
+                            v = LooseVersion(v)
+                        pkg[k] = v
              
-        self._add_pkg(pkg)
+        self._add_pkg(pkg, feed)
             
         # Finally, make sure all the packages are sorted by version
-        for pkglist in self.pkgs.values():
+        for pkglist in feed["pkgs"].values():
             pkglist.sort(key=lambda p: p['Version'])
     
-    def _add_pkg(self, pkg):
+    def _add_pkg(self, pkg, feed):
         if len(pkg) == 0 or pkg.get('Architecture', None) != self.arch:
             return
+        # Add download url and fname
+        if 'Filename' in pkg:
+            pkg['url'] = "/".join((feed["url"], pkg['Filename']))
         
         # Only retain one version of a package
-        pkgs = self.pkgs.setdefault(pkg['Package'], [])
+        pkgs = feed["pkgs"].setdefault(pkg['Package'], [])
         for old_pkg in pkgs:
             if old_pkg['Version'] == pkg['Version']:
                 old_pkg.clear()
@@ -110,10 +137,10 @@ class OpkgRepo(object):
             pkgs.append(pkg)
     
     def get_pkginfo(self, name):
-        try:
-            return self.pkgs[name][-1]
-        except KeyError:
-            raise OpkgError("Package '%s' is not in the package list (have you downloaded it yet?)" % name)
+        for feed in self.feeds:
+            if name in feed["pkgs"]:
+                return feed["pkgs"][name][-1]
+        raise OpkgError("Package '%s' is not in the package list (have you downloaded it yet?)" % name)
         
     def _get_pkg_fname(self, pkg):
         return join(self.opkg_cache, basename(pkg['Filename']))
@@ -130,6 +157,21 @@ class OpkgRepo(object):
             raise OpkgError('Cached package for %s md5sum does not match' % name)
         
         return pkg, fname
+
+    def resolve_pkg_deps(self, packages):
+        new_pkglist = []
+        while len(packages) > 0:
+            pkg_name = packages.pop()
+            if pkg_name in new_pkglist:
+                continue
+            info = self.get_pkginfo(pkg_name)
+            if "Depends" in info:
+                for dep in info["Depends"].split(","):
+                    dep = dep.strip().split(" ", 1)[0]
+                    if dep not in self.sys_packages and dep not in new_pkglist:
+                        packages.append(dep)
+            new_pkglist.append(pkg_name)
+        return reversed(new_pkglist)
         
     def download(self, name):
         
@@ -138,32 +180,12 @@ class OpkgRepo(object):
         
         # Only download it if necessary
         if not exists(fname) or not md5sum(fname) == pkg['MD5Sum']:
-        
-            # Get it
-            print(pkg['Filename'])
-            
-            def _reporthook(count, blocksize, totalsize):
-                percent = int(count*blocksize*100/totalsize)
-                sys.stdout.write("\r%02d%%" % percent)
-                sys.stdout.flush()
-            
-            urlretrieve('%s/%s' % (self.feedurl, pkg['Filename']),
-                        fname, _reporthook)
-        
+            _urlretrieve(pkg['url'], fname)
         # Validate it
         if md5sum(fname) != pkg['MD5Sum']:
             raise OpkgError('Downloaded package for %s md5sum does not match' % name)
         
         return fname
-        
-    def save(self):
-        with open(self.db_fname, 'w') as fp:
-            for pkglist in self.pkgs.values():
-                for pkg in pkglist:
-                    for kv in pkg.items():
-                        fp.write('%s: %s\n' % kv)
-                    fp.write('\n')
-
 
 def ssh_exec_pass(password, args, capture_output=False, suppress_known_hosts=False):
     '''
@@ -277,7 +299,10 @@ class SshController(object):
     # Defaults, actual values come from config file
     _hostname = ''
     
-    win_bins = abspath(join(dirname(__file__), 'win32'))
+    _win_bins = abspath(join(dirname(__file__), 'win32'))
+    
+    _plink_url = 'http://the.earth.li/~sgtatham/putty/latest/x86/plink.exe'
+    _psftp_url = 'http://the.earth.li/~sgtatham/putty/latest/x86/psftp.exe'
     
     def __init__(self, cfg_filename, username, password, allow_mitm=False):
         self.cfg_filename = cfg_filename
@@ -300,7 +325,30 @@ class SshController(object):
     def hostname(self):
         self._init_cfg()
         return self._hostname
-
+    
+    @property
+    def win_bins(self):
+        self.ensure_win_bins()
+        return self._win_bins
+    
+    def ensure_win_bins(self):
+        '''Makes sure the right Windows binaries are present'''
+        
+        if not is_windows:
+            return
+        
+        if not exists(self._win_bins):
+            os.mkdir(self._win_bins)
+            
+        psftp = join(self._win_bins, 'psftp.exe')
+        plink = join(self._win_bins, 'plink.exe')
+            
+        if not exists(psftp):
+            _urlretrieve(self._psftp_url, psftp)
+        
+        if not exists(plink):
+            _urlretrieve(self._plink_url, plink)
+    
     def _init_cfg(self):
 
         if self.cfg is not None:
@@ -325,7 +373,7 @@ class SshController(object):
         print("Robot setup (hit enter for default value):")
         hostname = ''
         while hostname == '':
-            hostname = input('Robot hostname (like roborio-XXX.local, or an IP address): ')
+            hostname = input('Robot hostname (like roborio-XXX-frc.local, or an IP address): ')
         
         #username = input('Username [%s]: ' % self._username)
         #password = getpass.getpass('Password [%s]: ' % self._password)
@@ -546,14 +594,17 @@ class RobotpyInstaller(object):
     opkg_cache = abspath(join(dirname(__file__), 'opkg_cache'))
     
     # opkg feed
-    opkg_feed = 'http://www.tortall.net/~robotpy/feeds/2014/'
-    opkg_arch = 'armv7a-vfp-neon'
+    opkg_arch = 'cortexa9-vfpv3'
     
     commands = [
         'install-robotpy',
         'download-robotpy',
         'install',
-        'download'
+        'download',
+        'install-pip',
+        'download-pip',
+        'install-opkg',
+        'download-opkg'
     ]
 
     def __init__(self):
@@ -563,15 +614,27 @@ class RobotpyInstaller(object):
         
         cfg_filename = abspath(join(dirname(__file__), '.installer_config'))
         self.ctrl = SshController(cfg_filename, username='admin', password='', allow_mitm=True)
-        
+        self.remote_commands = []
+
     def _get_opkg(self):
-        return OpkgRepo(self.opkg_feed, self.opkg_arch, self.opkg_cache)
-    
+        opkg = OpkgRepo(self.opkg_cache, self.opkg_arch)
+        opkg.add_feed('http://www.tortall.net/~robotpy/feeds/2016/')
+        opkg.add_feed("http://download.ni.com/ni-linux-rt/feeds/2015/arm/ipk/cortexa9-vfpv3")
+        return opkg
+
+    def execute_remote(self):
+        if len(self.remote_commands) > 0:
+            self.ctrl.ssh(" && ".join(self.remote_commands))
+
     #
     # Commands
     #
 
-    def _create_rpy_options(self, options):
+    #
+    # RobotPy install commands
+    #
+
+    def _create_rpy_pip_options(self, options):
         # Construct an appropriate line to install
         options.requirement = []
         options.packages = ['wpilib',
@@ -593,7 +656,18 @@ class RobotpyInstaller(object):
             options.packages.append('robotpy-wpilib-utilities')
 
         return options
-    
+
+    def _create_rpy_opkg_options(self, options):
+        # Construct an appropriate line to install
+        options.requirement = []
+        options.packages = ['python3']
+        options.upgrade = True
+
+        options.force_reinstall = False
+        options.ignore_installed = False
+
+        return options
+
     def install_robotpy_opts(self, parser):
         parser.add_argument('--basever', default=None,
                             help='Install a specific version of WPILib et al')
@@ -608,64 +682,103 @@ class RobotpyInstaller(object):
             them. If the components are already installed on the robot, then they will
             be reinstalled.
         '''
-        
-        opkg = self._get_opkg()
-        
-        try:
-            pkg, fname = opkg.get_cached_pkg('python3')
-        except OpkgError as e:
-            raise Error(e)
-        
-        # Write out the install script
-        # -> we use a script because opkg doesn't have a good mechanism
-        #    to only install a package if it's not already installed
-        opkg_script_fname = join(self.opkg_cache, 'install_opkg.sh')
-        opkg_script = inspect.cleandoc('''
-            set -e
-            if ! opkg list-installed | grep -F '%(name)s - %(version)s'; then
-                opkg install opkg_cache/%(fname)s
-            else
-                echo "Python interpreter already installed, continuing..."
-            fi
-        ''')
-        
-        opkg_script %= {
-            'fname': basename(fname),
-            'name': pkg['Package'],
-            'version': pkg['Version']
-        }
-        
-        with open(opkg_script_fname, 'w', newline='\n') as fp:
-            fp.write(opkg_script)
-        
-        self.ctrl.poor_sync([fname, opkg_script_fname], 'opkg_cache')
-        extra_cmd = 'bash opkg_cache/install_opkg.sh'
-        
+        opkg_options = self._create_rpy_opkg_options(options)
+        self.install_opkg(opkg_options)
+
         # We always add --pre to install-robotpy, in case the user downloaded
         # a prerelease version. Never add --pre without user intervention
         # for download-robotpy, however
-        inst_options = self._create_rpy_options(options)
-        inst_options.pre = True
-        return self.install(inst_options, extra_cmd=extra_cmd)
-    
+        pip_options = self._create_rpy_pip_options(options)
+        pip_options.pre = True
+        return self.install_pip(pip_options)
+
     # These share the same options
     download_robotpy_opts = install_robotpy_opts
-    
+
     def download_robotpy(self, options):
         '''
             This will update the cached RobotPy packages to the newest versions available.
         '''
+
+        self.download_opkg(self._create_rpy_opkg_options(options))
+
+        return self.download_pip(self._create_rpy_pip_options(options))
+
+    #
+    # OPKG install commands
+    #
+
+    def download_opkg_opts(self, parser):
+        parser.add_argument('packages', nargs='*',
+                            help="Packages to download")
+        parser.add_argument('--force-reinstall', action='store_true', default=False,
+                            help='When upgrading, reinstall all packages even if they are already up-to-date.')
+    install_opkg_opts = download_opkg_opts
+
+    def download_opkg(self, options):
+        """
+            Specify opkg package(s) to download, and store them in the cache
+        """
+        
+        # Don't leave windows users stranded
+        self.ctrl.ensure_win_bins()
         
         opkg = self._get_opkg()
         opkg.update_packages()
-        opkg.download('python3')
-        
-        return self.download(self._create_rpy_options(options))
-    
-    
-    def download_opts(self, parser):
+        package_list = opkg.resolve_pkg_deps(options.packages)
+        for package in package_list:
+            opkg.download(package)
+
+    def install_opkg(self, options):
+        opkg = self._get_opkg()
+
+        # Write out the install script
+        # -> we use a script because opkg doesn't have a good mechanism
+        #    to only install a package if it's not already installed
+        opkg_script_fname = join(self.opkg_cache, 'install_opkg.sh')
+        opkg_script = ""
+        opkg_files = []
+        package_list = opkg.resolve_pkg_deps(options.packages)
+        for package in package_list:
+
+            try:
+                pkg, fname = opkg.get_cached_pkg(package)
+            except OpkgError as e:
+                raise Error(e)
+
+            opkg_script_bit = inspect.cleandoc('''
+                set -e
+                if ! opkg list-installed | grep -F '%(name)s - %(version)s'; then
+                    opkg install %(options)s opkg_cache/%(fname)s
+                else
+                    echo "%(name)s already installed, continuing..."
+                fi
+            ''')
+
+            opkg_script_bit %= {
+                'fname': basename(fname),
+                'name': pkg['Package'],
+                'version': pkg['Version'],
+                'options': "--force-reinstall" if options.force_reinstall else ""
+            }
+            opkg_script += "\n" + opkg_script_bit
+            opkg_files.append(fname)
+
+        with open(opkg_script_fname, 'w', newline='\n') as fp:
+            fp.write(opkg_script)
+        opkg_files.append(opkg_script_fname)
+
+        print("Copying over the opkg cache...")
+        self.ctrl.poor_sync(opkg_files, 'opkg_cache')
+        self.remote_commands.append('bash opkg_cache/install_opkg.sh')
+
+    #
+    # Pip install commands
+    #
+
+    def download_pip_opts(self, parser):
         parser.add_argument('packages', nargs='*',
-                            help="Packages to download")
+                            help="Packages to download/install, may be a local file")
         parser.add_argument('-r', '--requirement', action='append', default=[],
                             help='Install from the given requirements file. This option can be used multiple times.')
         parser.add_argument('--pre', action='store_true', default=False, 
@@ -698,10 +811,12 @@ class RobotpyInstaller(object):
         
         return pip_args
     
-    def download(self, options):
+    def download_pip(self, options):
         '''
             Specify python package(s) to download, and store them in the cache
         '''
+        
+        self.ctrl.ensure_win_bins()
         
         try:
             import pip
@@ -726,9 +841,9 @@ class RobotpyInstaller(object):
         return pip.main(pip_args)
     
     # These share the same options
-    install_opts = download_opts
+    install_pip_opts = download_pip_opts
     
-    def install(self, options, extra_cmd=None):
+    def install_pip(self, options):
         '''
             Copies python packages over to the roboRIO, and installs them. If the
             package already has been installed, it will not be upgraded. Use -U to
@@ -746,24 +861,33 @@ class RobotpyInstaller(object):
         if len(options.requirement) != 0:
             raise NotImplementedError()
         
-        # copy the pip cache over
-        # .. this is inefficient
-        print("Copying over the pip cache...")
-        self.ctrl.poor_sync(self.pip_cache, 'pip_cache')
-        
-        print("Running installation...")
         cmd = "/usr/local/bin/pip3 install --no-index --find-links=pip_cache "
+        cmd_args = []
+
+        # Is the user asking to install a file?
+        if len(options.packages) == 1 and exists(options.packages[0]):
+            pkg = options.packages[0]
+            self.ctrl.sftp(pkg, 'pip_cache', mkdir=False)
+            cmd_args = ['pip_cache/' + basename(pkg)]
+        else:
+            # copy the pip cache over
+            # .. this is inefficient
+            print("Copying over the pip cache...")
+            self.ctrl.poor_sync(self.pip_cache, 'pip_cache')
+
+            print("Running installation...")
+            cmd_args = options.packages
         
-        cmd += ' '.join(self._process_pip_args(options) + options.packages)
-        
-        # This is here so we can execute the install-robotpy commands without
-        # a separate SSH connection.
-        if extra_cmd is not None:
-            cmd = extra_cmd + ' && ' + cmd
-        
-        self.ctrl.ssh(cmd)
+        cmd += ' '.join(self._process_pip_args(options) + cmd_args)
+        self.remote_commands.append(cmd)
         
         print("Done.")
+
+    # Backwards-compatibility aliases
+    install_opts = install_pip_opts
+    install = install_pip
+    download_opts = download_pip_opts
+    download = download_pip
 
 def main(args=None):
 
@@ -793,6 +917,7 @@ def main(args=None):
 
     try:
         retval = options.cmdobj(options)
+        installer.execute_remote()
     except ArgError as e:
         parser.error(str(e))
         retval = 1
