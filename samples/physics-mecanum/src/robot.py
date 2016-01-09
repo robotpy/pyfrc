@@ -26,7 +26,7 @@ class MyRobot(wpilib.SampleRobot):
         self.robot_drive.setInvertedMotor(wpilib.RobotDrive.MotorType.kRearLeft, True)
         
         # Position gets automatically updated as robot moves
-        self.gyro = wpilib.Gyro(1)
+        self.gyro = wpilib.AnalogGyro(1)
          
     def disabled(self):
         '''Called when the robot is disabled'''

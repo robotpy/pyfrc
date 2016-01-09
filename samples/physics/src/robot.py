@@ -15,7 +15,7 @@ class MyRobot(wpilib.SampleRobot):
         self.r_motor = wpilib.Jaguar(2)
         
         # Position gets automatically updated as robot moves
-        self.gyro = wpilib.Gyro(1)
+        self.gyro = wpilib.AnalogGyro(1)
         
         self.robot_drive = wpilib.RobotDrive(self.l_motor, self.r_motor)
         

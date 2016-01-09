@@ -21,7 +21,7 @@ class MyRobot(wpilib.SampleRobot):
                                              self.rf_motor, self.rr_motor)
         
         # Position gets automatically updated as robot moves
-        self.gyro = wpilib.Gyro(1)
+        self.gyro = wpilib.AnalogGyro(1)
          
     def disabled(self):
         '''Called when the robot is disabled'''
