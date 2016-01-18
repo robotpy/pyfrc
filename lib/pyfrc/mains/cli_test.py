@@ -7,6 +7,7 @@ from os.path import abspath, dirname, exists, join
 
 import pytest
 
+from ..util import yesno
 from ..test_support import pytest_plugin
 
 # TODO: setting the plugins so that the end user can invoke py.test directly
@@ -121,11 +122,7 @@ class PyFrcTest:
             print("    python3 robot.py add-tests")
             print()
         else:
-            a = ''
-            while a not in ['y', 'n']:
-                a = input("Create a tests directory with builtin tests now? [y/n]").lower()
-                
-            if a == 'y':
+            if yesno("Create a tests directory with builtin tests now?"):
                 from .cli_add_tests import PyFrcAddTests
                 add_tests = PyFrcAddTests()
                 add_tests.run(None, self.robot_class)

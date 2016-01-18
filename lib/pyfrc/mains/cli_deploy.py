@@ -10,6 +10,7 @@ import threading
 from os.path import abspath, basename, dirname, exists, join, splitext
 
 from ..robotpy import installer
+from ..util import print_err, yesno
 
 import wpilib
 
@@ -20,9 +21,6 @@ logger = logging.getLogger('deploy')
 def relpath(path):
     '''Path helper, gives you a path relative to this file'''
     return os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)), path))
-    
-def print_err(*args):
-    print(*args, file=sys.stderr)
     
 class PyFrcDeploy:
     """
@@ -65,8 +63,20 @@ class PyFrcDeploy:
             
             retval = tester.run_test([], robot_class, options.builtin, ignore_missing_test=True)
             if retval != 0:
-                print_err("ERROR: Your robot tests failed, aborting upload. Use --skip-tests if you want to upload anyways")
-                return retval
+                print_err("ERROR: Your robot tests failed, aborting upload.")
+                if not sys.stdin.isatty():
+                    print_err("- Use --skip-tests if you want to upload anyways")
+                    return retval
+                
+                print()
+                if not yesno('- Upload anyways?'):
+                    return retval
+                
+                if not yesno('- Are you sure? Your robot code may crash!'):
+                    return retval
+                
+                print()
+                print("WARNING: Uploading code against my better judgement...")
         
         # upload all files in the robot.py source directory
         robot_file = abspath(inspect.getfile(robot_class))
