@@ -26,7 +26,7 @@ Builtin unit tests
 
 pyfrc comes with testing functions that can be used to test basic
 functionality of just about any robot, including running through a 
-simulated practice match. As of pyfrc 2015.1.1, to add these standardized
+simulated practice match. As of pyfrc 2016.1.1, to add these standardized
 tests to your robot code, you can run the following:
 
 .. code-block:: sh
