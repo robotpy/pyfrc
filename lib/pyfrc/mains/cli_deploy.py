@@ -49,6 +49,9 @@ class PyFrcDeploy:
         
         parser.add_argument('-n', '--no-version-check', action='store_true', default=False,
                             help="If specified, don't verify that your local wpilib install matches the version on the robot (not recommended)")
+        
+        parser.add_argument('--robot', default=None,
+                            help="Set hostname or IP address of robot")
     
     def run(self, options, robot_class, **static_options):
         
@@ -145,14 +148,11 @@ class PyFrcDeploy:
         nc_thread = None
         
         try:
-            controller = installer.SshController(cfg_filename,
-                                                 username='lvuser',
-                                                 password='',
-                                                 allow_mitm=True)
-            
-            # This asks the user if not configured, so get the value first
-            hostname = controller.hostname
-            print("Deploying to robot at", hostname)
+            controller = installer.ssh_from_cfg(cfg_filename,
+                                                username='lvuser',
+                                                password='',
+                                                hostname=options.robot,
+                                                allow_mitm=True)
             
             # Housekeeping first
             logger.debug('SSH: %s', sshcmd)
