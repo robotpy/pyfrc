@@ -169,16 +169,6 @@ class PyFrcDeploy:
             finally:
                 shutil.rmtree(tmp_dir)
             
-            if not options.in_place:
-                # Restart the robot code and we're done!
-                sshcmd = "/bin/bash -ce '" + \
-                         '. /etc/profile.d/natinst-path.sh; ' + \
-                         'chown -R lvuser:ni %s; ' + \
-                         '/usr/local/frc/bin/frcKillRobot.sh -t -r' + \
-                         "'"
-            
-                sshcmd %= (py_deploy_dir)
-            
             # start the netconsole listener now if requested, *before* we
             # actually start the robot code, so we can see all messages
             if options.nc:
@@ -191,9 +181,18 @@ class PyFrcDeploy:
                 nc_event.wait(5)
                 logger.info("Netconsole is listening...")
             
-            logger.debug('SSH: %s', sshcmd)
-            controller.ssh(sshcmd)
-            controller.close()
+            if not options.in_place:
+                # Restart the robot code and we're done!
+                sshcmd = "/bin/bash -ce '" + \
+                         '. /etc/profile.d/natinst-path.sh; ' + \
+                         'chown -R lvuser:ni %s; ' + \
+                         '/usr/local/frc/bin/frcKillRobot.sh -t -r' + \
+                         "'"
+            
+                sshcmd %= (py_deploy_dir)
+            
+                logger.debug('SSH: %s', sshcmd)
+                controller.ssh(sshcmd)
             
         except installer.SshExecError as e:
             if e.retval == 87:
