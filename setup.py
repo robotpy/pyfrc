@@ -89,6 +89,7 @@ setup(name='pyfrc',
         'Topic :: Software Development'
         ],
       entry_points={'robotpy': [
+        'add-tests = pyfrc.mains.cli_add_tests:PyFrcAddTests',
         'coverage = pyfrc.mains.cli_coverage:PyFrcCoverage',
         'deploy = pyfrc.mains.cli_deploy:PyFrcDeploy',
         'profiler = pyfrc.mains.cli_profiler:PyFrcProfiler',

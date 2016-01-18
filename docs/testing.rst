@@ -26,9 +26,18 @@ Builtin unit tests
 
 pyfrc comes with testing functions that can be used to test basic
 functionality of just about any robot, including running through a 
-simulated practice match. To use these standardized tests, just create a file
-in your tests directory called pyfrc_test.py, and put the following contents
-in the file::
+simulated practice match. As of pyfrc 2015.1.1, to add these standardized
+tests to your robot code, you can run the following:
+
+.. code-block:: sh
+
+    Windows:   py robot.py add-tests
+    
+    Linux/OSX: python3 robot.py add-tests
+
+Running this command creates a directory called 'tests' if it doesn't already
+exist, and then creates a file in your tests directory called pyfrc_test.py,
+and put the following contents in the file::
 
     from pyfrc.tests import *
     
