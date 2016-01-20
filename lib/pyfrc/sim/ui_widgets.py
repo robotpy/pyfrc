@@ -5,7 +5,7 @@ import tkinter as tk
 # user drawable widget for tk
 class ValueWidget(tk.Frame):
     
-    def __init__(self, master, width=80, height=20, clickable=False, default=None, minval=-1.0, maxval=1.0, step=0.05):
+    def __init__(self, master, width=80, height=20, clickable=False, default=None, minval=-1.0, maxval=1.0, step=0.05, round_to_step=False):
         
         super().__init__(master)
         
@@ -29,6 +29,7 @@ class ValueWidget(tk.Frame):
         self.minval = minval
         self.maxval = maxval
         self.step = step
+        self.round_to_step = round_to_step
         self.value = 0.0
         
         if default is None:
@@ -111,6 +112,11 @@ class ValueWidget(tk.Frame):
     def set_value(self, value):
         
         value = float(min(max(value, self.minval), self.maxval))
+        
+        if self.round_to_step and (value != self.minval and value != self.maxval):
+            value = round(value/self.step)*self.step
+        
+        # TODO: fix math here
         
         vrange = (self.maxval - self.minval)/2.0
         if value < 0:

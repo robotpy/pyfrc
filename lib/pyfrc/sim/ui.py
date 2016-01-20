@@ -225,29 +225,41 @@ class SimUI(object):
             buttons = []
             
             col = 1 + i*3
+            row = 0
         
             label = tk.Label(slot, text='Stick %s' % i)
-            label.grid(column=col, columnspan=3, row=0)
+            label.grid(column=col, columnspan=3, row=row)
+            row += 1
             
-            for j, t in enumerate(['X', 'Y', 'Z', 'T']):
+            # TODO: make this configurable
+            
+            for j, t in enumerate(['X', 'Y', 'Z', 'T', '4', '5']):
                 label = tk.Label(slot, text=t)
-                label.grid(column=col, row=j+1)
+                label.grid(column=col, row=row)
                 
                 vw = ValueWidget(slot, clickable=True, default=0.0)
-                vw.grid(column=col+1, row=j+1, columnspan=2)
+                vw.grid(column=col+1, row=row, columnspan=2)
                 self.set_joy_tooltip(vw, i, 'axes', t)
                 
                 axes.append(vw)
+                row += 1
+                
+            # POV: this needs improvement
+            label = tk.Label(slot, text='POV')
+            label.grid(column=col, row=row) 
+            pov = ValueWidget(slot, clickable=True, default=-1, minval=-1, maxval=360, step=45, round_to_step=True)
+            pov.grid(column=col+1, row=row, columnspan=2)
+            row += 1
             
             for j in range(1, 11):
                 var = tk.IntVar()
                 ck = tk.Checkbutton(slot, text=str(j), variable=var)
-                ck.grid(column=col+1+(1-j%2), row=5 + int((j - 1) / 2))
+                ck.grid(column=col+1+(1-j%2), row=row + int((j - 1) / 2))
                 self.set_joy_tooltip(ck, i, 'buttons', j)
                 
                 buttons.append((ck, var))
                 
-            self.joysticks.append((axes, buttons))
+            self.joysticks.append((axes, buttons, [pov]))
             
         
         slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
@@ -491,7 +503,7 @@ class SimUI(object):
         #sticks = _core.DriverStation.GetInstance().sticks
         #stick_buttons = _core.DriverStation.GetInstance().stick_buttons
         
-        for i, (axes, buttons) in enumerate(self.joysticks):
+        for i, (axes, buttons, povs) in enumerate(self.joysticks):
             joy = hal_data['joysticks'][i]
             jaxes = joy['axes']
             for j, ax in enumerate(axes):
@@ -500,6 +512,10 @@ class SimUI(object):
             jbuttons = joy['buttons']
             for j, (ck, var) in enumerate(buttons):
                 jbuttons[j+1]  = True if var.get() else False
+                
+            jpovs = joy['povs']
+            for j, pov in enumerate(povs):
+                jpovs[j] = int(pov.get_value())
                 
         self.field.update_widgets()
         
@@ -532,11 +548,13 @@ class SimUI(object):
         controls_disabled = False if mode == self.manager.MODE_OPERATOR_CONTROL else True 
         state = tk.DISABLED if controls_disabled else tk.NORMAL
         
-        for axes, buttons in self.joysticks:
+        for axes, buttons, povs in self.joysticks:
             for axis in axes:
                 axis.set_disabled(disabled=controls_disabled)
             for ck, var in buttons:
                 ck.config(state=state)
+            for pov in povs:
+                pov.set_disabled(disabled=controls_disabled)
         
         if not self.manager.is_alive():
             for button in self.state_buttons:
