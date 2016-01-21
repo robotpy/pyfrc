@@ -136,7 +136,8 @@ class PhysicsInterface:
         
         self.config_obj = config_obj
         self.engine = None
-        self.gyro_channels = []
+        self.analog_gyro_channels = []
+        self.device_gyro_channels = []
         
         self.hal_data = hal_data
         
@@ -206,17 +207,31 @@ class PhysicsInterface:
     #
     #######################################################
     
-    def add_gyro_channel(self, ch):
+    
+    def add_analog_gyro_channel(self, ch):
         '''
-            If you want to enable a wpilib Gyro object to be updated when
-            the robot rotates, add the channel number via this function.
+            If you want to enable a wpilib :class:`.AnalogGyro` object to
+            be updated when the robot rotates, add the channel number via
+            this function.
             
             :param ch: Analog input channel that the gyro is on
             :type  ch: int
         '''
         
         # TODO: use hal_data to detect gyros
-        self.gyro_channels.append(ch)
+        self.analog_gyro_channels.append(ch)
+        
+    # deprecated alias
+    add_gyro_channel = add_analog_gyro_channel
+    
+    def add_device_gyro_channel(self, angle_key):
+        '''
+            :param angle_key: The name of the angle key in ``hal_data['robot']``
+        '''
+        
+        # TODO: use hal_data to detect gyros
+        hal_data['robot'][angle_key] = 0
+        self.device_gyro_channels.append(angle_key)
     
     def drive(self, speed, rotation_speed, tm_diff):
         '''Call this from your :func:`PhysicsEngine.update_sim` function.
@@ -285,12 +300,17 @@ class PhysicsInterface:
         
     def _update_gyros(self, angle):
         
+        angle = math.degrees(angle)
+        
+        for k in self.device_gyro_channels:
+            self.hal_data['robot'][k] += angle
+        
         # XXX: for now, use a constant to compute the output voltage
         #      .. however, we should do the actual calculation at some point?
         
-        gyro_value = math.degrees(angle) / 2.7901785714285715e-12
+        gyro_value =  angle / 2.7901785714285715e-12
         
-        for gyro_ch in self.gyro_channels:
+        for gyro_ch in self.analog_gyro_channels:
             self.hal_data['analog_in'][gyro_ch]['accumulator_value'] += gyro_value
     
     def get_position(self):
