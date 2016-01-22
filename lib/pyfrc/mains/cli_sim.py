@@ -7,6 +7,9 @@ from ..test_support import pyfrc_fake_hooks
 
 import hal_impl.functions
 
+import logging
+logger = logging.getLogger('pyfrc.sim')
+
 class PyFrcSim:
     """
         Executes the robot code using the low fidelity simulator and shows
@@ -22,12 +25,15 @@ class PyFrcSim:
             with open(config_file, 'r') as fp:
                 config_obj = json.load(fp)
         else:
+            logger.warn("sim/config.json not found, using default simulation parameters")
             config_obj = {}
         
         # setup defaults
         config_obj.setdefault('pyfrc', {})
         
         config_obj['pyfrc'].setdefault('robot', {})
+        config_obj['pyfrc']['robot'].setdefault('w', 2)
+        config_obj['pyfrc']['robot'].setdefault('h', 3)
         config_obj['pyfrc']['robot'].setdefault('starting_x', 0)
         config_obj['pyfrc']['robot'].setdefault('starting_y', 0)
         config_obj['pyfrc']['robot'].setdefault('starting_angle', 0)
