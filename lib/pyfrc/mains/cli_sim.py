@@ -99,6 +99,8 @@ class PyFrcSim:
         
         controller.run()
         controller.wait_for_robotinit()
+        if not controller.is_alive():
+            return 1
         
         ui = sim.SimUI(sim_manager, fake_time, config_obj)
         

@@ -50,7 +50,7 @@ class RobotController:
     def wait_for_robotinit(self):
         
         # Do this so that we don't initialize the UI until robotInit is done
-        while hal_data['user_program_state'] is None:
+        while hal_data['user_program_state'] is None and self.is_alive():
             time.sleep(0.025)
     
     def stop(self):
