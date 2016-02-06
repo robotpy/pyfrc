@@ -371,7 +371,11 @@ class SimUI(object):
         sen_label = tk.Label(self.can_slot, textvariable=sen_value)
         sen_label.grid(column=3, row=row+1)
         
-        self.can[canId] = (motor, fl, rl, mode_lbl_txt, enc_value, sen_value)
+        ana_value = tk.StringVar(value='A: 0')
+        ana_label = tk.Label(self.can_slot, textvariable=ana_value)
+        ana_label.grid(column=4, row=row+1)
+        
+        self.can[canId] = (motor, fl, rl, mode_lbl_txt, enc_value, sen_value, ana_value)
         
     def idle_add(self, callable, *args):
         '''Call this with a function as the argument, and that function
@@ -465,7 +469,7 @@ class SimUI(object):
                 sol.set_value(ch['value'])
         
         # CAN        
-        for k, (motor, fl, rl, mode_lbl_txt, enc_txt, sen_txt) in self.can.items():
+        for k, (motor, fl, rl, mode_lbl_txt, enc_txt, sen_txt, ana_txt) in self.can.items():
             can = hal_data['CAN'][k]
             mode = can['mode_select']
             mode_lbl_txt.set(self.can_mode_map[mode])
@@ -489,6 +493,7 @@ class SimUI(object):
                 
             enc_txt.set('E: %s' % can['enc_position'])
             sen_txt.set('S: %s' % can['sensor_position'])
+            ana_txt.set('A: %s' % can['analog_in_with_ov'])
             
             ret = fl.sync_value(can['limit_switch_closed_for'])
             if ret is not None:
