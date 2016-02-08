@@ -367,11 +367,19 @@ class SimUI(object):
         enc_label = tk.Label(self.can_slot, textvariable=enc_value)
         enc_label.grid(column=1, row=row+1)
         
-        sen_value = tk.StringVar(value='S: 0')
-        sen_label = tk.Label(self.can_slot, textvariable=sen_value)
-        sen_label.grid(column=3, row=row+1)
+        analog_value = tk.StringVar(value='A: 0')
+        analog_label = tk.Label(self.can_slot, textvariable=analog_value)
+        analog_label.grid(column=3, row=row+1)
         
-        self.can[canId] = (motor, fl, rl, mode_lbl_txt, enc_value, sen_value)
+        pwm_value = tk.StringVar(value='P: 0')
+        pwm_label = tk.Label(self.can_slot, textvariable=pwm_value)
+        pwm_label.grid(column=4, row=row+1)
+        
+        Tooltip.create(enc_label, "Encoder Input")
+        Tooltip.create(analog_label, "Analog Input")
+        Tooltip.create(pwm_label, "PWM Input")
+        
+        self.can[canId] = (motor, fl, rl, mode_lbl_txt, enc_value, analog_value, pwm_value)
         
     def idle_add(self, callable, *args):
         '''Call this with a function as the argument, and that function
@@ -465,7 +473,7 @@ class SimUI(object):
                 sol.set_value(ch['value'])
         
         # CAN        
-        for k, (motor, fl, rl, mode_lbl_txt, enc_txt, sen_txt) in self.can.items():
+        for k, (motor, fl, rl, mode_lbl_txt, enc_txt, analog_txt, pwm_txt) in self.can.items():
             can = hal_data['CAN'][k]
             mode = can['mode_select']
             mode_lbl_txt.set(self.can_mode_map[mode])
@@ -488,7 +496,8 @@ class SimUI(object):
                 motor.set_value(can['value'])
                 
             enc_txt.set('E: %s' % can['enc_position'])
-            sen_txt.set('S: %s' % can['sensor_position'])
+            analog_txt.set('A: %s' % can['analog_in_position'])
+            pwm_txt.set('P: %s' % can['pulse_width_position'])
             
             ret = fl.sync_value(can['limit_switch_closed_for'])
             if ret is not None:
