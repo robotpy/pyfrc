@@ -39,6 +39,9 @@ class SimUI(object):
         self.fake_time = fake_time
         self.config_obj = config_obj
         
+        # Set up idle_add
+        self.queue = queue.Queue()
+        
         self.root = tk.Tk()
         self.root.wm_title("PyFRC Robot Simulator v%s" % __version__)
         
@@ -53,9 +56,6 @@ class SimUI(object):
         
         self.mode_start_tm = 0
         self.text_id = None
-        
-        # Set up idle_add
-        self.queue = queue.Queue()
         
         # connect to the controller
         self.manager.on_mode_change(lambda mode: self.idle_add(self.on_robot_mode_change, mode))
@@ -276,8 +276,6 @@ class SimUI(object):
         # timing control
         timing_control = tk.LabelFrame(ctrl_frame, text='Time')
         
-        #self.
-        
         def _set_realtime():
             if realtime_mode.get() == 0:
                 step_button.pack_forget()
@@ -342,6 +340,32 @@ class SimUI(object):
         self.robot_dead = tk.Label(sim, text='Robot died!', fg='red')
         
         sim.pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+        
+        #
+        # Set up a combo box that allows you to select an autonomous
+        # mode in the simulator
+        #
+        
+        try:
+            from tkinter.ttk import Combobox
+        except:
+            pass
+        else:
+            auton = tk.LabelFrame(ctrl_frame, text='Autonomous')
+            
+            self.autobox = Combobox(auton, state='readonly')
+            self.autobox.bind('<<ComboboxSelected>>', self.on_auton_selected)
+            self.autobox['width'] = 12
+            self.autobox.pack(fill=tk.X)
+            
+            Tooltip.create(self.autobox, "Use robotpy_ext.autonomous.AutonomousModeSelector to use this selection box")
+            
+            from networktables.util import ChooserControl
+            self.auton_ctrl = ChooserControl('Autonomous Mode',
+                                              lambda v: self.idle_add(self.on_auton_choices, v),
+                                              lambda v: self.idle_add(self.on_auton_selection, v))
+            
+            auton.pack(side=tk.TOP)
         
         ctrl_frame.pack(side=tk.LEFT, fill=tk.Y)
      
@@ -551,6 +575,15 @@ class SimUI(object):
         tooltip = self.config_obj['pyfrc']['joysticks'][str(idx)][typ].get(str(idx2))
         if tooltip is not None:
             Tooltip.create(widget, tooltip)
+            
+    def on_auton_choices(self, choices):
+        self.autobox['values'] = choices[:]
+    
+    def on_auton_selection(self, selection):
+        self.autobox.set(selection)
+        
+    def on_auton_selected(self, e):
+        self.auton_ctrl.setSelected(self.autobox.get())
             
     def on_robot_mode_change(self, mode):
         self.mode.set(mode)
