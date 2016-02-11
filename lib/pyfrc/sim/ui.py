@@ -71,6 +71,12 @@ class SimUI(object):
             self.usb_joysticks = UsbJoysticks(self)
             logger.info('pygame was detected, real joystick support loaded!')
               
+        try:
+            self.root.lift()
+            self.root.attributes('-topmost', True)
+            self.root.attributes('-topmost', False)
+        except Exception:
+            pass
         
         self.timer_fired()      
         
