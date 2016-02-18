@@ -393,17 +393,20 @@ class SimUI(object):
         mode_label = tk.Label(self.can_slot, textvariable=mode_lbl_txt)
         mode_label.grid(column=4, row=row)
         
+        labels = tk.Frame(self.can_slot)
+        labels.grid(column=0, row=row+1, columnspan=6)
+        
         enc_value = tk.StringVar(value='E: 0')
-        enc_label = tk.Label(self.can_slot, textvariable=enc_value)
-        enc_label.grid(column=1, row=row+1)
+        enc_label = tk.Label(labels, textvariable=enc_value)
+        enc_label.pack(side=tk.LEFT)
         
         analog_value = tk.StringVar(value='A: 0')
-        analog_label = tk.Label(self.can_slot, textvariable=analog_value)
-        analog_label.grid(column=3, row=row+1)
+        analog_label = tk.Label(labels, textvariable=analog_value)
+        analog_label.pack(side=tk.LEFT)
         
         pwm_value = tk.StringVar(value='P: 0')
-        pwm_label = tk.Label(self.can_slot, textvariable=pwm_value)
-        pwm_label.grid(column=4, row=row+1)
+        pwm_label = tk.Label(labels, textvariable=pwm_value)
+        pwm_label.pack(side=tk.LEFT)
         
         Tooltip.create(enc_label, "Encoder Input")
         Tooltip.create(analog_label, "Analog Input")
