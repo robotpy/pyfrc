@@ -67,7 +67,7 @@ class PyFrcTest:
             robot_path = curdir
             
             if not exists(robot_file):
-                "ERROR: Cannot run profiling from a directory that does not contain robot.py"
+                print("ERROR: Cannot run profiling from a directory that does not contain robot.py")
                 return 1
         
         self.try_dirs = [

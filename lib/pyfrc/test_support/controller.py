@@ -9,7 +9,7 @@ from .fake_time import TestEnded
 class _PracticeMatch:
       
     autonomous_period = 15
-    operator_period = 120
+    operator_period = 15
     
     def __init__(self, on_step):
         self._on_step = on_step

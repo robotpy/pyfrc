@@ -38,12 +38,12 @@ def test_disabled(control, fake_time, robot):
 def test_operator_control(control, fake_time, robot):
     '''Runs operator control mode by itself'''
     
-    # run operator mode for 120 seconds
+    # run operator mode for 15 seconds
     control.set_operator_control(enabled=True)
-    control.run_test(lambda tm: tm < 120)
+    control.run_test(lambda tm: tm < 15)
     
-    # make sure operator mode ran for 10 seconds
-    assert int(fake_time.get()) == 120
+    # make sure operator mode ran for 15 seconds
+    assert int(fake_time.get()) == 15
 
 
 def test_practice(control, fake_time, robot):
@@ -106,7 +106,7 @@ def test_practice(control, fake_time, robot):
     control.set_practice_match()
     tc = control.run_test(TestController)
     
-    assert int(math.floor(fake_time.get())) == 141
+    assert int(math.floor(fake_time.get())) == 36
     
     # If an error occurs here, for some reason a mode got called too many times
     assert tc.disabled == 2

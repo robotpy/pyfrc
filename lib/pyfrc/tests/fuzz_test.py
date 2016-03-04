@@ -109,7 +109,7 @@ def test_fuzz(hal_data, control, fake_time, robot):
     control.set_practice_match()
     tc = control.run_test(TestController)
     
-    assert int(math.floor(fake_time.get())) == 141
+    assert int(math.floor(fake_time.get())) == 36
     
     # If an error occurs here, for some reason a mode got called too many times
     assert tc.disabled == 2
