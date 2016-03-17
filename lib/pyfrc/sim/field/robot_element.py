@@ -19,7 +19,7 @@ class RobotElement(CompositeElement):
         robot_h = config_obj['pyfrc']['robot']['h']
         center_x = config_obj['pyfrc']['robot']['starting_x']
         center_y = config_obj['pyfrc']['robot']['starting_y']
-        angle = config_obj['pyfrc']['robot']['starting_angle']
+        angle = math.radians(config_obj['pyfrc']['robot']['starting_angle'])
         
         self.controller = controller
         self.controller.robot_face = 0
@@ -30,8 +30,8 @@ class RobotElement(CompositeElement):
         center_x *= px_per_ft
         center_y *= px_per_ft
         
-        # Store in px
-        self.position = (center_x, center_y, angle)
+        # drawing hack
+        self._vector = (0, 0, angle)
         
         # create a bunch of drawable objects that represent the robot
         center = (center_x, center_y)
@@ -55,7 +55,7 @@ class RobotElement(CompositeElement):
         self.elements.append(robot_pt)
         
         if angle != 0:
-            self.rotate(math.radians(angle))
+            self.rotate(angle)
     
     def perform_move(self):
         
@@ -73,8 +73,8 @@ class RobotElement(CompositeElement):
         
         px_per_ft = self.px_per_ft
         
-        x, y, a = self.controller.get_position()    # units: ft
-        ox, oy, oa = self.position                  # units: px
+        x, y, a = self.controller._get_vector()    # units: ft
+        ox, oy, oa = self._vector                  # units: px
         
         x *= px_per_ft
         y *= px_per_ft
@@ -89,8 +89,7 @@ class RobotElement(CompositeElement):
         
         self.move((dx, dy))
         
-        self.position = x, y, a
-        
+        self._vector = x, y, a
         
         
         

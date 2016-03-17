@@ -129,7 +129,11 @@ class PhysicsInterface:
         # These are in units of feet relative to the field
         self.x = config_obj['pyfrc']['robot']['starting_x']
         self.y = config_obj['pyfrc']['robot']['starting_y']
-        self.angle = config_obj['pyfrc']['robot']['starting_angle']
+        self.angle = math.radians(config_obj['pyfrc']['robot']['starting_angle'])
+        
+        # HACK: Used for drawing
+        self.vx = 0
+        self.vy = 0
         
         self.fake_time = fake_time
         self.robot_enabled = False
@@ -290,11 +294,18 @@ class PhysicsInterface:
         self._move(x, y, angle)
     
     def _move(self, x, y, angle):
+        # x, y, and angle are all relative to the robot
         
-        with self._lock:
-            self.x += x
-            self.y += y 
+        with self._lock: 
+            self.vx += x
+            self.vy += y
             self.angle += angle
+            
+            c = math.cos(self.angle)
+            s = math.sin(self.angle)
+            
+            self.x += (x*c - y*s)
+            self.y += (x*s + y*c)
             
             self._update_gyros(angle)
         
@@ -321,5 +332,11 @@ class PhysicsInterface:
         with self._lock:
             return self.x, self.y, self.angle
     
+    def _get_vector(self):
+        '''
+            :returns: The sum of all movement vectors, not very useful
+                      except for getting the difference of them
+        '''
+        return self.vx, self.vy, self.angle
         
     

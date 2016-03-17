@@ -136,6 +136,9 @@ class RobotController:
     def get_position(self):
         '''Returns x,y,angle'''
         return self.physics_controller.get_position()
+    
+    def _get_vector(self):
+        return self.physics_controller._get_vector()
         
     #
     # Runs the code
