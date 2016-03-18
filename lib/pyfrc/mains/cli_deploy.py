@@ -52,6 +52,9 @@ class PyFrcDeploy:
         
         parser.add_argument('--robot', default=None,
                             help="Set hostname or IP address of robot")
+        
+        parser.add_argument('--no-resolve', action='store_true', default=False,
+                            help="If specified, don't do a DNS lookup, allow ssh et al to do it instead")
     
     def run(self, options, robot_class, **static_options):
         
@@ -152,7 +155,8 @@ class PyFrcDeploy:
                                                 username='lvuser',
                                                 password='',
                                                 hostname=options.robot,
-                                                allow_mitm=True)
+                                                allow_mitm=True,
+                                                no_resolve=options.no_resolve)
             
             # Housekeeping first
             logger.debug('SSH: %s', sshcmd)
