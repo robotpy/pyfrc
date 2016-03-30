@@ -2,6 +2,7 @@
 import inspect
 import os
 import sys
+import re
 
 import shutil
 import tempfile
@@ -146,7 +147,7 @@ class PyFrcDeploy:
             'check_version': check_version
         }
         
-        sshcmd = sshcmd.replace('\n\n', ';').replace('\n', ';')
+        sshcmd = re.sub("\n+", ";", sshcmd)
         
         nc_thread = None
         
