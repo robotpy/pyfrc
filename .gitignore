@@ -20,3 +20,5 @@ docs/_build
 .pydevproject
 .project
 
+.idea
+pyfrc.iml
