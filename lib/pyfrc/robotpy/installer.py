@@ -13,7 +13,7 @@
 #
 # NOTE: This file is used in robotpy-wpilib and in pyfrc, please keep the two
 # copies in sync!
-#b
+#
 
 
 import argparse
