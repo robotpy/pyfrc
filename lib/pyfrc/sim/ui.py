@@ -12,7 +12,7 @@ except ImportError:
     
 import queue
 from hal_impl.data import hal_data
-from hal import TalonSRXConst as tsrxc
+#from hal import TalonSRXConst as tsrxc
 
 from .. import __version__
 
@@ -202,15 +202,15 @@ class SimUI(object):
         # CAN
         self.can_slot = tk.LabelFrame(csfm, text='CAN')
         self.can_slot.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5)
-        self.can_mode_map = {
-                        tsrxc.kMode_CurrentCloseLoop: 'PercentVbus',
-                        tsrxc.kMode_DutyCycle:'PercentVbus',
-                        tsrxc.kMode_NoDrive:'Disabled',
-                        tsrxc.kMode_PositionCloseLoop:'Position',
-                        tsrxc.kMode_SlaveFollower:'Follower',
-                        tsrxc.kMode_VelocityCloseLoop:'Speed',
-                        tsrxc.kMode_VoltCompen:'Voltage'
-                     }
+        self.can_mode_map = {}
+#                         tsrxc.kMode_CurrentCloseLoop: 'PercentVbus',
+#                         tsrxc.kMode_DutyCycle:'PercentVbus',
+#                         tsrxc.kMode_NoDrive:'Disabled',
+#                         tsrxc.kMode_PositionCloseLoop:'Position',
+#                         tsrxc.kMode_SlaveFollower:'Follower',
+#                         tsrxc.kMode_VelocityCloseLoop:'Speed',
+#                         tsrxc.kMode_VoltCompen:'Voltage'
+#                      }
         self.can = {}
         
         # detect new devices
