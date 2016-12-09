@@ -19,6 +19,7 @@ import os
 from os.path import abspath, join, dirname
 
 # Insert module path here
+sys.path.insert(0, abspath(dirname(__file__)))
 sys.path.insert(0, abspath(join(dirname(__file__), '..', 'lib')))
 
 from unittest import mock
