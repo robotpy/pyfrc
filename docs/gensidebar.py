@@ -62,6 +62,7 @@ def generate_sidebar(conf, conf_api):
     
     toctree('Robot Programming')
     write('Getting Started', 'getting_started')
+    write('Installation', 'install/index')
     write('Programmers Guide', 'guide/index')
     write('Hardware & Sensors', 'hw')
     endl()
@@ -74,8 +75,12 @@ def generate_sidebar(conf, conf_api):
     endl()
     
     toctree('Additional Info')
-    write('Implementation Details', 'internal')
+    write("Troubleshooting", 'troubleshooting')
     write('Support', 'support')
+    endl()
+    
+    toctree('RobotPy Developers')
+    write('Developer Documentation', 'dev/index')
     endl()
     
     write_if_changed('_sidebar.rst.inc', '\n'.join(lines))
