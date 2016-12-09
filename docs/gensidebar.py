@@ -52,7 +52,7 @@ def generate_sidebar(conf, conf_api):
         if project != conf_api:
             if do_gen:
                 args = desc, project, version
-                lines.append('    %s API <http://robotpy.readthedocs.io/projects/%s/en/%s>' % args)
+                lines.append('    %s API <http://robotpy.readthedocs.io/projects/%s/en/%s/api.html>' % args)
         else:
             lines.append('    %s API <api>' % desc)
     
