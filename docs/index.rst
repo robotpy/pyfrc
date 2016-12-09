@@ -12,29 +12,8 @@ This library contains a few primary parts:
   tests for your robot code.
 * A robot simulator tool which allows you to run your code in (vaguely) real
   time and get simple feedback via a tk-based UI
-
-This documentation explains how to install and use pyfrc, which is a critical
-part of the RobotPy project. However, you may find the following documentation
-sources useful:
-
-* `RobotPy programmer's guide <http://robotpy.readthedocs.org/en/latest/guide/index.html>`_
-* `WPILib API Reference <http://robotpy.readthedocs.org/en/latest/wpilib.html>`_
-
-To learn more about RobotPy, go to `http://robotpy.readthedocs.org <http://robotpy.readthedocs.org>`_.
-
-Contents
-~~~~~~~~
-
-.. toctree::
-   :maxdepth: 2
-   
-   install
-   usage
-   deploy
-   simulator
-   testing
-   builtin_tests
-   contributing
+  
+.. include:: _sidebar.rst.inc
 
 Indices and tables
 ~~~~~~~~~~~~~~~~~~

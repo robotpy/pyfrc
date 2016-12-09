@@ -13,6 +13,7 @@ lib/pyfrc/robotpy/win32/psftp.exe
 
 .settings
 docs/_build
+docs/_sidebar.rst.inc
 
 .deploy_cfg
 
