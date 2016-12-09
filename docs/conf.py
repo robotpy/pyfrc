@@ -29,6 +29,16 @@ sys.modules['hal_impl.data'] = mock.MagicMock()
 sys.modules['hal_impl.types'] = mock.MagicMock()
 sys.modules['hal_impl.mode_helpers'] = mock.MagicMock()
 
+# -- RTD configuration ------------------------------------------------
+
+# on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+# This is used for linking and such so we link to the thing we're building
+rtd_version = os.environ.get('READTHEDOCS_VERSION', 'latest')
+if rtd_version not in ['stable', 'latest']:
+    rtd_version = 'stable'
+
 # -- General configuration ------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -51,7 +61,7 @@ project = 'pyfrc'
 copyright = '2014-2016, RobotPy development team'
 
 intersphinx_mapping = {
-    'wpilib': ('http://robotpy-wpilib.readthedocs.org/en/latest/', None)
+    'wpilib': ('http://robotpy-wpilib.readthedocs.org/en/%s/' % rtd_version, None)
 }
 
 # The version info for the project you're documenting, acts as replacement for
@@ -75,9 +85,6 @@ exclude_patterns = ['_build']
 pygments_style = 'sphinx'
 
 # -- Options for HTML output ----------------------------------------------
-
-# on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
-on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 if not on_rtd:  # only import and set the theme if we're building docs locally
     import sphinx_rtd_theme
