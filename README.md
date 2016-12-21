@@ -18,7 +18,7 @@ Documentation
 =============
 
 For usage, detailed installation information, and other notes, please see
-our documentation at http://pyfrc.readthedocs.org
+our documentation at http://pyfrc.readthedocs.io
 
 Quick Install + Demo
 ====================

@@ -4,5 +4,5 @@ PyFRC API
 
 .. toctree::
     testing
-    advanced
+    custom
     

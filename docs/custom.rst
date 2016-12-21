@@ -1,8 +1,16 @@
 
-.. _advanced_testing:
+.. _custom_test_support:
 
-Advanced Testing
-================
+Custom Test Support
+===================
+
+.. contents::
+
+pytest fixtures
+---------------
+
+.. automodule:: pyfrc.test_support.pytest_plugin
+   :members:
 
 Controlling the robot's state
 -----------------------------
@@ -15,6 +23,8 @@ Controlling the robot's state
 
 Robot 'physics model'
 ---------------------
+
+.. _physics_model:
 
 .. automodule:: pyfrc.physics.core
    :members:

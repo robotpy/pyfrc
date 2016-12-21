@@ -25,5 +25,3 @@ Docstring tests
 
 .. automodule:: pyfrc.tests.docstring_test
    :members:
-
-
