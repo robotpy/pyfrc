@@ -21,6 +21,7 @@ class FakeRealTime:
         self.reset()
         
         self.local = threading.local()
+        self.ds_cond = threading.Condition()
         
     def set_physics_fn(self, fn):
         self.local.physics_fn = fn

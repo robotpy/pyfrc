@@ -39,7 +39,10 @@ class PyFrcPlugin:
         # plus some extra things needed for testing
         
         import networktables
-        networktables.NetworkTable.setTestMode()
+        if hasattr(networktables, 'NetworkTables'):
+            networktables.NetworkTables.setTestMode()
+        else:
+            networktables.NetworkTable.setTestMode()
         
         self._fake_time.reset()
         hal_impl.functions.reset_hal()
@@ -71,8 +74,11 @@ class PyFrcPlugin:
         wpilib._impl.utils.reset_wpilib()
         
         import networktables
-        networktables.NetworkTable._staticProvider.close()
-        networktables.NetworkTable._staticProvider = None
+        if hasattr(networktables, 'NetworkTables'):
+            networktables.NetworkTables.shutdown()
+        else:
+            networktables.NetworkTable._staticProvider.close()
+            networktables.NetworkTable._staticProvider = None
 
         if not self._fake_time.children_stopped():
             raise ThreadStillRunningError("Make sure spawning class has free() "

@@ -7,6 +7,7 @@ class PyFrcFakeHooks:
     
     def __init__(self, fake_time):
         self.fake_time = fake_time
+        self.ds_cond = None
     #
     # Hook functions
     #
@@ -22,3 +23,6 @@ class PyFrcFakeHooks:
     
     def delaySeconds(self, s):
         self.fake_time.increment_time_by(s)
+    
+    def initializeDriverStation(self):
+        self.ds_cond = self.fake_time.ds_cond

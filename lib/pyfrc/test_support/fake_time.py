@@ -1,6 +1,5 @@
 
 import threading
-import wpilib
 import weakref
 
 
@@ -44,16 +43,13 @@ class FakeTime:
         self._children_free_run = False
         self._children_not_running = threading.Event()
         self.lock = threading.RLock()
+        
+        self._ds_cond = _DSCondition(self)
+        self.ds_cond = threading.Condition()
+        
         self.reset()
-        
-    def _setup(self):
-        
-        # Setup driver station hooks
-        self._ds = wpilib.DriverStation.getInstance()
-        
-        self._ds_cond = _DSCondition(self, self._ds.mutex)
-        self._ds.dataSem = self._ds_cond
-        
+    
+    def _setup(self):    
         self.thread_id = threading.current_thread().ident
         return self._ds_cond
 
@@ -185,7 +181,6 @@ class FakeTime:
                 # TODO: This breaks on iterative robot.. 
                 with self._ds_cond:
                     self._ds_cond.notify_all()
-                    self._ds.getData()
                   
                 time -= next_ds
                 
@@ -225,7 +220,7 @@ class _DSCondition(threading.Condition):
         into the DriverStation packets.
     '''
     
-    def __init__(self, fake_time_inst, lock):
+    def __init__(self, fake_time_inst, lock=None):
         super().__init__(lock)
         
         self.thread_id = threading.current_thread().ident
@@ -251,4 +246,4 @@ class _DSCondition(threading.Condition):
         if in_main:
             self.fake_time_inst.increment_new_packet()
         else:
-            super().wait(self, timeout=timeout)
+            super().wait(timeout=timeout)
