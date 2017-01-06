@@ -2,7 +2,9 @@
 import pytest
 import threading
 
-from pyfrc.test_support.fake_time import TestEnded, TestRanTooLong, FakeTime
+import wpilib
+
+from pyfrc.test_support.fake_time import TestEnded, TestRanTooLong, TestFroze, FakeTime
 
 def test_faketime_1():
     '''Test expiration'''
@@ -115,4 +117,69 @@ def test_faketime_threading():
     incr_thread20hz.cancel()
 
     assert ft.children_stopped()
+    
 
+class DyingThread(threading.Thread):
+    '''
+        Tests a bug that occured when a child thread is woken and the
+        thread decides it's time to die instead of sleeping again.
+    '''
+    
+    def __init__(self, fake_time):
+        super().__init__(daemon=True)
+        self._ft = fake_time
+        self._died = False
+    
+    def run(self):
+        self._ft.increment_time_by(0.03)
+        self._died = True
+    
+
+def test_faketime_dying_thread():
+    '''Test that dying threads are handled properly'''
+
+    wpilib.DriverStation._reset()
+
+    ft = FakeTime()
+    ft.initialize()
+
+    dt = DyingThread(ft)
+    dt.start()
+    
+    for _ in range(4):
+        ft.increment_new_packet()
+
+    assert dt._died == True
+    
+class InfiniteLoopThread(threading.Thread):
+    
+    def __init__(self, fake_time):
+        super().__init__(daemon=True)
+        self.ft = fake_time
+        self.cond = threading.Condition()
+    
+    def run(self):
+        self.ft.increment_time_by(0.03)
+        
+        with self.cond:
+            self.cond.wait()
+
+def test_faketime_infinite_loop_thread():
+    '''Test that infinite loops are detected'''
+
+    wpilib.DriverStation._reset()
+
+    ft = FakeTime()
+    ft._freeze_detect_threshold = 5
+    ft.initialize()
+
+    it = InfiniteLoopThread(ft)
+    it.start()
+    
+    with pytest.raises(TestFroze):
+        ft.increment_new_packet()
+        ft.increment_new_packet()
+    
+    with it.cond:
+        it.cond.notify_all()
+    

@@ -28,6 +28,15 @@ class TestEnded(BaseException):
     '''
     pass
 
+
+class TestFroze(BaseException):
+    '''
+        This happens when an infinite loop of some kind in one of your
+        non-robot threads is detected.
+    '''
+    pass
+
+
 class FakeTime:
     '''
         Keeps track of time for robot code being tested, and makes sure the
@@ -43,6 +52,7 @@ class FakeTime:
         self._child_threads = weakref.WeakKeyDictionary()
         self._children_free_run = False
         self._children_not_running = threading.Event()
+        self._freeze_detect_threshold = 250
         self.lock = threading.RLock()
         self.reset()
         
@@ -65,18 +75,31 @@ class FakeTime:
         # Subtract the timestep from the last requested times of the threads.
         # Wake them up if the requested time is in the past, and they haven't
         # already been stopped.
-        thread_awakened = False
+        waiting_on = []
         for thread, thread_info in self._child_threads.items():
             thread_info['time'] -= timestep
             if thread_info['time'] <= 0 and thread.is_alive():
                 self._children_not_running.clear()
                 thread_info['event'].set()  # Wake it up
-                thread_awakened = True
+                waiting_on.append(thread)
+                
         # Wait for everything we woke up to sleep again.
         # Check that we did wake something up.
-        if thread_awakened:
-            self._children_not_running.wait()
-
+        if waiting_on:
+            i = 0
+            while not self._children_not_running.wait(0.020):
+                i += 1
+                if i == self._freeze_detect_threshold:
+                    raise TestFroze("Waiting on %s" % waiting_on)
+                
+                # if this timed out, check to see if that particular
+                # child died...
+                for thread in waiting_on:
+                    if thread.is_alive():
+                        break # out of the for loop, at least one child is active
+                else:
+                    break # out of the while loop, everyone is dead
+    
     def children_stopped(self):
         # Avoid issues with keys disappearing from weakref dict
         keys = list(self._child_threads.keys())
