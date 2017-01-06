@@ -2,7 +2,6 @@
 import pytest
 
 import hal_impl
-from hal_impl.mode_helpers import notify_new_ds_data
 from . import fake_time, pyfrc_fake_hooks
 
 from .controller import TestController
@@ -31,27 +30,37 @@ class PyFrcPlugin:
         self._control = None
         
         # Setup the hal hooks so we can control time
+        # -> The hook doesn't have any state, so we initialize it only once
         hal_impl.functions.hooks = pyfrc_fake_hooks.PyFrcFakeHooks(self._fake_time)
-        hal_impl.functions.reset_hal()
     
     def pytest_runtest_setup(self):
         # This function needs to do the same things that RobotBase.main does,
         # plus some extra things needed for testing
         
+        #
+        # Initialization order is important, because there are a bunch
+        # of inter-related things happening here.
+        #
+        # - Initialize networktables first since it has no dependencies 
+        # - Initialize the fake time, because the HAL uses it
+        #   - This initializes the driver station, but it doesn't need HAL yet
+        # - Reset HAL data 
+        # - Initialize RobotBase
+        #
+        
         import networktables
-        networktables.NetworkTable.setTestMode()
+        if hasattr(networktables, 'NetworkTables'):
+            networktables.NetworkTables.setTestMode()
+        else:
+            networktables.NetworkTable.setTestMode()
         
-        self._fake_time.reset()
-        hal_impl.functions.reset_hal()
-        
+        self._fake_time.initialize()
         self._test_controller = TestController(self._fake_time)
+        
+        hal_impl.functions.reset_hal()
         
         import wpilib
         wpilib.RobotBase.initializeHardwareConfiguration()
-        
-        # The DS task causes too many problems, do it ourselves instead
-        wpilib.DriverStation.getInstance().release()
-        notify_new_ds_data()
         
         self._test_controller._robot = self.robot_class()
         
@@ -71,8 +80,11 @@ class PyFrcPlugin:
         wpilib._impl.utils.reset_wpilib()
         
         import networktables
-        networktables.NetworkTable._staticProvider.close()
-        networktables.NetworkTable._staticProvider = None
+        if hasattr(networktables, 'NetworkTables'):
+            networktables.NetworkTables.shutdown()
+        else:
+            networktables.NetworkTable._staticProvider.close()
+            networktables.NetworkTable._staticProvider = None
 
         if not self._fake_time.children_stopped():
             raise ThreadStillRunningError("Make sure spawning class has free() "

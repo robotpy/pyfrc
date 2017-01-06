@@ -22,3 +22,15 @@ class PyFrcFakeHooks:
     
     def delaySeconds(self, s):
         self.fake_time.increment_time_by(s)
+    
+    def initializeDriverStation(self):
+        pass
+    
+    @property
+    def ds_cond(self):
+        return self.fake_time.ds_cond
+    
+    @ds_cond.setter
+    def ds_cond(self, value):
+        pass # ignored
+        

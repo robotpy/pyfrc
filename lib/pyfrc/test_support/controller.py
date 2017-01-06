@@ -43,13 +43,15 @@ class _PracticeMatch:
 
 class TestController:
     '''
-        This object is used to control the robot during unit tests.
+        This object is used to control the robot during unit tests. You
+        do not need to create an instance of this, instead use the
+        ``controller`` fixture.
     '''
     
     def __init__(self, fake_time_inst):
         self._practice = False
         self._test_running = False
-        self._ds_cond = fake_time_inst._setup()
+        self._ds_cond = fake_time_inst.ds_cond
     
     def get_mode(self):
         '''Returns the current mode that the robot is in

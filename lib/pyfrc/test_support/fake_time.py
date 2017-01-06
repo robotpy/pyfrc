@@ -1,6 +1,5 @@
 
 import threading
-import wpilib
 import weakref
 
 
@@ -42,30 +41,41 @@ class FakeTime:
         Keeps track of time for robot code being tested, and makes sure the
         DriverStation is notified that new packets are coming in.
         
-        Your testing code can use this object to control time by asking for
-        the fake_time fixture.
+        .. note:: Do not create this object, your testing code can use this
+                  object to control time via the ``fake_time`` fixture
     '''
 
-    
-    
     def __init__(self):
         self._child_threads = weakref.WeakKeyDictionary()
         self._children_free_run = False
         self._children_not_running = threading.Event()
         self._freeze_detect_threshold = 250
         self.lock = threading.RLock()
+    
+    def initialize(self):
+        '''
+            Initializes fake time
+        '''
+        
         self.reset()
         
-    def _setup(self):
-        
         # Setup driver station hooks
+        import wpilib
+        
+        assert not hasattr(wpilib.DriverStation, 'instance')
+        
+        # The DS thread causes too many problems, disable it by getting
+        # rid of the thread function
+        wpilib.DriverStation._run = lambda _: None
+        
         self._ds = wpilib.DriverStation.getInstance()
         
-        self._ds_cond = _DSCondition(self, self._ds.mutex)
-        self._ds.dataSem = self._ds_cond
+        # This is used to make DriverStation.waitForData() work
+        self.ds_cond = _DSCondition(self, self._ds.mutex)
+        self._ds.dataCond = self.ds_cond
         
         self.thread_id = threading.current_thread().ident
-        return self._ds_cond
+        return self.ds_cond
 
     def __time_test__(self):
         if self.time_limit is not None and self.time_limit <= self.time:
@@ -201,14 +211,14 @@ class FakeTime:
                 self.time += next_ds
                 
                 if current_thread.ident == self.thread_id:
-                    self._ds_cond.on_step(self.time)
+                    self.ds_cond.on_step(self.time)
                 
-                # Notify the DS thread to issue a new packet, but wait for it
-                # to do it.
-                # TODO: This breaks on iterative robot.. 
-                with self._ds_cond:
-                    self._ds_cond.notify_all()
-                    self._ds.getData()
+                # TODO: document this
+                
+                with self.ds_cond:
+                    self.ds_cond.notify_all()
+                    self._ds._getData()
+                    self._ds.newControlData = True
                   
                 time -= next_ds
                 
@@ -248,7 +258,7 @@ class _DSCondition(threading.Condition):
         into the DriverStation packets.
     '''
     
-    def __init__(self, fake_time_inst, lock):
+    def __init__(self, fake_time_inst, lock=None):
         super().__init__(lock)
         
         self.thread_id = threading.current_thread().ident
@@ -274,4 +284,4 @@ class _DSCondition(threading.Condition):
         if in_main:
             self.fake_time_inst.increment_new_packet()
         else:
-            super().wait(self, timeout=timeout)
+            super().wait(timeout=timeout)

@@ -9,8 +9,10 @@ from pyfrc.test_support.fake_time import TestEnded, TestRanTooLong, TestFroze, F
 def test_faketime_1():
     '''Test expiration'''
     
+    wpilib.DriverStation._reset()
+    
     ft = FakeTime()
-    ft._setup()
+    ft.initialize()
     ft.set_time_limit(5)
     
     with pytest.raises(TestRanTooLong):
@@ -32,12 +34,14 @@ class StepChecker:
 def test_faketime_2():
     '''Test calling the step function '''
     
+    wpilib.DriverStation._reset()
+    
     ft = FakeTime()
-    ft._setup()
+    ft.initialize()
     ft.set_time_limit(5)
     
     sc = StepChecker()
-    ft._ds_cond._on_step = sc.on_step
+    ft.ds_cond._on_step = sc.on_step
     
     ft.increment_new_packet()
     ft.increment_new_packet()
@@ -48,13 +52,15 @@ def test_faketime_2():
 
 def test_faketime_3():
     '''Test calling the step function with varying lengths'''
-        
+    
+    wpilib.DriverStation._reset()
+    
     ft = FakeTime()
-    ft._setup()
+    ft.initialize()
     ft.set_time_limit(5)
     
     sc = StepChecker()
-    ft._ds_cond._on_step = sc.on_step
+    ft.ds_cond._on_step = sc.on_step
     
     ft.increment_time_by(0.005)
     ft.increment_time_by(0.01)
@@ -99,8 +105,10 @@ class IncrementingThread(threading.Thread):
 def test_faketime_threading():
     '''Test that threads are being caught and paused correctly.'''
 
+    wpilib.DriverStation._reset()
+
     ft = FakeTime()
-    ft._setup()
+    ft.initialize()
     incr_thread100hz = IncrementingThread(0.01, ft)
     incr_thread20hz = IncrementingThread(0.05, ft)
     incr_thread100hz.start()
