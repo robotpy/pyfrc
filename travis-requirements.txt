@@ -7,3 +7,4 @@ git+git://github.com/robotpy/robotpy-wpilib-utilities.git
 -e .
 
 coverage
+pytest>=2.8

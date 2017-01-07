@@ -5,6 +5,7 @@ if sys.version_info[0] < 3:
     sys.stderr.write("ERROR: pyfrc requires python 3!")
     exit(1)
 
+import os
 from os.path import dirname, exists, join
 import subprocess
 from setuptools import find_packages, setup
@@ -80,7 +81,7 @@ setup(name='pyfrc',
       package_dir={'': 'lib'},
       package_data={'pyfrc': ['robotpy/win32/plink.exe',
                               'robotpy/win32/psftp.exe']},
-      install_requires=install_requires,
+      install_requires=install_requires if not os.environ.get('ROBOTPY_NO_DEPS') else None,
       classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

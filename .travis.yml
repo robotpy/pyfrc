@@ -1,7 +1,7 @@
 language: python
 sudo: false
 env:
-  - RUNCOVERAGE=1
+  - RUNCOVERAGE=1 ROBOTPY_NO_DEPS=1
 python:
   - "3.4"
   - "3.5"
