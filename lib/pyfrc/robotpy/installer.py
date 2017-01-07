@@ -24,7 +24,8 @@ import inspect
 import os
 import socket
 import string
-from os.path import abspath, basename, dirname, exists, isdir, join, relpath
+from os.path import abspath, basename, dirname, expanduser, exists, isdir, join, relpath
+import re
 import shutil
 import subprocess
 import sys
@@ -360,8 +361,19 @@ def ssh_from_cfg(cfg_filename, username, password, hostname=None, allow_mitm=Fal
     if dirty:
         with open(cfg_filename, 'w') as fp:
             cfg.write(fp)
+        
+    # see if an ssh alias exists    
+    try:
+        with open(join(expanduser('~'), '.ssh', 'config')) as fp:
+            hn = hostname.lower()
+            for line in fp:
+                if re.match(r'\s*host\s+%s\s*' % hn, line.lower()):
+                    no_resolve = True
+                    break
             
-    
+    except Exception:
+        raise
+        
     
     if not no_resolve:
         try:
@@ -419,7 +431,7 @@ def ensure_win_bins():
 
 class SshController(object):
     '''
-        Use this to transfer files and execute commands on a RoboRIO in a
+        Use this to transfer files and execute commands on a roboRIO in a
         cross platform manner
     '''
    
@@ -660,8 +672,8 @@ class RobotpyInstaller(object):
 
     def _get_opkg(self):
         opkg = OpkgRepo(self.opkg_cache, self.opkg_arch)
-        opkg.add_feed('http://www.tortall.net/~robotpy/feeds/2016')
-        opkg.add_feed("http://download.ni.com/ni-linux-rt/feeds/2015/arm/ipk/cortexa9-vfpv3")
+        opkg.add_feed('http://www.tortall.net/~robotpy/feeds/2017')
+        opkg.add_feed("http://download.ni.com/ni-linux-rt/feeds/2016/arm/ipk/cortexa9-vfpv3")
         return opkg
 
     def set_hostname(self, hostname):
@@ -704,10 +716,7 @@ class RobotpyInstaller(object):
         
         if options.basever is not None:
             options.packages = ['%s==%s' % (pkg, options.basever) for pkg in options.packages]
-
-        # Versioning for these packages are separate
-        options.packages.append('pynivision')
-
+        
         if not options.no_tools:
             options.packages.append('robotpy-wpilib-utilities')
 
@@ -716,7 +725,7 @@ class RobotpyInstaller(object):
     def _create_rpy_opkg_options(self, options):
         # Construct an appropriate line to install
         options.requirement = []
-        options.packages = ['python3']
+        options.packages = ['python36', 'netconsole-host']
         options.upgrade = True
 
         options.force_reinstall = False
