@@ -1,10 +1,15 @@
 language: python
+sudo: false
+env:
+  - RUNCOVERAGE=1
 python:
   - "3.4"
   - "3.5"
+  - "3.6"
 # command to install dependencies
 install:
-  - "pip install . coverage"
+  - pip install -U pip
+  - pip install -r travis-requirements.txt
 # command to run tests
 script:
   - tests/run_tests.sh

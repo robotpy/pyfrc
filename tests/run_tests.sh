@@ -1,27 +1,17 @@
-#!/bin/bash
+#!/bin/bash -e
 
-set -e
-cd `dirname $0`
+cd $(dirname $0)
 
-#
-# Runs tests on pyfrc components
-#
+export PYTHONPATH="../lib"
 
-PYTHONPATH="../lib" py.test $@
-#PYTHONPATH="../lib" python3 -m coverage run --source pyfrc -m pytest $@
-#python3 -m coverage report -m
+if [ "$RUNCOVERAGE" == "1" ]; then
+    python3 -m coverage run --source pyfrc -m pytest "$@"
+    python3 -m coverage report -m
+else
+    python3 -m pytest "$@"
+fi
 
-#
-# Runs included tests on all samples 
-#
-
-pushd ../samples
-
-for dir in `ls`; do
-	if [ -d "$dir" ]; then
-		pushd $dir/src
-		python3 robot.py coverage test
-		popd
-	fi
-done
-
+# Run tests on examples repository
+if [ "$CONTINUOUS_INTEGRATION" == "true" ]; then
+    curl https://raw.githubusercontent.com/robotpy/examples/master/_remote_tests.sh | bash -s all
+fi
