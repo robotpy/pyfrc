@@ -46,6 +46,7 @@ class FakeTime:
     '''
 
     def __init__(self):
+        # Note: when iterating this list, make copies or you'll run into errors
         self._child_threads = weakref.WeakKeyDictionary()
         self._children_free_run = False
         self._children_not_running = threading.Event()
@@ -86,7 +87,8 @@ class FakeTime:
         # Wake them up if the requested time is in the past, and they haven't
         # already been stopped.
         waiting_on = []
-        for thread, thread_info in self._child_threads.items():
+        child_threads = list(self._child_threads.items())
+        for thread, thread_info in child_threads:
             thread_info['time'] -= timestep
             if thread_info['time'] <= 0 and thread.is_alive():
                 self._children_not_running.clear()
@@ -111,7 +113,6 @@ class FakeTime:
                     break # out of the while loop, everyone is dead
     
     def children_stopped(self):
-        # Avoid issues with keys disappearing from weakref dict
         keys = list(self._child_threads.keys())
         for thread in keys:
             if thread.is_alive():
@@ -121,7 +122,8 @@ class FakeTime:
     def teardown(self):
         self._children_free_run = True  # Stop any threads being blocked
         self._children_not_running.set()  # Main thread needs to be running
-        for thread_info in self._child_threads.values():
+        thread_infos = list(self._child_threads.values())
+        for thread_info in thread_infos:
             thread_info['event'].set()
 
     def reset(self):
@@ -174,7 +176,8 @@ class FakeTime:
                 child_info['time'] = time
                 # Check to see if the other threads have finished
                 running = False
-                for v in self._child_threads.values():
+                child_threads = list(self._child_threads.values())
+                for v in child_threads:
                     if v['event'].is_set():
                         running = True
                 if not running:
