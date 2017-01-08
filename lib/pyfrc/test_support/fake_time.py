@@ -163,12 +163,14 @@ class FakeTime:
         current_thread = threading.current_thread()
         if current_thread.ident != self.thread_id:
             with self.lock:
-                child_id = current_thread.ident
-                if child_id not in self._child_threads:
-                    event = threading.Event()
-                    self._child_threads[current_thread] = {'event': event,
-                                                           'time': time}
-                child_info = self._child_threads[current_thread]
+                child_info = self._child_threads.get(current_thread)
+                if child_info is None:
+                    child_info = {
+                        'event': threading.Event(),
+                        'time': time
+                    }
+                    self._child_threads[current_thread] = child_info
+            
             if time > 0 and not self._children_free_run:
                 # Daughter thread needs to fire in the next DS time step,
                 # so make it wait
