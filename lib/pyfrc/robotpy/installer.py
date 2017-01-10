@@ -103,7 +103,7 @@ class OpkgRepo(object):
     
         # dictionary of lists of packages sorted by version
         pkg = OrderedDict()
-        with open(feed["db_fname"], 'r') as fp:
+        with open(feed["db_fname"], 'r', encoding='utf-8') as fp:
             for line in fp.readlines():
                 line = line.strip()
                 if len(line) == 0:
@@ -370,9 +370,8 @@ def ssh_from_cfg(cfg_filename, username, password, hostname=None, allow_mitm=Fal
                 if re.match(r'\s*host\s+%s\s*' % hn, line.lower()):
                     no_resolve = True
                     break
-            
     except Exception:
-        raise
+        pass
         
     
     if not no_resolve:
