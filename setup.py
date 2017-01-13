@@ -19,8 +19,8 @@ version_file = join(setup_dir, 'lib', base_package, 'version.py')
 # Download plink/psftp
 ext_dir = join(setup_dir, 'lib', base_package, 'robotpy', 'win32')
 ext_files = {
-    'plink.exe': 'http://the.earth.li/~sgtatham/putty/latest/x86/plink.exe',
-    'psftp.exe': 'http://the.earth.li/~sgtatham/putty/latest/x86/psftp.exe'
+    'plink.exe': 'https://the.earth.li/~sgtatham/putty/latest/x86/plink.exe',
+    'psftp.exe': 'https://the.earth.li/~sgtatham/putty/latest/x86/psftp.exe'
 }
 
 for file, uri in ext_files.items():

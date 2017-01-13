@@ -10,17 +10,17 @@ except ImportError:
     print("pyfrc robot simulation requires python tkinter support to be installed")
     raise
     
+import logging
 import queue
+
 from hal_impl.data import hal_data
-#from hal import TalonSRXConst as tsrxc
 
 from .. import __version__
-
 from .field.field import RobotField
-
 from .ui_widgets import CheckButtonWrapper, PanelIndicator, Tooltip, ValueWidget
 
-import logging
+
+#from hal import TalonSRXConst as tsrxc
 logger = logging.getLogger(__name__)
 
 
@@ -200,9 +200,9 @@ class SimUI(object):
         slot.pack(side=tk.TOP, fill=tk.BOTH, padx=5)
         
         # CAN
-        self.can_slot = tk.LabelFrame(csfm, text='CAN')
-        self.can_slot.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5)
-        self.can_mode_map = {}
+#       self.can_slot = tk.LabelFrame(csfm, text='CAN')
+#       self.can_slot.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5)
+#       self.can_mode_map = {}
 #                         tsrxc.kMode_CurrentCloseLoop: 'PercentVbus',
 #                         tsrxc.kMode_DutyCycle:'PercentVbus',
 #                         tsrxc.kMode_NoDrive:'Disabled',
@@ -211,14 +211,14 @@ class SimUI(object):
 #                         tsrxc.kMode_VelocityCloseLoop:'Speed',
 #                         tsrxc.kMode_VoltCompen:'Voltage'
 #                      }
-        self.can = {}
+#       self.can = {}
         
         # detect new devices
-        for k in sorted(hal_data['CAN'].keys()):
-            self._add_CAN(k, hal_data['CAN'][k])
+#       for k in sorted(hal_data['CAN'].keys()):
+#       self._add_CAN(k, hal_data['CAN'][k])
         
         
-        csfm.pack(side=tk.LEFT, fill=tk.Y)
+#        csfm.pack(side=tk.LEFT, fill=tk.Y)
         
         # joysticks
         slot = tk.LabelFrame(bottom, text='Joysticks')
