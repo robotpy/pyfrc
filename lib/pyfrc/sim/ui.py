@@ -211,7 +211,7 @@ class SimUI(object):
 #                         tsrxc.kMode_VelocityCloseLoop:'Speed',
 #                         tsrxc.kMode_VoltCompen:'Voltage'
 #                      }
-#       self.can = {}
+        self.can = {}
         
         # detect new devices
 #       for k in sorted(hal_data['CAN'].keys()):
