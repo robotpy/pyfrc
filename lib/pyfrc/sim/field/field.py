@@ -31,9 +31,11 @@ class RobotField(object):
         # setup board characteristics -- cell size is 1ft
         self.cols, self.rows = field_size
         self.margin = 5
-        self.cellSize = px_per_ft
-        self.canvasWidth = 2 * self.margin + 485
-        self.canvasHeight = 2 * self.margin + 535
+        self.objects = config_obj['pyfrc']['field']['objects']
+        self.cellSize = px_per_ft if self.objects else 485 / self.cols
+
+        self.canvasWidth = 2 * self.margin + self.cellSize * self.cols if self.objects else 2 * self.margin + 485
+        self.canvasHeight = 2 * self.margin + self.cellSize * self.rows if self.objects else 2 * self.margin + 535
 
         self.canvas = tk.Canvas(root, width=self.canvasWidth, height=self.canvasHeight)
         self.canvas.bind("<Key>", self.on_key_pressed)
@@ -49,6 +51,15 @@ class RobotField(object):
         self._load_field_elements(px_per_ft, config_obj)
 
     def _load_field_elements(self, px_per_ft, config_obj):
+        if self.objects:
+            for obj in self.objects:
+                color = obj['color']
+                pts = [(self.margin + int(pt[0] * px_per_ft),
+                        self.margin + int(pt[1] * px_per_ft)) for pt in obj['points']]
+                element = DrawableElement(pts, None, None, color)
+                self.add_moving_element(element)
+            return
+
         image = config_obj['pyfrc']['field']['image']
         if image is None:
             self.photo = PhotoImage(file=abspath(join(dirname(__file__), 'field.gif')))
@@ -103,10 +114,9 @@ class RobotField(object):
             element.perform_move()
 
     def draw_field(self):
-        pass
-        # for row in range(self.rows):
-        #    for col in range(self.cols):
-        #        self.draw_board_cell(row, col)
+        for row in range(self.rows):
+            for col in range(self.cols):
+                self.draw_board_cell(row, col)
 
     def draw_board_cell(self, row, col):
         left = self.margin + col * self.cellSize
