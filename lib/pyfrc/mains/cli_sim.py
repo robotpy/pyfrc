@@ -1,13 +1,14 @@
 
 import inspect
 import json
+import logging
 from os.path import abspath, dirname, exists, join
-
-from ..test_support import pyfrc_fake_hooks
 
 import hal_impl.functions
 
-import logging
+from ..test_support import pyfrc_fake_hooks
+
+
 logger = logging.getLogger('pyfrc.sim')
 
 class PyFrcSim:
@@ -43,6 +44,7 @@ class PyFrcSim:
         config_obj['pyfrc']['field'].setdefault('h', 1)
         config_obj['pyfrc']['field'].setdefault('px_per_ft', 10)
         config_obj['pyfrc']['field'].setdefault('objects', [])
+        config_obj['pyfrc']['field'].setdefault('image', None)
         
         config_obj['pyfrc'].setdefault('analog', {})
         config_obj['pyfrc'].setdefault('CAN', {})
@@ -79,7 +81,7 @@ class PyFrcSim:
         config_file = join(sim_path, 'config.json')
         
         config_obj = self._load_config(config_file)
-        
+        config_obj['simpath'] = sim_path
         fake_time = sim.FakeRealTime()
         hal_impl.functions.hooks = pyfrc_fake_hooks.PyFrcFakeHooks(fake_time)
         hal_impl.functions.reset_hal()
