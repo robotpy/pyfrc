@@ -1,7 +1,10 @@
 pytest>=2.8.0
+pynetconsole>=1.3.1
+
 wpilib>=2017.0.0,<2018.0.0
 robotpy-hal-sim>=2017.0.0,<2018.0.0
-pynetconsole>=1.3.1
+
+robotpy-installer>=2017.0.0,<2018.0.0
 
 # Not really a requirement, but this is on the robot, so just install by default
 robotpy-wpilib-utilities>=2017.0.0,<2018.0.0

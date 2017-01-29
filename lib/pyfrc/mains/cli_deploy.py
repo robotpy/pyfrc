@@ -10,7 +10,7 @@ import threading
 
 from os.path import abspath, basename, dirname, exists, join, splitext
 
-from ..robotpy import installer
+from robotpy_installer import installer
 from ..util import print_err, yesno
 
 import wpilib
