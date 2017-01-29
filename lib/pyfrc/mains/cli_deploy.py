@@ -10,7 +10,6 @@ import threading
 
 from os.path import abspath, basename, dirname, exists, join, splitext
 
-from robotpy_installer import installer
 from ..util import print_err, yesno
 
 import wpilib
@@ -58,6 +57,11 @@ class PyFrcDeploy:
                             help="If specified, don't do a DNS lookup, allow ssh et al to do it instead")
     
     def run(self, options, robot_class, **static_options):
+        
+        try:
+            from robotpy_installer import installer
+        except ImportError:
+            raise ImportError("You must have the robotpy-installer package installed to deploy code!")
         
         from .. import config
         config.mode = 'upload'
