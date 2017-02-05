@@ -218,7 +218,7 @@ class SimUI(object):
 #       self._add_CAN(k, hal_data['CAN'][k])
         
         
-#        csfm.pack(side=tk.LEFT, fill=tk.Y)
+        csfm.pack(side=tk.LEFT, fill=tk.Y)
         
         # joysticks
         slot = tk.LabelFrame(bottom, text='Joysticks')
