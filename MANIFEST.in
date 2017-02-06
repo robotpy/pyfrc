@@ -2,5 +2,6 @@ include README.md
 include requirements.txt
 include CHANGELOG.md
 
+include lib/pyfrc/sim/field/field.gif
 recursive-include samples *.py *.json
 recursive-include tests *.py *.sh

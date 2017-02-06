@@ -59,6 +59,7 @@ setup(name='pyfrc',
       license='BSD',
       packages=find_packages(where='lib'),
       package_dir={'': 'lib'},
+      package_data={'pyfrc': ['sim/field/field.gif']},
       install_requires=install_requires if not os.environ.get('ROBOTPY_NO_DEPS') else None,
       classifiers=[
         'Development Status :: 5 - Production/Stable',
