@@ -224,6 +224,7 @@ class FakeTime:
                     self.ds_cond.notify_all()
                     self._ds._getData()
                     self._ds.newControlData = True
+                    self._ds.waitForDataPredicate = True
                   
                 time -= next_ds
                 
