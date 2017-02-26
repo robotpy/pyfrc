@@ -9,7 +9,8 @@ try:
 except ImportError:
     print("pyfrc robot simulation requires python tkinter support to be installed")
     raise
-    
+
+import sys
 import logging
 import queue
 
@@ -19,8 +20,11 @@ from .. import __version__
 from .field.field import RobotField
 from .ui_widgets import CheckButtonWrapper, PanelIndicator, Tooltip, ValueWidget
 
+try:
+    from ctre.CANTalon import ControlMode as tsrxc
+except:
+    from wpilib.CANTalon import ControlMode as tsrxc
 
-from ctre._impl.constants import TalonSRXConst as tsrxc
 logger = logging.getLogger(__name__)
 
 
@@ -203,14 +207,18 @@ class SimUI(object):
         self.can_slot = tk.LabelFrame(csfm, text='CAN')
         self.can_slot.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5)
         self.can_mode_map = {
-            tsrxc.kMode_CurrentCloseLoop: 'PercentVbus',
-            tsrxc.kMode_DutyCycle:'PercentVbus',
-            tsrxc.kMode_NoDrive:'Disabled',
-            tsrxc.kMode_PositionCloseLoop:'Position',
-            tsrxc.kMode_SlaveFollower:'Follower',
-            tsrxc.kMode_VelocityCloseLoop:'Speed',
-            tsrxc.kMode_VoltCompen:'Voltage'
+            tsrxc.Current: 'PercentVbus',
+            tsrxc.PercentVBus:'PercentVbus',
+            tsrxc.Disabled:'Disabled',
+            tsrxc.Position:'Position',
+            tsrxc.Follower:'Follower',
+            tsrxc.Speed:'Speed',
+            tsrxc.Voltage:'Voltage',
+            tsrxc.MotionProfile:'Motion Profile'
             }
+        if ctre in sys.modules:
+            self.can_mode_map[tsrxc.MotionMagic] = 'Motion Magic'
+
         self.can = {}
         
         # detect new devices
