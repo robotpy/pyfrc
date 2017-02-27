@@ -191,27 +191,10 @@ class SimUI(object):
         
         slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
             
-        csfm = tk.Frame(top)
+        self.csfm = csfm = tk.Frame(top)
             
-        # solenoid
-        slot = tk.LabelFrame(csfm, text='Solenoid')
-        self.solenoids = []
-        
-        for i in range(len(hal_data['solenoid'])):
-            label = tk.Label(slot, text=str(i))
-            
-            c = int(i/2)*2
-            r = i%2
-            
-            label.grid(column=0+c, row=r)
-            
-            pi = PanelIndicator(slot)
-            pi.grid(column=1+c, row=r)
-            self.set_tooltip(pi, 'solenoid', i)
-            
-            self.solenoids.append(pi)
-        
-        slot.pack(side=tk.TOP, fill=tk.BOTH, padx=5)
+        # solenoid (pcm)
+        self.pcm = {}
         
         # CAN
         self.can_slot = tk.LabelFrame(csfm, text='CAN')
@@ -368,7 +351,40 @@ class SimUI(object):
             auton.pack(side=tk.TOP)
         
         ctrl_frame.pack(side=tk.LEFT, fill=tk.Y)
-         
+    
+    def _render_pcm(self):
+        
+        for k, data in sorted(hal_data['pcm'].items()):
+            if k not in self.pcm:
+                slot = tk.LabelFrame(self.csfm, text='Solenoid (PCM %s)' % k)
+                solenoids = []
+                self.pcm[k] = solenoids
+                
+                for i in range(len(data)):
+                    label = tk.Label(slot, text=str(i))
+                    
+                    c = int(i/2)*2
+                    r = i%2
+                    
+                    label.grid(column=0+c, row=r)
+                    
+                    pi = PanelIndicator(slot)
+                    pi.grid(column=1+c, row=r)
+                    self.set_tooltip(pi, 'solenoid', i)
+                    
+                    solenoids.append(pi)
+                
+                slot.pack(side=tk.TOP, fill=tk.BOTH, padx=5)
+            
+            solenoids = self.pcm[k]
+            for i, ch in enumerate(data):
+                sol = solenoids[i]
+                if not ch['initialized']:
+                    sol.set_disabled()
+                else:
+                    sol.set_value(ch['value'])
+        
+    
     def idle_add(self, callable, *args):
         '''Call this with a function as the argument, and that function
            will be called on the GUI thread via an event
@@ -452,12 +468,7 @@ class SimUI(object):
                     relay.set_off()
         
         # solenoid
-        for i, ch in enumerate(hal_data['solenoid']):
-            sol = self.solenoids[i]
-            if not ch['initialized']:
-                sol.set_disabled()
-            else:
-                sol.set_value(ch['value'])
+        self._render_pcm()
         
         # joystick/driver station
         #sticks = _core.DriverStation.GetInstance().sticks
