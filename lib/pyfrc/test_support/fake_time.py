@@ -63,7 +63,10 @@ class FakeTime:
         # Setup driver station hooks
         import wpilib
         
-        assert not hasattr(wpilib.DriverStation, 'instance')
+        assert not hasattr(wpilib.DriverStation, 'instance'), \
+            "You must not initialize the driver station before your robot " + \
+            "code executes. Perhaps you have a global somewhere? Globals are " + \
+            "generally evil and should be avoided!"
         
         # The DS thread causes too many problems, disable it by getting
         # rid of the thread function
