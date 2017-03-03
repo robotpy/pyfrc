@@ -29,6 +29,8 @@ class PyFrcPlugin:
         # Setup control instance
         self._control = None
         
+        self._started = False
+        
         # Setup the hal hooks so we can control time
         # -> The hook doesn't have any state, so we initialize it only once
         hal_impl.functions.hooks = pyfrc_fake_hooks.PyFrcFakeHooks(self._fake_time)
@@ -69,12 +71,23 @@ class PyFrcPlugin:
         
         assert hasattr(self._test_controller._robot, '_RobotBase__initialized'), \
                        "If your robot class has an __init__ function, it must call super().__init__()!"
+                       
+        self._started = True
     
     def pytest_runtest_teardown(self, nextitem):
+        
+        started = self._started
+        self._started = False
+        
         # Let any child threads run in realtime to allow cancelling if it
         # has been implemented.
         self._fake_time.teardown()
         self._test_controller = None
+        
+        # If the unit test never started, then the rest may hang. Bail
+        # out now instead, and choose to have more errors later.
+        if not started:
+            return
         
         import wpilib._impl.utils
         wpilib._impl.utils.reset_wpilib()
