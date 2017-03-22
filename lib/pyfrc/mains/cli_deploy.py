@@ -115,10 +115,12 @@ class PyFrcDeploy:
             deployed_cmd = 'env LD_LIBRARY_PATH=/usr/local/frc/rpath-lib/ /usr/local/frc/bin/netconsole-host /usr/local/bin/python3 -u %s/%s -v run' % (py_deploy_dir, robot_filename)
             deployed_cmd_fname = 'robotDebugCommand'
             extra_cmd = 'touch /tmp/frcdebug; chown lvuser:ni /tmp/frcdebug'
+            bash_cmd = '/bin/bash -cex'
         else:
             deployed_cmd = 'env LD_LIBRARY_PATH=/usr/local/frc/rpath-lib/ /usr/local/frc/bin/netconsole-host /usr/local/bin/python3 -u -O %s/%s run' % (py_deploy_dir, robot_filename)
             deployed_cmd_fname = 'robotCommand'
             extra_cmd = ''
+            bash_cmd = '/bin/bash -ce'
 
         if options.in_place:
             del_cmd = ''
@@ -133,7 +135,7 @@ class PyFrcDeploy:
         
         # This is a nasty bit of code now...
         sshcmd = inspect.cleandoc("""
-            /bin/bash -ce '[ -x /usr/local/bin/python3 ] || exit 87
+            %(bash_cmd)s '[ -x /usr/local/bin/python3 ] || exit 87
             SITEPACKAGES=$(/usr/local/bin/python3 -c "import site; print(site.getsitepackages()[0])")
             [ -f $SITEPACKAGES/wpilib/version.py ] || exit 88
             %(check_version)s
@@ -143,6 +145,7 @@ class PyFrcDeploy:
         """)
               
         sshcmd %= {
+            'bash_cmd': bash_cmd,
             'del_cmd': del_cmd,
             'deploy_dir': deploy_dir,
             'cmd': deployed_cmd,
@@ -192,13 +195,20 @@ class PyFrcDeploy:
             
             if not options.in_place:
                 # Restart the robot code and we're done!
-                sshcmd = "/bin/bash -ce '" + \
+                # TODO: add the following to the beginning of the next command:
+                # '/usr/local/bin/python3 -m compileall -q -r 5 /home/lvuser/py;' + \
+                # -> breaks because of http://bugs.python.org/issue29877
+                sshcmd = "%(bash_cmd)s '" + \
                          '. /etc/profile.d/natinst-path.sh; ' + \
-                         'chown -R lvuser:ni %s; ' + \
+                         'chown -R lvuser:ni %(py_deploy_dir)s; ' + \
+                         'sync; ' + \
                          '/usr/local/frc/bin/frcKillRobot.sh -t -r' + \
                          "'"
             
-                sshcmd %= (py_deploy_dir)
+                sshcmd %= {
+                    'bash_cmd': bash_cmd,
+                    'py_deploy_dir': py_deploy_dir,
+                }
             
                 logger.debug('SSH: %s', sshcmd)
                 controller.ssh(sshcmd)
@@ -216,6 +226,8 @@ class PyFrcDeploy:
                 print_err("- Otherwise, upgrade pyfrc on your computer")
                 print_err()
                 print_err("Alternatively, you can specify --no-version-check to skip this check")
+            elif e.retval == 90:
+                print_err("ERROR: error running compileall")
             else:
                 print_err("ERROR: %s" % e)
             return 1
