@@ -46,7 +46,9 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pyfrc'
-copyright = '2014-2016, RobotPy development team'
+copyright = '2014-2017, RobotPy development team'
+
+autoclass_content = 'both'
 
 intersphinx_mapping = {
     'wpilib': ('http://robotpy-wpilib.readthedocs.org/en/%s/' % rtd_version, None)
