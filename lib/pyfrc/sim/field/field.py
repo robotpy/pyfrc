@@ -52,6 +52,13 @@ class RobotField(object):
 
     def _load_field_elements(self, px_per_ft, config_obj):
         
+        # custom image
+        image_path = config_obj['pyfrc']['field']['image']
+        
+        if image_path and exists(image_path):
+            self.photo = PhotoImage(file=image_path)
+            self.canvas.create_image((self.canvasWidth / 2, self.canvasHeight / 2), image=self.photo)
+            
         if self.objects:
             for obj in self.objects:
                 color = obj['color']
@@ -65,13 +72,6 @@ class RobotField(object):
                 
                 element = DrawableElement(pts, None, None, color)
                 self.add_moving_element(element)
-        
-        # custom image
-        image_path = config_obj['pyfrc']['field']['image']
-        print(image_path)
-        if image_path and exists(image_path):
-            self.photo = PhotoImage(file=image_path)
-            self.canvas.create_image((self.canvasWidth / 2, self.canvasHeight / 2), image=self.photo)
 
     def add_moving_element(self, element):
         '''Add elements to the board'''

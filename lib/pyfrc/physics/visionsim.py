@@ -1,3 +1,7 @@
+'''
+    The 'vision simulator' provides objects that assist in modeling inputs
+    from a camera processing system.
+'''
 
 import collections
 import math
@@ -9,6 +13,10 @@ def _in_angle_interval(x, a, b):
     return (x - a) % twopi <= (b - a) % twopi
 
 class VisionSimTarget:
+    '''
+        Target object that you pass the to the constructor of :class:`.VisionSim`
+    '''
+    
     def __init__(self, x, y, view_angle_start, view_angle_end):
         '''
             :param x: Target x position
@@ -82,8 +90,14 @@ class VisionSim:
         - The camera is in the center of your robot (this simplifies some
           things, maybe fix this in the future...)
         
-        To use this, create an instance in your physics simulator, and
-        call the :meth:`compute` method from your ``update_sim`` method
+        To use this, create an instance in your physics simulator::
+        
+            targets = [
+                VisionSim.Target(...)
+            ]
+        
+        
+        Then call the :meth:`compute` method from your ``update_sim`` method
         whenever your camera processing is enabled::
         
             # in physics engine update_sim()
@@ -95,13 +109,17 @@ class VisionSim:
                     self.nt.putNumberArray('/camera/target', data[0])
             else:
                 self.vision_sim.dont_compute()
+                
+        .. note:: There is a working example in the examples repository
+                  you can use to try this functionality out
     '''
     
     Target = VisionSimTarget
     
     def __init__(self, targets, camera_fov,
                  view_dst_start, view_dst_end,
-                 data_frequency=15, data_lag=0.050):
+                 data_frequency=15, data_lag=0.050,
+                 physics_controller=None):
         '''
             There are a lot of constructor parameters:
             
@@ -113,6 +131,7 @@ class VisionSim:
             :param data_frequency:   How often the camera transmits new coordinates
             :param data_lag:         How long it takes for the camera data to be processed
                                      and make it to the robot
+            :param physics_controller: If set, will draw target information in UI
         '''
         
         fov2 = math.radians(camera_fov/2.0)
@@ -128,11 +147,20 @@ class VisionSim:
         assert view_dst_start < view_dst_end
         assert self.data_lag > 0.001
         
+        objects = []
+        if physics_controller:
+            objects = physics_controller.config_obj['pyfrc']['field']['objects']
+        
         for target in targets:
             target.camera_fov = camera_fov
             target.view_dst_start = view_dst_start
             target.view_dst_end = view_dst_end
             target.fov2 = fov2
+            
+            objects.append({
+                'color': 'red',
+                'rect': [target.x - 0.1, target.y - 0.1, 0.4, 0.4]
+            })
     
     def dont_compute(self):
         '''
