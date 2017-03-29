@@ -136,6 +136,7 @@ class VisionSim:
         
         fov2 = math.radians(camera_fov/2.0)
         
+        self.distance = 0
         self.update_period = 1.0/data_frequency
         self.data_lag = data_lag
         
@@ -167,6 +168,15 @@ class VisionSim:
             Call this when vision processing should be disabled
         '''
         self.send_queue.clear()
+        
+    def get_immediate_distance(self):
+        '''
+            Use this data to feed to a sensor that is mostly instantaneous
+            (such as an ultrasonic sensor).
+            
+            .. note:: You must call :meth:`compute` first.
+        '''
+        return self.distance
     
     def compute(self, now, x, y, angle):
         '''
@@ -187,26 +197,27 @@ class VisionSim:
                       the other elements. 
         '''
         
-        # Only compute stuff every once in awhile
+        # Normalize angle to [-180,180]
+        output = []
+        angle = ((angle + math.pi) % (math.pi*2)) - math.pi
+    
+        for target in self.targets:
+            proposed = target.compute(now, x, y, angle)
+            if proposed:
+                output.append(proposed)
+        
+        if not output:
+            output.append((0, now, inf, 0))
+            self.distance = None
+        else:
+            # order by absolute offset
+            output.sort(key=lambda i: abs(i[2]))
+            self.distance = output[-1][3]
+        
+        # Only store stuff every once in awhile
         if now - self.last_compute_time > self.update_period:
             
             self.last_compute_time = now
-            output = []
-            
-            # Normalize angle to [-180,180]
-            angle = ((angle + math.pi) % (math.pi*2)) - math.pi
-        
-            for target in self.targets:
-                proposed = target.compute(now, x, y, angle)
-                if proposed:
-                    output.append(proposed)
-                
-            if not output:
-                output.append((0, now, inf, 0))
-            else:
-                # order by absolute offset
-                output.sort(key=lambda i: abs(i[2]))
-            
             self.send_queue.appendleft(output)
         
         # simulate latency by delaying camera output        
