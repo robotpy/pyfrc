@@ -59,7 +59,7 @@ def test_mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, output):
     (-1, -1, -1, -1, 135,  45, 225, 315, ( 0,  0,  1)) # rotate right inverted
 ])    
 def test_four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angle, rr_angle, lf_angle, rf_angle, output):
-    wheelbase = sqrt(1/2)
+    wheelbase = sqrt(2)
     result = drivetrains.four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angle, rr_angle, lf_angle, rf_angle, speed=1, x_wheelbase=wheelbase, y_wheelbase=wheelbase)
     assert abs(result[0] - output[0]) < 0.001
     assert abs(result[1] - output[1]) < 0.001
