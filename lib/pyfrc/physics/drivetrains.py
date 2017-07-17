@@ -151,10 +151,12 @@ def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angl
         :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
         :param lf_motor:   Left front motor value (-1 to 1); 1 is forward
         :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
-        :param lr_angle:   Left rear motor angle in degrees (0 to 360)
-        :param rr_angle:   Right rear motor angle in degrees (0 to 360)
-        :param lf_angle:   Left front motor angle in degrees (0 to 360)
-        :param rf_angle:   Right front motor angle in degrees (0 to 360)
+        
+        :param lr_angle:   Left rear motor angle in degrees (0 to 360 measured clockwise from forward position)
+        :param rr_angle:   Right rear motor angle in degrees (0 to 360 measured clockwise from forward position)
+        :param lf_angle:   Left front motor angle in degrees (0 to 360 measured clockwise from forward position)
+        :param rf_angle:   Right front motor angle in degrees (0 to 360 measured clockwise from forward position)
+        
         :param x_wheelbase: The distance in feet between right and left wheels.
         :param y_wheelbase: The distance in feet between forward and rear wheels.
         :param speed:      Speed of robot in feet per second (see above)
@@ -176,14 +178,13 @@ def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angl
 
     # Calculate wheelbase radius
     wheelbase_radius = math.sqrt((x_wheelbase / 2) ** 2 + (y_wheelbase/2) ** 2)
+    print(wheelbase_radius)
 
     # Calculates the Vx and Vy components
     # Sin an Cos inverted because forward is 0 on swerve wheels
     Vx = (math.sin(lr_rad) * lr) + (math.sin(rr_rad) * rr) + (math.sin(lf_rad) * lf) + (math.sin(rf_rad) * rf) 
     Vy = (math.cos(lr_rad) * lr) + (math.cos(rr_rad) * rr) + (math.cos(lf_rad) * lf) + (math.cos(rf_rad) * rf)
     
-    # To make left negative
-    Vx *= -1
     
     # Adjusts the angle corresponding to a diameter that is perpendicular to the radius (add or subtract 45deg)
     lr_rad = (lr_rad + (math.pi / 4)) % (2 * math.pi)
@@ -193,6 +194,7 @@ def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angl
 
     # Finds the rotational velocity by finding the torque and adding them up
     Vw = wheelbase_radius * ((math.cos(lr_rad) * lr) + (math.cos(rr_rad) * -rr) + (math.cos(lf_rad) * lf) + (math.cos(rf_rad) * -rf))
+    print("LR rad", math.cos(lr_rad), "L R:", lr, " RR rad:", math.cos(lr_rad), " RR:", -rr, " LF rad:", math.cos(lf_rad), " LF:", lf, " rf rad:", math.cos(rf_rad), " rf:", -rf)
     
     Vx *= 0.25
     Vy *= 0.25
