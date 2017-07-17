@@ -29,6 +29,12 @@ Robot 'physics model'
 .. automodule:: pyfrc.physics.core
    :members:
 
+Camera 'simulator'
+------------------
+
+.. automodule:: pyfrc.physics.visionsim
+   :members:
+
 Drivetrain support
 ------------------
 

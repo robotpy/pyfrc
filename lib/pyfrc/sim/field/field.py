@@ -1,5 +1,5 @@
 
-from os.path import abspath, dirname, join
+from os.path import exists
 from tkinter import PhotoImage
 
 import tkinter as tk
@@ -25,17 +25,17 @@ class RobotField(object):
         self.elements = []      # robots, walls, missles, etc
 
         field_size = config_obj['pyfrc']['field']['w'], \
-            config_obj['pyfrc']['field']['h']
+                     config_obj['pyfrc']['field']['h']
         px_per_ft = config_obj['pyfrc']['field']['px_per_ft']
 
         # setup board characteristics -- cell size is 1ft
         self.cols, self.rows = field_size
         self.margin = 5
         self.objects = config_obj['pyfrc']['field']['objects']
-        self.cellSize = px_per_ft if self.objects else 485 / self.cols
+        self.cellSize = px_per_ft
 
-        self.canvasWidth = 2 * self.margin + self.cellSize * self.cols if self.objects else 2 * self.margin + 485
-        self.canvasHeight = 2 * self.margin + self.cellSize * self.rows if self.objects else 2 * self.margin + 535
+        self.canvasWidth = 2 * self.margin + self.cellSize * self.cols
+        self.canvasHeight = 2 * self.margin + self.cellSize * self.rows
 
         self.canvas = tk.Canvas(root, width=self.canvasWidth, height=self.canvasHeight)
         self.canvas.bind("<Key>", self.on_key_pressed)
@@ -51,21 +51,27 @@ class RobotField(object):
         self._load_field_elements(px_per_ft, config_obj)
 
     def _load_field_elements(self, px_per_ft, config_obj):
+        
+        # custom image
+        image_path = config_obj['pyfrc']['field']['image']
+        
+        if image_path and exists(image_path):
+            self.photo = PhotoImage(file=image_path)
+            self.canvas.create_image((self.canvasWidth / 2, self.canvasHeight / 2), image=self.photo)
+            
         if self.objects:
             for obj in self.objects:
                 color = obj['color']
+                rect = obj.get('rect')
+                if rect:
+                    x, y, w, h = rect
+                    obj['points'] = [(x,y), (x+w, y), (x+w, y+h), (x,y+h)]
+                
                 pts = [(self.margin + int(pt[0] * px_per_ft),
                         self.margin + int(pt[1] * px_per_ft)) for pt in obj['points']]
+                
                 element = DrawableElement(pts, None, None, color)
                 self.add_moving_element(element)
-            return
-
-        image = config_obj['pyfrc']['field']['image']
-        if image is None:
-            self.photo = PhotoImage(file=abspath(join(dirname(__file__), 'field.gif')))
-        else:
-            self.photo = PhotoImage(file=join(config_obj['simpath'], image))
-        self.canvas.create_image((self.canvasWidth / 2, self.canvasHeight / 2), image=self.photo)
 
     def add_moving_element(self, element):
         '''Add elements to the board'''

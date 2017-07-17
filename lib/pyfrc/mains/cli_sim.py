@@ -2,7 +2,7 @@
 import inspect
 import json
 import logging
-from os.path import abspath, dirname, exists, join
+from os.path import abspath, dirname, exists, join, isabs
 
 import hal_impl.functions
 
@@ -10,6 +10,24 @@ from ..test_support import pyfrc_fake_hooks
 
 
 logger = logging.getLogger('pyfrc.sim')
+
+_field_root = abspath(join(dirname(__file__), '..', 'sim', 'field'))
+
+_field_defaults = {
+    '2017': {
+        'h': 31,
+        'w': 29,
+        'px_per_ft': 17,
+        'image': join(_field_root, '2017-field.gif')
+    },
+    'default': {
+        'h': 1,
+        'w': 1,
+        'px_per_ft': 10,
+        'image': None
+    }
+}
+
 
 class PyFrcSim:
     """
@@ -20,7 +38,7 @@ class PyFrcSim:
     def __init__(self, parser):
         pass
     
-    def _load_config(self, config_file):
+    def _load_config(self, config_file, sim_path):
         
         if exists(config_file):
             with open(config_file, 'r') as fp:
@@ -28,6 +46,8 @@ class PyFrcSim:
         else:
             logger.warn("sim/config.json not found, using default simulation parameters")
             config_obj = {}
+        
+        config_obj['simpath'] = sim_path
         
         # setup defaults
         config_obj.setdefault('pyfrc', {})
@@ -40,11 +60,24 @@ class PyFrcSim:
         config_obj['pyfrc']['robot'].setdefault('starting_angle', 0)
         
         config_obj['pyfrc'].setdefault('field', {})
-        config_obj['pyfrc']['field'].setdefault('w', 1)
-        config_obj['pyfrc']['field'].setdefault('h', 1)
-        config_obj['pyfrc']['field'].setdefault('px_per_ft', 10)
+        
+        # backwards compat
+        if 'season' in config_obj['pyfrc']['field']:
+            season = config_obj['pyfrc']['field']['season']
+            defaults = _field_defaults.get(str(season), _field_defaults['default'])
+        elif 'objects' in config_obj['pyfrc']['field']:
+            defaults = _field_defaults['default']
+        else:
+            defaults = _field_defaults['2017']
+        
         config_obj['pyfrc']['field'].setdefault('objects', [])
-        config_obj['pyfrc']['field'].setdefault('image', None)
+        config_obj['pyfrc']['field'].setdefault('w', defaults['w'])
+        config_obj['pyfrc']['field'].setdefault('h', defaults['h'])
+        config_obj['pyfrc']['field'].setdefault('px_per_ft', defaults['px_per_ft'])
+        img = config_obj['pyfrc']['field'].setdefault('image', defaults['image'])
+        
+        if img and not isabs(config_obj['pyfrc']['field']['image']):
+            config_obj['pyfrc']['field']['image'] = abspath(join(sim_path, img))
         
         config_obj['pyfrc'].setdefault('analog', {})
         config_obj['pyfrc'].setdefault('CAN', {})
@@ -80,8 +113,7 @@ class PyFrcSim:
         sim_path = join(robot_path, 'sim')
         config_file = join(sim_path, 'config.json')
         
-        config_obj = self._load_config(config_file)
-        config_obj['simpath'] = sim_path
+        config_obj = self._load_config(config_file, sim_path)
         fake_time = sim.FakeRealTime()
         hal_impl.functions.hooks = pyfrc_fake_hooks.PyFrcFakeHooks(fake_time)
         hal_impl.functions.reset_hal()

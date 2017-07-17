@@ -19,8 +19,8 @@ from .. import __version__
 from .field.field import RobotField
 from .ui_widgets import CheckButtonWrapper, PanelIndicator, Tooltip, ValueWidget
 
+from pkg_resources import iter_entry_points
 
-#from hal import TalonSRXConst as tsrxc
 logger = logging.getLogger(__name__)
 
 
@@ -53,6 +53,20 @@ class SimUI(object):
        
         self.root.resizable(width=0, height=0)
         
+        # Allow extending the simulation from 3rd party libraries
+        # -> TODO: better API for this
+        self.extensions = []
+        for ep in iter_entry_points(group='robotpysim', name=None):
+            try:
+                extension = ep.load()
+            except ImportError:
+                logger.debug("Error importing extension '%s'", ep.name, exc_info=True)
+            else:
+                logger.debug("Loaded simulation extension '%s'", ep.name)
+                extension = extension()
+                
+                if hasattr(extension, 'update_tk_widgets'):
+                    self.extensions.append(extension)
         
         self.mode_start_tm = 0
         self.text_id = None
@@ -177,46 +191,15 @@ class SimUI(object):
         
         slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
             
-        csfm = tk.Frame(top)
+        self.csfm = csfm = tk.Frame(top)
             
-        # solenoid
-        slot = tk.LabelFrame(csfm, text='Solenoid')
-        self.solenoids = []
-        
-        for i in range(len(hal_data['solenoid'])):
-            label = tk.Label(slot, text=str(i))
-            
-            c = int(i/2)*2
-            r = i%2
-            
-            label.grid(column=0+c, row=r)
-            
-            pi = PanelIndicator(slot)
-            pi.grid(column=1+c, row=r)
-            self.set_tooltip(pi, 'solenoid', i)
-            
-            self.solenoids.append(pi)
-        
-        slot.pack(side=tk.TOP, fill=tk.BOTH, padx=5)
+        # solenoid (pcm)
+        self.pcm = {}
         
         # CAN
-#       self.can_slot = tk.LabelFrame(csfm, text='CAN')
-#       self.can_slot.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5)
-#       self.can_mode_map = {}
-#                         tsrxc.kMode_CurrentCloseLoop: 'PercentVbus',
-#                         tsrxc.kMode_DutyCycle:'PercentVbus',
-#                         tsrxc.kMode_NoDrive:'Disabled',
-#                         tsrxc.kMode_PositionCloseLoop:'Position',
-#                         tsrxc.kMode_SlaveFollower:'Follower',
-#                         tsrxc.kMode_VelocityCloseLoop:'Speed',
-#                         tsrxc.kMode_VoltCompen:'Voltage'
-#                      }
+        self.can_slot = tk.LabelFrame(csfm, text='CAN')
+        self.can_slot.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5)
         self.can = {}
-        
-        # detect new devices
-#       for k in sorted(hal_data['CAN'].keys()):
-#       self._add_CAN(k, hal_data['CAN'][k])
-        
         
         csfm.pack(side=tk.LEFT, fill=tk.Y)
         
@@ -368,52 +351,40 @@ class SimUI(object):
             auton.pack(side=tk.TOP)
         
         ctrl_frame.pack(side=tk.LEFT, fill=tk.Y)
-     
-    def _add_CAN(self, canId, device):
+    
+    def _render_pcm(self):
         
-        row = len(self.can)*2
+        for k, data in sorted(hal_data['pcm'].items()):
+            if k not in self.pcm:
+                slot = tk.LabelFrame(self.csfm, text='Solenoid (PCM %s)' % k)
+                solenoids = []
+                self.pcm[k] = solenoids
+                
+                for i in range(len(data)):
+                    label = tk.Label(slot, text=str(i))
+                    
+                    c = int(i/2)*2
+                    r = i%2
+                    
+                    label.grid(column=0+c, row=r)
+                    
+                    pi = PanelIndicator(slot)
+                    pi.grid(column=1+c, row=r)
+                    self.set_tooltip(pi, 'solenoid', i)
+                    
+                    solenoids.append(pi)
+                
+                slot.pack(side=tk.TOP, fill=tk.BOTH, padx=5)
+            
+            solenoids = self.pcm[k]
+            for i, ch in enumerate(data):
+                sol = solenoids[i]
+                if not ch['initialized']:
+                    sol.set_disabled()
+                else:
+                    sol.set_value(ch['value'])
         
-        lbl = tk.Label(self.can_slot, text=str(canId))
-        lbl.grid(column=0, row=row)
-        
-        motor = ValueWidget(self.can_slot, default=0.0)
-        motor.grid(column=1, row=row)
-        self.set_tooltip(motor, 'CAN', canId)
-        
-        fl = CheckButtonWrapper(self.can_slot, text='F')
-        fl.grid(column=2, row=row)
-        
-        rl = CheckButtonWrapper(self.can_slot, text='R')
-        rl.grid(column=3, row=row)
-        
-        Tooltip.create(fl, 'Forward limit switch')
-        Tooltip.create(rl, 'Reverse limit switch')
-        
-        mode_lbl_txt = tk.StringVar(value = self.can_mode_map[device['mode_select']])
-        mode_label = tk.Label(self.can_slot, textvariable=mode_lbl_txt)
-        mode_label.grid(column=4, row=row)
-        
-        labels = tk.Frame(self.can_slot)
-        labels.grid(column=0, row=row+1, columnspan=6)
-        
-        enc_value = tk.StringVar(value='E: 0')
-        enc_label = tk.Label(labels, textvariable=enc_value)
-        enc_label.pack(side=tk.LEFT)
-        
-        analog_value = tk.StringVar(value='A: 0')
-        analog_label = tk.Label(labels, textvariable=analog_value)
-        analog_label.pack(side=tk.LEFT)
-        
-        pwm_value = tk.StringVar(value='P: 0')
-        pwm_label = tk.Label(labels, textvariable=pwm_value)
-        pwm_label.pack(side=tk.LEFT)
-        
-        Tooltip.create(enc_label, "Encoder Input")
-        Tooltip.create(analog_label, "Analog Input")
-        Tooltip.create(pwm_label, "PWM Input")
-        
-        self.can[canId] = (motor, fl, rl, mode_lbl_txt, enc_value, analog_value, pwm_value)
-        
+    
     def idle_add(self, callable, *args):
         '''Call this with a function as the argument, and that function
            will be called on the GUI thread via an event
@@ -451,7 +422,6 @@ class SimUI(object):
     
     def update_widgets(self):
         
-            
         # TODO: support multiple slots?
         
         #joystick stuff
@@ -498,48 +468,7 @@ class SimUI(object):
                     relay.set_off()
         
         # solenoid
-        for i, ch in enumerate(hal_data['solenoid']):
-            sol = self.solenoids[i]
-            if not ch['initialized']:
-                sol.set_disabled()
-            else:
-                sol.set_value(ch['value'])
-        
-        # CAN        
-        for k, (motor, fl, rl, mode_lbl_txt, enc_txt, analog_txt, pwm_txt) in self.can.items():
-            can = hal_data['CAN'][k]
-            mode = can['mode_select']
-            mode_lbl_txt.set(self.can_mode_map[mode])
-            #change how output works based on control mode
-            if   mode == tsrxc.kMode_DutyCycle :  
-                #based on the fact that the vbus has 1023 steps
-                motor.set_value(can['value']/1023)
-                
-            elif mode == tsrxc.kMode_VoltCompen:
-                #assume voltage is 12 divide by muliplier in cantalon code (256)
-                motor.set_value(can['value']/12/256)
-                
-            elif mode == tsrxc.kMode_SlaveFollower:
-                #follow the value of the motor value is equal too
-                motor.set_value(self.can[can['value']][0].get_value())
-            #
-            # currently other control modes are not correctly implemented
-            #
-            else:
-                motor.set_value(can['value'])
-                
-            enc_txt.set('E: %s' % can['enc_position'])
-            analog_txt.set('A: %s' % can['analog_in_position'])
-            pwm_txt.set('P: %s' % can['pulse_width_position'])
-            
-            ret = fl.sync_value(can['limit_switch_closed_for'])
-            if ret is not None:
-                can['limit_switch_closed_for'] = ret
-                
-            ret = rl.sync_value(can['limit_switch_closed_rev'])
-            if ret is not None:
-                can['limit_switch_closed_rev'] = ret 
-        
+        self._render_pcm()
         
         # joystick/driver station
         #sticks = _core.DriverStation.GetInstance().sticks
@@ -558,7 +487,10 @@ class SimUI(object):
             jpovs = joy['povs']
             for j, pov in enumerate(povs):
                 jpovs[j] = int(pov.get_value())
-                
+        
+        for extension in self.extensions:
+            extension.update_tk_widgets(self)
+        
         self.field.update_widgets()
         
         tm = self.fake_time.get()
