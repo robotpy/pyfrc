@@ -171,13 +171,13 @@ def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angl
     rf = rf_motor * speed
 
     # Calculate angle in radians
-    lr_rad = lr_angle * (math.pi / 180)
-    rr_rad = rr_angle * (math.pi / 180)
-    lf_rad = lf_angle * (math.pi / 180)
-    rf_rad = rf_angle * (math.pi / 180)
+    lr_rad = math.radians(lr_angle)
+    rr_rad = math.radians(rr_angle)
+    lf_rad = math.radians(lf_angle)
+    rf_rad = math.radians(rf_angle)
 
     # Calculate wheelbase radius
-    wheelbase_radius = math.sqrt((x_wheelbase / 2) ** 2 + (y_wheelbase/2) ** 2)
+    wheelbase_radius = math.hypot(x_wheelbase, y_wheelbase)
 
     # Calculates the Vx and Vy components
     # Sin an Cos inverted because forward is 0 on swerve wheels
