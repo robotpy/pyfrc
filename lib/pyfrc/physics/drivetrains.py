@@ -178,7 +178,6 @@ def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angl
 
     # Calculate wheelbase radius
     wheelbase_radius = math.sqrt((x_wheelbase / 2) ** 2 + (y_wheelbase/2) ** 2)
-    print(wheelbase_radius)
 
     # Calculates the Vx and Vy components
     # Sin an Cos inverted because forward is 0 on swerve wheels
@@ -194,7 +193,6 @@ def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angl
 
     # Finds the rotational velocity by finding the torque and adding them up
     Vw = wheelbase_radius * ((math.cos(lr_rad) * lr) + (math.cos(rr_rad) * -rr) + (math.cos(lf_rad) * lf) + (math.cos(rf_rad) * -rf))
-    print("LR rad", math.cos(lr_rad), "L R:", lr, " RR rad:", math.cos(lr_rad), " RR:", -rr, " LF rad:", math.cos(lf_rad), " LF:", lf, " rf rad:", math.cos(rf_rad), " rf:", -rf)
     
     Vx *= 0.25
     Vy *= 0.25
