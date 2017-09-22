@@ -30,7 +30,7 @@ class UsbJoysticks(object):
             
             ui_axes = ui_joystick[0]
             for axis in range(joystick.get_numaxes()):
-                if axis == 3:
+                if axis == 6:
                     break
                 
                 ui_current_axis = ui_axes[axis]
