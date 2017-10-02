@@ -1,4 +1,5 @@
 import pygame
+from hal_impl.data import hal_data
 
 class UsbJoysticks(object):
     
@@ -18,8 +19,10 @@ class UsbJoysticks(object):
         return joysticks
     
     def initJoystickList(self, joystickList):
-        for joystick in joystickList:
+        for i, joystick in enumerate(joystickList):
             joystick.init()
+            if i < len(hal_data['joysticks']):
+                hal_data['joysticks'][i]['name'] = joystick.get_name()
         
     def update(self):
         pygame.event.get()
