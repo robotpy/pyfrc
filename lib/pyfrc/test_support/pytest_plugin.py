@@ -52,7 +52,10 @@ class PyFrcPlugin:
         
         import networktables
         if hasattr(networktables, 'NetworkTables'):
-            networktables.NetworkTables.setTestMode()
+            if hasattr(networktables.NetworkTables, 'setTestMode'):
+                networktables.NetworkTables.setTestMode()
+            else:
+                networktables.NetworkTables.startTestMode()
         else:
             networktables.NetworkTable.setTestMode()
         
