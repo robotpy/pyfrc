@@ -75,8 +75,8 @@ class FakeTime:
         self._ds = wpilib.DriverStation.getInstance()
         
         # This is used to make DriverStation.waitForData() work
-        self.ds_cond = _DSCondition(self, self._ds.mutex)
-        self._ds.dataCond = self.ds_cond
+        self.ds_cond = _DSCondition(self)
+        #self._ds.dataCond = self.ds_cond
         
         self.thread_id = threading.current_thread().ident
         return self.ds_cond
@@ -226,8 +226,6 @@ class FakeTime:
                 with self.ds_cond:
                     self.ds_cond.notify_all()
                     self._ds._getData()
-                    self._ds.newControlData = True
-                    self._ds.waitForDataPredicate = True
                   
                 time -= next_ds
                 
