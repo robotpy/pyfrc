@@ -148,8 +148,7 @@ class FakeTime:
         '''
             :returns: The current time for the robot
         '''
-        with self.lock:
-            return self.time
+        return self.time
         
     def increment_time_by(self, time):
         '''
@@ -257,6 +256,10 @@ class FakeTime:
             :type time_limit: float
         '''
         self.time_limit = time_limit
+    
+    def _ds_time_offset(self):
+        with self.lock:
+            return self.next_ds_time - self.time
 
 
 class _DSCondition(threading.Condition):
@@ -282,13 +285,61 @@ class _DSCondition(threading.Condition):
         
         in_main = (threading.current_thread().ident == self.thread_id)
         
+        # easy case: infinite timeout
+        if timeout is None:
+            
+            # If on main thread, increment until the next packet time
+            if in_main:
+                self.fake_time_inst.increment_new_packet()
+            else:
+                # Not on main thread? wait for notify
+                # -> TODO: this could never return if a notify doesn't occur
+                super().wait()
+                
+            return True
+        
+        else:
+            # harder case: some timeout
+            # -> because this is the DS condition variable, we know when it will
+            #    be notified. Determine if that time is before or after the next
+            #    ds time
+            ds_offset = self.fake_time_inst._ds_time_offset()
+            
+            # either way, increment by the time difference
+            self.fake_time_inst.increment_time_by(ds_offset)
+            
+            # if before, return False indicating timeout
+            # if after, return True indicating successful notification
+            return timeout > ds_offset
+            
         if timeout is not None:
             raise NotImplementedError("Didn't implement timeout support yet")
         
         # If we're on the robot's main thread, when this is called we just
         # need to increment the time, no wait required. If we're not on the
         # main thread, then we need to wait for a notification.. 
-        if in_main:
-            self.fake_time_inst.increment_new_packet()
-        else:
-            super().wait(timeout=timeout)
+    
+    # Copied from Python 3.6 source code, Python license
+    # -> have to fork it because need to use our own time definition
+    def wait_for(self, predicate, timeout=None):
+        """Wait until a condition evaluates to True.
+
+        predicate should be a callable which result will be interpreted as a
+        boolean value.  A timeout may be provided giving the maximum time to
+        wait.
+
+        """
+        endtime = None
+        waittime = timeout
+        result = predicate()
+        while not result:
+            if waittime is not None:
+                if endtime is None:
+                    endtime = self.fake_time_inst.get() + waittime
+                else:
+                    waittime = endtime - self.fake_time_inst.get()
+                    if waittime <= 0:
+                        break
+            self.wait(waittime)
+            result = predicate()
+        return result
