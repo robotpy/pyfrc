@@ -42,7 +42,10 @@ class PyFrcDeploy:
                             help="When specified, allows you to deploy code in a file that isn't called robot.py")
         
         parser.add_argument('--nc', '--netconsole', action='store_true', default=False,
-                            help="Attach netconsole listener and show robot stdout")
+                            help="Attach netconsole listener and show robot stdout (requires DS to be connected)")
+        
+        parser.add_argument('--nc-ds', '--netconsole-ds', action='store_true', default=False,
+                            help="Attach netconsole listener and show robot stdout (fakes a DS connection)")
 
         parser.add_argument('--in-place', action='store_true', default=False,
                             help="Overwrite currently deployed code, don't delete anything, and don't restart running robot code.")
@@ -112,12 +115,12 @@ class PyFrcDeploy:
         # have been fixed, but need to use -u for it to really work properly
         
         if options.debug:
-            deployed_cmd = 'env LD_LIBRARY_PATH=/usr/local/frc/rpath-lib/ /usr/local/frc/bin/netconsole-host /usr/local/bin/python3 -u %s/%s -v run' % (py_deploy_dir, robot_filename)
+            deployed_cmd = 'env LD_LIBRARY_PATH=/usr/local/frc/lib/ /usr/local/bin/python3 -u %s/%s -v run' % (py_deploy_dir, robot_filename)
             deployed_cmd_fname = 'robotDebugCommand'
             extra_cmd = 'touch /tmp/frcdebug; chown lvuser:ni /tmp/frcdebug'
             bash_cmd = '/bin/bash -cex'
         else:
-            deployed_cmd = 'env LD_LIBRARY_PATH=/usr/local/frc/rpath-lib/ /usr/local/frc/bin/netconsole-host /usr/local/bin/python3 -u -O %s/%s run' % (py_deploy_dir, robot_filename)
+            deployed_cmd = 'env LD_LIBRARY_PATH=/usr/local/frc/lib/ /usr/local/bin/python3 -u -O %s/%s run' % (py_deploy_dir, robot_filename)
             deployed_cmd_fname = 'robotCommand'
             extra_cmd = ''
             bash_cmd = '/bin/bash -ce'
@@ -183,11 +186,15 @@ class PyFrcDeploy:
             
             # start the netconsole listener now if requested, *before* we
             # actually start the robot code, so we can see all messages
-            if options.nc:
+            if options.nc or options.nc_ds:
                 from netconsole import run
                 nc_event = threading.Event()
                 nc_thread = threading.Thread(target=run,
-                                             kwargs={'init_event': nc_event},
+                                             args=(controller.hostname,),
+                                             kwargs=dict(
+                                                connect_event=nc_event,
+                                                fakeds=options.nc_ds
+                                             ),
                                              daemon=True)
                 nc_thread.start()
                 nc_event.wait(5)
@@ -195,10 +202,8 @@ class PyFrcDeploy:
             
             if not options.in_place:
                 # Restart the robot code and we're done!
-                # TODO: add the following to the beginning of the next command:
-                # '/usr/local/bin/python3 -m compileall -q -r 5 /home/lvuser/py;' + \
-                # -> breaks because of http://bugs.python.org/issue29877
                 sshcmd = "%(bash_cmd)s '" + \
+                         '/usr/local/bin/python3 -m compileall -q -r 5 /home/lvuser/py;' + \
                          '. /etc/profile.d/natinst-path.sh; ' + \
                          'chown -R lvuser:ni %(py_deploy_dir)s; ' + \
                          'sync; ' + \
