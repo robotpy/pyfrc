@@ -2,6 +2,7 @@
 import os
 import inspect
 import sys
+import warnings
 
 from os.path import abspath, dirname, exists, join
 
@@ -32,6 +33,7 @@ class PyFrcTest:
                                 help='This flag is passed when trying to determine coverage')
             parser.add_argument('pytest_args', nargs='*',
                                 help="To pass args to pytest, specify --<space>, then the args")
+
     
     def run(self, options, robot_class, **static_options):
         # wrapper around run_test that sets the appropriate mode
@@ -40,7 +42,6 @@ class PyFrcTest:
         from .. import config
         config.mode = 'test'
         config.coverage_mode = options.coverage_mode
-        
         return self.run_test(options.pytest_args, robot_class, options.builtin, **static_options)
         
     def run_test(self, *a, **k):
@@ -88,8 +89,8 @@ class PyFrcTest:
             
             from ..tests import basic
             pytest_args.insert(0, abspath(inspect.getfile(basic)))
-        
         try:
+            warnings.simplefilter("default", DeprecationWarning)
             retv = pytest.main(pytest_args,
                                plugins=[pytest_plugin.PyFrcPlugin(robot_class,
                                                                   robot_file,
