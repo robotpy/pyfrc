@@ -90,7 +90,8 @@ class FakeTime:
         # Wake them up if the requested time is in the past, and they haven't
         # already been stopped.
         waiting_on = []
-        child_threads = list(self._child_threads.items())
+        with self.lock:
+            child_threads = list(self._child_threads.items())
         for thread, thread_info in child_threads:
             thread_info['time'] -= timestep
             if thread_info['time'] <= 0 and thread.is_alive():
@@ -116,7 +117,8 @@ class FakeTime:
                     break # out of the while loop, everyone is dead
     
     def children_stopped(self):
-        keys = list(self._child_threads.keys())
+        with self.lock:
+            keys = list(self._child_threads.keys())
         for thread in keys:
             if thread.is_alive():
                 return False
@@ -125,7 +127,8 @@ class FakeTime:
     def teardown(self):
         self._children_free_run = True  # Stop any threads being blocked
         self._children_not_running.set()  # Main thread needs to be running
-        thread_infos = list(self._child_threads.values())
+        with self.lock:
+            thread_infos = list(self._child_threads.values())
         for thread_info in thread_infos:
             thread_info['event'].set()
 
@@ -180,7 +183,8 @@ class FakeTime:
                 child_info['time'] = time
                 # Check to see if the other threads have finished
                 running = False
-                child_threads = list(self._child_threads.values())
+                with self.lock:
+                    child_threads = list(self._child_threads.values())
                 for v in child_threads:
                     if v['event'].is_set():
                         running = True
