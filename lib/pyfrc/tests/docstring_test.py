@@ -54,7 +54,7 @@ def check_function(parent, fn, errors):
     
     elif pedantic_docstrings:
         # find the list of parameters
-        args, varargs, keywords, defaults = inspect.getargspec(fn)
+        args, varargs, keywords, defaults = inspect.getfullargspec(fn)
         if len(args) > 0 and args[0] == 'self':
             del args[0]
             
