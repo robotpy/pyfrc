@@ -70,7 +70,7 @@ def check_function(parent, fn, errors):
                 if arg not in args:
                     print_fn_err("Param '%s' is documented but isn't a parameter for" % arg, parent, fn, errors)
 
-                if arg in annotations.keys() and type(annotations.get(arg)) is str:
+                if arg in annotations.keys() and isinstance(annotations.get(arg), str):
                     print_fn_err("Do not document %s in both the docstring and annotations" % arg, parent, fn, errors)
 
                 params.append(arg)
@@ -79,7 +79,7 @@ def check_function(parent, fn, errors):
             match = type_re.match(line)
             if match:
                 arg = match.group(1)
-                if arg in annotations.keys() and type(annotations.get(arg)) is type:
+                if arg in annotations.keys() and isinstance(annotations.get(arg), type):
                     print_fn_err("Do not document %s in both the docstring and annotations" % arg, parent, fn, errors)
 
             # :param type arg: stuff
@@ -89,19 +89,13 @@ def check_function(parent, fn, errors):
                 if arg not in args:
                     print_fn_err("Param '%s' is documented but isn't a parameter for" % arg, parent, fn, errors)
 
-                if arg in annotations.keys() and type(annotations.get(arg)) is str:
-                    print_fn_err("Do not document %s in both the docstring and annotations" % arg, parent, fn, errors)
-
-                if arg in annotations.keys() and type(annotations.get(arg)) is type:
+                if arg in annotations.keys() and isinstance(annotations.get(arg), (str, type)):
                     print_fn_err("Do not document %s in both the docstring and annotations" % arg, parent, fn, errors)
 
                 params.append(arg)
 
-
-
-
         for param, annotation in annotations.items():
-            if param not in params and type(annotation) is str:
+            if param not in params and isinstance(annotation, str):
                 params.insert(args.index(param), param)
 
         if len(params) != len(args):
