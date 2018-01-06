@@ -9,7 +9,7 @@ pedantic_docstrings = True
 # regex to use to detect the sphinx docstrings
 param_re = re.compile(r"^:param (\S+?):\s*(.+)$")
 type_re = re.compile(r"^:type (\S+?):\s*(.+)$")
-
+both_re = re.compile(r"^:param (\S+?) (\S+?):\s*(.+)$")
 
 def ignore_object(o, robot_path):
     '''Returns true if the object can be ignored'''
@@ -62,6 +62,7 @@ def check_function(parent, fn, errors):
         params = []
 
         for line in doc.splitlines():
+            # :param arg: stuff
             match = param_re.match(line)
             if match:
 
@@ -74,12 +75,30 @@ def check_function(parent, fn, errors):
 
                 params.append(arg)
 
+            # :type arg: type
             match = type_re.match(line)
-            if not match:
-                continue
-            arg = match.group(1)
-            if arg in annotations.keys() and type(annotations.get(arg)) is type:
-                print_fn_err("Do not document %s in both the docstring and annotations" % arg, parent, fn, errors)
+            if match:
+                arg = match.group(1)
+                if arg in annotations.keys() and type(annotations.get(arg)) is type:
+                    print_fn_err("Do not document %s in both the docstring and annotations" % arg, parent, fn, errors)
+
+            # :param type arg: stuff
+            match = both_re.match(line)
+            if match:
+                arg = match.group(2)
+                if arg not in args:
+                    print_fn_err("Param '%s' is documented but isn't a parameter for" % arg, parent, fn, errors)
+
+                if arg in annotations.keys() and type(annotations.get(arg)) is str:
+                    print_fn_err("Do not document %s in both the docstring and annotations" % arg, parent, fn, errors)
+
+                if arg in annotations.keys() and type(annotations.get(arg)) is type:
+                    print_fn_err("Do not document %s in both the docstring and annotations" % arg, parent, fn, errors)
+
+                params.append(arg)
+
+
+
 
         for param, annotation in annotations.items():
             if param not in params and type(annotation) is str:
