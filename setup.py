@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 
 import sys
-if sys.version_info[0] < 3:
-    sys.stderr.write("ERROR: pyfrc requires python 3!")
-    exit(1)
+if sys.version_info.major < 3 or \
+   (sys.version_info.major == 3 and sys.version_info.minor < 5):
+   sys.stderr.write("ERROR: RobotPy requires Python 3.5+\n")
+   exit(1)
 
 import os
 from os.path import dirname, exists, join
@@ -83,6 +84,3 @@ setup(name='pyfrc',
         'test = pyfrc.mains.cli_test:PyFrcTest'
       ]}
 )
-
-
-
