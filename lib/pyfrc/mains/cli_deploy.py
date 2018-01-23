@@ -109,6 +109,10 @@ class PyFrcDeploy:
         deploy_dir = '/home/lvuser'
         py_deploy_dir = '%s/py' % deploy_dir
         
+        # Saves 24M of RAM
+        # -> https://github.com/wpilibsuite/EclipsePlugins/pull/154
+        remove_startup_dlls = 'sed -i -e "s/^StartupDLLs/;StartupDLLs/" /etc/natinst/share/ni-rt.ini'
+        
         # note below: deployed_cmd appears that it only can be a single line
         
         # In 2015, there were stdout/stderr issues. In 2016, they seem to
@@ -141,6 +145,7 @@ class PyFrcDeploy:
             %(bash_cmd)s '[ -x /usr/local/bin/python3 ] || exit 87
             SITEPACKAGES=$(/usr/local/bin/python3 -c "import site; print(site.getsitepackages()[0])")
             [ -f $SITEPACKAGES/wpilib/version.py ] || exit 88
+            %(remove_startup_dlls)s
             %(check_version)s
             %(del_cmd)s
             echo "%(cmd)s" > %(deploy_dir)s/%(cmd_fname)s
@@ -154,7 +159,8 @@ class PyFrcDeploy:
             'cmd': deployed_cmd,
             'cmd_fname': deployed_cmd_fname,
             'extra_cmd': extra_cmd,
-            'check_version': check_version
+            'check_version': check_version,
+            'remove_startup_dlls': remove_startup_dlls,
         }
         
         sshcmd = re.sub("\n+", ";", sshcmd)
