@@ -196,7 +196,10 @@ class PhysicsInterface:
             
             # Don't run physics calculations more than 100hz
             if tm_diff > 0.010:
-                self.engine.update_sim(self.hal_data, now, tm_diff)
+                try:
+                    self.engine.update_sim(self.hal_data, now, tm_diff)
+                except Exception as e:
+                    raise Exception("User physics code raised an exception (see above)") from e
                 self.last_tm = now
         
     def _set_robot_enabled(self, enabled):
