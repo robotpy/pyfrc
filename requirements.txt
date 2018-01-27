@@ -1,5 +1,5 @@
 pytest>=2.8.0
-pynetconsole>=2.0.0
+pynetconsole>=2.0.1
 
 wpilib>=2018.0.4,<2019.0.0
 robotpy-hal-sim>=2018.0.4,<2019.0.0
