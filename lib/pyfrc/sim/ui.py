@@ -335,21 +335,33 @@ class SimUI(object):
             pass
         else:
             auton = tk.LabelFrame(ctrl_frame, text='Autonomous')
-            
+
             self.autobox = Combobox(auton, state='readonly')
             self.autobox.bind('<<ComboboxSelected>>', self.on_auton_selected)
             self.autobox['width'] = 12
             self.autobox.pack(fill=tk.X)
-            
+
             Tooltip.create(self.autobox, "Use robotpy_ext.autonomous.AutonomousModeSelector to use this selection box")
-            
+
             from networktables.util import ChooserControl
             self.auton_ctrl = ChooserControl('Autonomous Mode',
                                               lambda v: self.idle_add(self.on_auton_choices, v),
                                               lambda v: self.idle_add(self.on_auton_selection, v))
-            
+
             auton.pack(side=tk.TOP)
-        
+
+            gamedata = tk.LabelFrame(ctrl_frame, text='Game Data')
+
+            self.gamedatabox = Combobox(gamedata, state='readonly')
+            self.gamedatabox.bind('<<ComboboxSelected>>', self.on_gamedata_selected)
+            self.gamedatabox['width'] = 12
+            self.gamedatabox.pack(fill=tk.X)
+
+            self.gamedatabox['values'] = ['RRR', 'RRL', 'RLR', 'LRR', 'LLR', 'LRL', 'RLL', 'LLL']
+
+            Tooltip.create(self.gamedatabox, "Use this selection box to simulate game specific data")
+            gamedata.pack(side=tk.TOP)
+
         ctrl_frame.pack(side=tk.LEFT, fill=tk.Y)
     
     def _render_pcm(self):
@@ -519,7 +531,10 @@ class SimUI(object):
         
     def on_auton_selected(self, e):
         self.auton_ctrl.setSelected(self.autobox.get())
-            
+
+    def on_gamedata_selected(self, e):
+        hal_data['event']['game_specific_message'] = self.gamedatabox.get()
+
     def on_robot_mode_change(self, mode):
         self.mode.set(mode)
         
@@ -565,5 +580,4 @@ class SimUI(object):
             
         if tm > 0:
             self.fake_time.resume(tm)
-        
-        
+

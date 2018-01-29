@@ -20,6 +20,12 @@ _field_defaults = {
         'px_per_ft': 17,
         'image': join(_field_root, '2017-field.gif')
     },
+    '2018': {
+        'h': 27,
+        'w': 27,
+        'px_per_ft': 15,
+        'image': join(_field_root, '2018-field.gif')
+    },
     'default': {
         'h': 1,
         'w': 1,
@@ -68,7 +74,7 @@ class PyFrcSim:
         elif 'objects' in config_obj['pyfrc']['field']:
             defaults = _field_defaults['default']
         else:
-            defaults = _field_defaults['2017']
+            defaults = _field_defaults['2018']
         
         config_obj['pyfrc']['field'].setdefault('objects', [])
         config_obj['pyfrc']['field'].setdefault('w', defaults['w'])
