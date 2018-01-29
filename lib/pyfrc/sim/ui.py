@@ -358,6 +358,8 @@ class SimUI(object):
             self.gamedatabox.pack(fill=tk.X)
 
             self.gamedatabox['values'] = ['RRR', 'RRL', 'RLR', 'LRR', 'LLR', 'LRL', 'RLL', 'LLL']
+            self.gamedatabox.current(0)
+            hal_data['event']['game_specific_message'] = self.gamedatabox.get()
 
             Tooltip.create(self.gamedatabox, "Use this selection box to simulate game specific data")
             gamedata.pack(side=tk.TOP)
