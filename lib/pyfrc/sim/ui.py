@@ -352,7 +352,7 @@ class SimUI(object):
 
             gamedata = tk.LabelFrame(ctrl_frame, text='Game Data')
 
-            self.gamedatabox = Combobox(gamedata, state='readonly')
+            self.gamedatabox = Combobox(gamedata)
             self.gamedatabox.bind('<<ComboboxSelected>>', self.on_gamedata_selected)
             self.gamedatabox['width'] = 12
             self.gamedatabox.pack(fill=tk.X)
