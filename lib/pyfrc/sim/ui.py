@@ -352,8 +352,10 @@ class SimUI(object):
 
             gamedata = tk.LabelFrame(ctrl_frame, text='Game Data')
 
-            self.gamedatabox = Combobox(gamedata)
-            self.gamedatabox.bind('<<ComboboxSelected>>', self.on_gamedata_selected)
+            self.gamedataval = tk.StringVar()
+            self.gamedataval.trace_add('write', self.on_gamedata_selected)
+
+            self.gamedatabox = Combobox(gamedata, textvariable=self.gamedataval)
             self.gamedatabox['width'] = 12
             self.gamedatabox.pack(fill=tk.X)
 
@@ -534,7 +536,7 @@ class SimUI(object):
     def on_auton_selected(self, e):
         self.auton_ctrl.setSelected(self.autobox.get())
 
-    def on_gamedata_selected(self, e):
+    def on_gamedata_selected(self, *args):
         hal_data['event']['game_specific_message'] = self.gamedatabox.get()
 
     def on_robot_mode_change(self, mode):
