@@ -207,7 +207,7 @@ class PyFrcDeploy:
                          '. /etc/profile.d/natinst-path.sh; ' + \
                          'chown -R lvuser:ni %(py_deploy_dir)s; ' + \
                          'sync; ' + \
-                         '/usr/local/frc/bin/frcKillRobot.sh -t -r' + \
+                         '/usr/local/frc/bin/frcKillRobot.sh -t -r || true' + \
                          "'"
             
                 sshcmd %= {
