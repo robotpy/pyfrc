@@ -76,7 +76,7 @@ class FakeTime:
         
         # This is used to make DriverStation.waitForData() work
         self.ds_cond = _DSCondition(self)
-        #self._ds.dataCond = self.ds_cond
+        self._ds.waitForDataCond = self.ds_cond
         
         self.thread_id = threading.current_thread().ident
         return self.ds_cond
