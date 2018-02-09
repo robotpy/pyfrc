@@ -21,6 +21,7 @@ class ValueWidget(tk.Frame):
         
         if clickable:
             self.canvas.bind("<Button 1>", self._on_mouse)
+            self.canvas.bind("<B1-Motion>", self._on_mouse)
             self.canvas.bind("<Key>", self._on_key)
         
         self.updated = False
