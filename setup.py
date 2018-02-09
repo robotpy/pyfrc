@@ -50,11 +50,6 @@ with open(join(setup_dir, 'requirements.txt')) as requirements_file:
 with open(join(dirname(__file__), 'README.md'), 'r') as readme_file:
     long_description = readme_file.read()
 
-# compute sim field stuff
-package_data = [
-    os.path.join(*(p.split(os.path.sep)[2:])) for p in glob.glob(join(setup_dir, 'lib', 'pyfrc', 'sim', 'field', '*.gif'))
-]
-
 setup(name='pyfrc',
       version=__version__,
       description='Development tools library for python interpreter used for the FIRST Robotics Competition',
@@ -65,7 +60,7 @@ setup(name='pyfrc',
       license='BSD',
       packages=find_packages(where='lib'),
       package_dir={'': 'lib'},
-      package_data={'pyfrc': package_data},
+      include_package_data=True,
       install_requires=install_requires if not os.environ.get('ROBOTPY_NO_DEPS') else None,
       classifiers=[
         'Development Status :: 5 - Production/Stable',
