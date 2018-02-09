@@ -27,7 +27,7 @@ class FakeRealTime:
         self.local.physics_fn = fn
 
     def get(self):
-        with self.lock:         
+        with self.lock:
             self._increment_tm()
             return self.tm
             
@@ -133,4 +133,3 @@ class FakeRealTime:
                 self.pause_secs = None
                 
             self.lock.notify()
-

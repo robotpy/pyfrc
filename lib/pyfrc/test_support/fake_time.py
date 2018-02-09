@@ -201,7 +201,7 @@ class FakeTime:
             if self.in_increment:
                 raise ValueError("increment_time_by is not reentrant (did you call timer.delay?)")
             
-            next_ds = self.next_ds_time - self.time 
+            next_ds = self.next_ds_time - self.time
             
         # When we wake up the TimerTasks, we can't do it while we have the lock
         # because some tasks need to get the time themselves
@@ -321,7 +321,7 @@ class _DSCondition(threading.Condition):
         
         # If we're on the robot's main thread, when this is called we just
         # need to increment the time, no wait required. If we're not on the
-        # main thread, then we need to wait for a notification.. 
+        # main thread, then we need to wait for a notification..
     
     # Copied from Python 3.6 source code, Python license
     # -> have to fork it because need to use our own time definition

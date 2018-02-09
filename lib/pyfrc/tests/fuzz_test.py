@@ -1,9 +1,9 @@
 '''
     The purpose of the fuzz 'test' is not exactly to 'do' anything, but
     rather it mashes the buttons and switches in various completely
-    random ways to try and find any possible control situations and 
-    such that would probably never *normally* come up, but.. well, 
-    given a bit of bad luck, could totally happen. 
+    random ways to try and find any possible control situations and
+    such that would probably never *normally* come up, but.. well,
+    given a bit of bad luck, could totally happen.
     
     Keep in mind that the results will totally different every time
     you run this, so if you find an error, fix it -- but don't expect
@@ -28,7 +28,7 @@ def fuzz_bool():
     
 def fuzz_all(hal_data):
 
-    # fuzz the eio switches    
+    # fuzz the eio switches
     for dio in hal_data['dio']:
     
         # inputs only
@@ -42,7 +42,7 @@ def fuzz_all(hal_data):
     # fuzz the joysticks
     for stick in hal_data['joysticks']:
         if stick['has_source']:
-            # axes 
+            # axes
             for axes in stick['axes']:
                 if fuzz_bool():
                     axes = random.uniform(-1,1)
@@ -118,4 +118,3 @@ def test_fuzz(hal_data, control, fake_time, robot):
 
 
      
-

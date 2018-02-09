@@ -194,7 +194,7 @@ class VisionSim:
                       
                       Note: If your vision targeting doesn't have the ability
                       to focus on multiple targets, then you should ignore
-                      the other elements. 
+                      the other elements.
         '''
         
         # Normalize angle to [-180,180]
@@ -220,7 +220,7 @@ class VisionSim:
             self.last_compute_time = now
             self.send_queue.appendleft(output)
         
-        # simulate latency by delaying camera output        
+        # simulate latency by delaying camera output
         if self.send_queue:
             output = self.send_queue[-1]
             if now - output[0][1] > self.data_lag:

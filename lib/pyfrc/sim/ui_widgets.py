@@ -63,7 +63,7 @@ class ValueWidget(tk.Frame):
         if self.disabled or not has_focus:
             return
         
-        # TODO: this needs to be better.. 
+        # TODO: this needs to be better..
         self.updated = True
         
         # pad the value
@@ -122,7 +122,7 @@ class ValueWidget(tk.Frame):
         if value < 0:
             color = '#ff0000'
             x2 = int(self.w / 2)
-            x1 = x2 - (abs(value) * x2)/vrange 
+            x1 = x2 - (abs(value) * x2)/vrange
         else:
             color = '#00ff00'
             x1 = int(self.w / 2)
@@ -195,7 +195,7 @@ class PanelIndicator(tk.Frame):
 class CheckButtonWrapper(tk.Checkbutton):
     '''
         Wrapper around a CheckButton object to allow synced communication
-        with the robot 
+        with the robot
     '''
     
     def __init__(self, master, text):
@@ -274,4 +274,3 @@ class Tooltip(object):
             toolTip.hidetip()
         widget.bind('<Enter>', enter)
         widget.bind('<Leave>', leave)
-

@@ -96,8 +96,8 @@ class RobotController:
     
     def set_mode(self, mode):
         
-        if mode not in [SimManager.MODE_DISABLED, 
-                        SimManager.MODE_AUTONOMOUS, 
+        if mode not in [SimManager.MODE_DISABLED,
+                        SimManager.MODE_AUTONOMOUS,
                         SimManager.MODE_OPERATOR_CONTROL,
                         SimManager.MODE_TEST]:
             raise ValueError("Invalid value for mode: %s" % mode)
@@ -147,7 +147,7 @@ class RobotController:
     def _check_sleep(self, idx):
         '''This ensures that the robot code called Wait() at some point'''
         
-        # TODO: There are some cases where it would be ok to do this... 
+        # TODO: There are some cases where it would be ok to do this...
         if not self.fake_time.slept[idx]:
             errstr = '%s() function is not calling wpilib.Timer.delay() in its loop!' % self.mode_map[self.mode]
             raise RuntimeError(errstr)

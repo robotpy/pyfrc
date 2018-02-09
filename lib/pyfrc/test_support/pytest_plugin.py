@@ -43,10 +43,10 @@ class PyFrcPlugin:
         # Initialization order is important, because there are a bunch
         # of inter-related things happening here.
         #
-        # - Initialize networktables first since it has no dependencies 
+        # - Initialize networktables first since it has no dependencies
         # - Initialize the fake time, because the HAL uses it
         #   - This initializes the driver station, but it doesn't need HAL yet
-        # - Reset HAL data 
+        # - Reset HAL data
         # - Initialize RobotBase
         #
         

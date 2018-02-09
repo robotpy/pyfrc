@@ -38,7 +38,7 @@ _field_defaults = {
 class PyFrcSim:
     """
         Executes the robot code using the low fidelity simulator and shows
-        a tk-based GUI to control the simulation 
+        a tk-based GUI to control the simulation
     """
 
     def __init__(self, parser):

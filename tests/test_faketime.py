@@ -28,7 +28,7 @@ class StepChecker:
     
     def on_step(self, tm):
         assert_float(tm, self.expected)
-        self.expected += 0.02 
+        self.expected += 0.02
         return True
         
 def test_faketime_2():

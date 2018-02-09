@@ -1,7 +1,7 @@
 '''
-    Note: http://bugs.python.org/issue11077 seems to indicate that tk is 
+    Note: http://bugs.python.org/issue11077 seems to indicate that tk is
     supposed to be thread-safe, but everyone else on the net insists that
-    it isn't. Be safe, don't call into the GUI from another thread.  
+    it isn't. Be safe, don't call into the GUI from another thread.
 '''
 
 try:
@@ -28,7 +28,7 @@ class SimUI(object):
     
     def __init__(self, manager, fake_time, config_obj):
         '''
-            initializes all default values and creates 
+            initializes all default values and creates
             a board, waits for run() to be called
             to start the board
             
@@ -92,7 +92,7 @@ class SimUI(object):
         except Exception:
             pass
         
-        self.timer_fired()      
+        self.timer_fired()
         
     def _setup_widgets(self, frame):
         
@@ -235,7 +235,7 @@ class SimUI(object):
                 
             # POV: this needs improvement
             label = tk.Label(slot, text='POV')
-            label.grid(column=col, row=row) 
+            label.grid(column=col, row=row)
             pov = ValueWidget(slot, clickable=True, default=-1, minval=-1, maxval=360, step=45, round_to_step=True)
             pov.grid(column=col+1, row=row, columnspan=2)
             row += 1
@@ -410,7 +410,7 @@ class SimUI(object):
         self.queue.put((callable, args))
         
     def __process_idle_events(self):
-        '''This should never be called directly, it is called via an 
+        '''This should never be called directly, it is called via an
            event, and should always be on the GUI thread'''
         while True:
             try:
@@ -545,9 +545,9 @@ class SimUI(object):
         self.mode_start_tm = self.fake_time.get()
         
         # this is not strictly true... a robot can actually receive joystick
-        # commands from the driver station in disabled mode. However, most 
-        # people aren't going to use that functionality... 
-        controls_disabled = False if mode == self.manager.MODE_OPERATOR_CONTROL else True 
+        # commands from the driver station in disabled mode. However, most
+        # people aren't going to use that functionality...
+        controls_disabled = False if mode == self.manager.MODE_OPERATOR_CONTROL else True
         state = tk.DISABLED if controls_disabled else tk.NORMAL
         
         for axes, buttons, povs in self.joysticks:
@@ -584,4 +584,3 @@ class SimUI(object):
             
         if tm > 0:
             self.fake_time.resume(tm)
-

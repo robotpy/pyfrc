@@ -143,7 +143,7 @@ def check_thing(parent, thing, robot_path, errors):
 def test_docstrings(robot, robot_path):
     '''
         The purpose of this test is to ensure that all of your robot code
-        has docstrings. Properly using docstrings will make your code 
+        has docstrings. Properly using docstrings will make your code
         more maintainable and look more professional.
     '''
 

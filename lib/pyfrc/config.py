@@ -8,5 +8,5 @@
 coverage_mode = False
 
 # Indicates how pyfrc was run: netsim/sim/upload, etc...
-# -> Since pyfrc 2014.6.0 
+# -> Since pyfrc 2014.6.0
 mode = None

@@ -21,7 +21,7 @@ class PyFrcCoverage:
         try:
             import coverage
         except ImportError:
-            print("Error importing coverage module for code coverage testing, did you install it?\n" + 
+            print("Error importing coverage module for code coverage testing, did you install it?\n" +
                   "You can download it at https://pypi.python.org/pypi/coverage\n", file=sys.stderr)
             return 1
         

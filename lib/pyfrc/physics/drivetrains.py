@@ -18,7 +18,7 @@ import math
     
 def two_motor_drivetrain(l_motor, r_motor, x_wheelbase=2, speed=5):
     '''
-        Two center-mounted motors with a simple drivetrain. The 
+        Two center-mounted motors with a simple drivetrain. The
         motion equations are as follows::
     
             FWD = (L+R)/2
@@ -32,7 +32,7 @@ def two_motor_drivetrain(l_motor, r_motor, x_wheelbase=2, speed=5):
         then you will need to multiply that motor's value by -1.
         
         .. note:: WPILib RobotDrive assumes that to make the robot go forward,
-                  the left motor must be set to -1, and the right to +1 
+                  the left motor must be set to -1, and the right to +1
         
         :param l_motor:    Left motor value (-1 to 1); -1 is forward
         :param r_motor:    Right motor value (-1 to 1); 1 is forward
@@ -108,7 +108,7 @@ def mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, x_wheelbase=2, y_
         :param y_wheelbase: The distance in feet between forward and rear wheels.
         :param speed:      Speed of robot in feet per second (see above)
         
-        :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s), 
+        :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s),
                   clockwise rotation of robot (radians/s)
     '''
 
@@ -161,7 +161,7 @@ def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angl
         :param y_wheelbase: The distance in feet between forward and rear wheels.
         :param speed:      Speed of robot in feet per second (see above)
         
-        :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s), 
+        :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s),
                   clockwise rotation of robot (radians/s)
     '''
     # Calculate speed of each wheel
@@ -181,7 +181,7 @@ def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angl
 
     # Calculates the Vx and Vy components
     # Sin an Cos inverted because forward is 0 on swerve wheels
-    Vx = (math.sin(lr_rad) * lr) + (math.sin(rr_rad) * rr) + (math.sin(lf_rad) * lf) + (math.sin(rf_rad) * rf) 
+    Vx = (math.sin(lr_rad) * lr) + (math.sin(rr_rad) * rr) + (math.sin(lf_rad) * lf) + (math.sin(rf_rad) * rf)
     Vy = (math.cos(lr_rad) * lr) + (math.cos(rr_rad) * rr) + (math.cos(lf_rad) * lf) + (math.cos(rf_rad) * rf)
     
     

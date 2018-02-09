@@ -102,7 +102,7 @@ class TestController:
                                argument, or a class that has an 'on_step' function.
                                If it is a class, an instance will be created. Either
                                the function or the on_step function will be called
-                               with a single parameter, which is the the current 
+                               with a single parameter, which is the the current
                                robot time. If None, an error will be signaled unless
                                :meth:`set_practice_match` has been called.
         """
@@ -127,7 +127,7 @@ class TestController:
         
             info = inspect.getfullargspec(on_step)
             if len(info.args) > 0 and info.args[0] == 'self':
-                info.args.remove('self')    
+                info.args.remove('self')
             
             if len(info.args) + len(info.kwonlyargs) != 1:
                 raise ValueError("%s must be a function that takes a single argument" % on_step)
@@ -152,4 +152,3 @@ class TestController:
             raise
         
         return retval
-

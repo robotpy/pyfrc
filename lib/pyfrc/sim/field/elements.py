@@ -15,7 +15,7 @@ class DrawableElement(object):
         self.color = color
         self.pts = pts          # list of (x,y)
         self.center = center    # (x,y)
-        self.angle = angle      # radians 
+        self.angle = angle      # radians
 
     def initialize(self, canvas):
         
@@ -24,7 +24,7 @@ class DrawableElement(object):
                     
         
     def intersects(self):
-        # TODO: 
+        # TODO:
         pass
         
     def move(self, v):
@@ -86,7 +86,7 @@ class DrawableElement(object):
         self.update_coordinates()
         
 class CompositeElement(object):
-    '''A composite element can contain a number of drawable elements, and 
+    '''A composite element can contain a number of drawable elements, and
        all of them move at the same time, and deal with collisions and
        such at the same time'''
     

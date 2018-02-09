@@ -67,7 +67,7 @@ def test_practice(control, fake_time, robot):
                 
                 If you get an assertion error here, it can mean a lot of
                 different things, but typically it means you called Timer.delay()
-                somewhere with a parameter greater than a few milliseconds.. 
+                somewhere with a parameter greater than a few milliseconds..
                 which is almost always a bad idea, and your robot will ignore
                 your input for a few seconds.
             

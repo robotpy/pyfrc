@@ -40,7 +40,7 @@ class IterativeRobotInit(wpilib.IterativeRobot):
 
 class IterativeAutoInit(wpilib.IterativeRobot):
     def autonomousInit(self):
-        assert False 
+        assert False
 
 class IterativeAutoPeriodic(wpilib.IterativeRobot):
     def autonomousPeriodic(self):
@@ -48,7 +48,7 @@ class IterativeAutoPeriodic(wpilib.IterativeRobot):
 
 class IterativeTeleopInit(wpilib.IterativeRobot):
     def teleopInit(self):
-        assert False 
+        assert False
 
 class IterativeTeleopPeriodic(wpilib.IterativeRobot):
     def teleopPeriodic(self):

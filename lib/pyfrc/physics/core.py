@@ -1,14 +1,14 @@
 '''
     pyfrc supports simplistic custom physics model implementations for
     simulation and testing support. It can be as simple or complex as you want
-    to make it. We will continue to add helper functions (such as the 
+    to make it. We will continue to add helper functions (such as the
     :mod:`pyfrc.physics.drivetrains` module) to make this a lot easier
     to do. General purpose physics implementations are welcome also!
 
     The idea is you provide a :class:`PhysicsEngine` object that overrides specific
     pieces of WPILib, and modifies motors/sensors accordingly depending on the
     state of the simulation. An example of this would be measuring a motor
-    moving for a set period of time, and then changing a limit switch to turn 
+    moving for a set period of time, and then changing a limit switch to turn
     on after that period of time. This can help you do more complex simulations
     of your robot code without too much extra effort.
 
@@ -27,7 +27,7 @@
     Enabling physics support
     ------------------------
 
-    You must create a python module called ``physics.py`` next to your 
+    You must create a python module called ``physics.py`` next to your
     ``robot.py``. A physics module must have a class called
     :class:`PhysicsEngine` which must have a function called ``update_sim``.
     When initialized, it will be passed an instance of this object.
@@ -70,7 +70,7 @@ class PhysicsInitException(Exception):
 
 class PhysicsEngine:
     '''
-        Your physics module must contain a class called ``PhysicsEngine``, 
+        Your physics module must contain a class called ``PhysicsEngine``,
         and it must implement the same functions as this class.
         
         Alternatively, you can inherit from this object. However, that is
@@ -254,7 +254,7 @@ class PhysicsInterface:
            
            :param speed:           Speed of robot in ft/s
            :param rotation_speed:  Clockwise rotational speed in radians/s
-           :param tm_diff:         Amount of time speed was traveled (this is the 
+           :param tm_diff:         Amount of time speed was traveled (this is the
                                    same value that was passed to update_sim)
         '''
         
@@ -262,7 +262,7 @@ class PhysicsInterface:
         if not self.robot_enabled:
             return
         
-        distance = speed * tm_diff 
+        distance = speed * tm_diff
         angle = rotation_speed * tm_diff
         
         x = distance*math.cos(angle)
@@ -299,7 +299,7 @@ class PhysicsInterface:
     def _move(self, x, y, angle):
         # x, y, and angle are all relative to the robot
         
-        with self._lock: 
+        with self._lock:
             self.vx += x
             self.vy += y
             self.angle += angle
