@@ -29,6 +29,10 @@ class SimManager(object):
         # any data shared with ui must be protected by
         # this since it's running in a different thread
         self._lock = threading.RLock()
+        
+        # This only gets set on the robot when transitioning into autonomous mode
+        # -> reflects the alleged behavior of the FMS
+        self.game_specific_message = ''
     
     #
     # Initialization
@@ -89,7 +93,7 @@ class SimManager(object):
             callback = self.mode_callback
             
             for robot in self.robots:
-                robot.set_mode(mode)
+                robot.set_mode(mode, self.game_specific_message)
             
         # don't call from inside the lock
         if old_mode != mode and callback is not None:

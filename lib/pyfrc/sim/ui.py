@@ -364,7 +364,7 @@ class SimUI(object):
                 self.gamedatabox['values'] = messages
                 self.gamedatabox.current(0)
             
-            hal_data['event']['game_specific_message'] = self.gamedatabox.get()
+            self.manager.game_specific_message = self.gamedatabox.get()
 
             Tooltip.create(self.gamedatabox, "Use this selection box to simulate game specific data")
             gamedata.pack(side=tk.TOP)
@@ -540,7 +540,7 @@ class SimUI(object):
         self.auton_ctrl.setSelected(self.autobox.get())
 
     def on_gamedata_selected(self, *args):
-        hal_data['event']['game_specific_message'] = self.gamedatabox.get()
+        self.manager.game_specific_message = self.gamedatabox.get()
 
     def on_robot_mode_change(self, mode):
         self.mode.set(mode)

@@ -78,9 +78,9 @@ class TestController:
         assert not self._test_running
         self._practice = True
    
-    def set_autonomous(self, enabled=True):
+    def set_autonomous(self, enabled=True, game_specific_message=None):
         '''Puts the robot in autonomous mode'''
-        mode_helpers.set_mode('auto', enabled)
+        mode_helpers.set_mode('auto', enabled, game_specific_message=game_specific_message)
     
     def set_operator_control(self, enabled=True):
         '''Puts the robot in operator control mode'''
