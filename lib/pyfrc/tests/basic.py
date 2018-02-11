@@ -11,12 +11,18 @@
 '''
 
 import math
+import pytest
 
+from .. import config
 
-def test_autonomous(control, fake_time, robot):
+_gsms = config.config_obj['pyfrc']['game_specific_messages']
+
+@pytest.mark.parametrize('gamedata', _gsms if _gsms else [''])
+def test_autonomous(control, fake_time, robot, gamedata):
     '''Runs autonomous mode by itself'''
     
     # run autonomous mode for 15 seconds
+    control.game_specific_message = gamedata
     control.set_autonomous(enabled=True)
     control.run_test(lambda tm: tm < 15)
     
@@ -102,6 +108,9 @@ def test_practice(control, fake_time, robot):
                 assert False, "Internal error!"
             
             self.mode = mode
+    
+    if _gsms:
+        control.game_specific_message = _gsms[0]
     
     control.set_practice_match()
     tc = control.run_test(TestController)

@@ -6,6 +6,9 @@ import wpilib
 
 import pytest
 
+from pyfrc.configloader import _load_config
+_load_config('.')
+
 from pyfrc.test_support.pytest_plugin import PyFrcPlugin
 from pyfrc.tests.basic import test_practice as _test_practice
 

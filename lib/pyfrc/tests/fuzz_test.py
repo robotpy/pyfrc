@@ -12,10 +12,11 @@
     that you actually fixed it.
 '''
 
-import pyfrc.config
-import pytest
 import random
 import math
+
+from .. import config
+_gsms = config.config_obj['pyfrc']['game_specific_messages']
         
 def fuzz_bool():
                     
@@ -105,6 +106,10 @@ def test_fuzz(hal_data, control, fake_time, robot):
                 assert False, "Internal error!"
             
             self.mode = mode
+    
+    
+    if _gsms:
+        control.game_specific_message = _gsms[0]
     
     control.set_practice_match()
     tc = control.run_test(TestController)

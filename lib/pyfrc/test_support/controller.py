@@ -11,8 +11,9 @@ class _PracticeMatch:
     autonomous_period = 15
     operator_period = 15
     
-    def __init__(self, on_step):
+    def __init__(self, on_step, controller):
         self._on_step = on_step
+        self._controller = controller
     
     def on_step(self, tm):
         '''
@@ -20,16 +21,16 @@ class _PracticeMatch:
         '''
         
         if tm < 5:
-            mode_helpers.set_mode('auto', False)
+            self._controller.set_autonomous(False)
         
         elif tm < 5 + self.autonomous_period:
-            mode_helpers.set_mode('auto', True)
+            self._controller.set_autonomous(True)
             
         elif tm < 5 + self.autonomous_period + 1:
-            mode_helpers.set_mode('teleop', False)
+            self._controller.set_operator_control(False)
         
         elif tm < 5 + self.autonomous_period + 1 + self.operator_period:
-            mode_helpers.set_mode('teleop', True)
+            self._controller.set_operator_control(True)
             
         else:
             return False
@@ -46,12 +47,17 @@ class TestController:
         This object is used to control the robot during unit tests. You
         do not need to create an instance of this, instead use the
         ``controller`` fixture.
+        
+        To set a game specific message for autonomous mode, just
+        set the 'game_specific_message' property of this object, and it will
+        be setup correctly upon transition into autonomous mode.
     '''
     
     def __init__(self, fake_time_inst):
         self._practice = False
         self._test_running = False
         self._ds_cond = fake_time_inst.ds_cond
+        self.game_specific_message = None
     
     def get_mode(self):
         '''Returns the current mode that the robot is in
@@ -80,7 +86,7 @@ class TestController:
    
     def set_autonomous(self, enabled=True):
         '''Puts the robot in autonomous mode'''
-        mode_helpers.set_mode('auto', enabled)
+        mode_helpers.set_mode('auto', enabled, game_specific_message=self.game_specific_message)
     
     def set_operator_control(self, enabled=True):
         '''Puts the robot in operator control mode'''
@@ -134,7 +140,7 @@ class TestController:
         
         # Setup the time hooks
         if self._practice:
-            pm = _PracticeMatch(on_step)
+            pm = _PracticeMatch(on_step, self)
             on_step = pm.on_step
             
         if on_step is not None:

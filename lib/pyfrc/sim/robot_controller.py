@@ -94,7 +94,7 @@ class RobotController:
         with self._lock:
             self.mode_callback = callable
     
-    def set_mode(self, mode):
+    def set_mode(self, mode, game_specific_message):
         
         if mode not in [SimManager.MODE_DISABLED,
                         SimManager.MODE_AUTONOMOUS,
@@ -118,7 +118,7 @@ class RobotController:
             if mode == SimManager.MODE_DISABLED:
                 mode_helpers.set_disabled()
             elif mode == SimManager.MODE_AUTONOMOUS:
-                mode_helpers.set_autonomous(True)
+                mode_helpers.set_autonomous(True, game_specific_message=game_specific_message)
             elif mode == SimManager.MODE_OPERATOR_CONTROL:
                 mode_helpers.set_teleop_mode(True)
             elif mode == SimManager.MODE_TEST:

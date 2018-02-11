@@ -75,6 +75,10 @@ class PyFrcTest:
                 print("ERROR: Cannot run profiling from a directory that does not contain robot.py")
                 return 1
         
+        # Load the simulation configuration for use in tests
+        from .. import configloader
+        configloader._load_config(robot_path)
+        
         self.try_dirs = [
             abspath(join(robot_path, 'tests')),
             abspath(join(robot_path, '..', 'tests'))
