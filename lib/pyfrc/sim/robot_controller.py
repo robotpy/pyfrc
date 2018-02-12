@@ -94,7 +94,7 @@ class RobotController:
         with self._lock:
             self.mode_callback = callable
     
-    def set_mode(self, mode, game_specific_message):
+    def set_mode(self, mode, game_specific_message=None):
         
         if mode not in [SimManager.MODE_DISABLED,
                         SimManager.MODE_AUTONOMOUS,
