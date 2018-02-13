@@ -353,7 +353,10 @@ class SimUI(object):
             gamedata = tk.LabelFrame(ctrl_frame, text='Game Data')
 
             self.gamedataval = tk.StringVar()
-            self.gamedataval.trace_add('write', self.on_gamedata_selected)
+            if hasattr(self.gamedataval, 'trace_add'):
+                self.gamedataval.trace_add('write', self.on_gamedata_selected)
+            else:
+                self.gamedataval.trace_variable('w', self.on_gamedata_selected)
 
             self.gamedatabox = Combobox(gamedata, textvariable=self.gamedataval)
             self.gamedatabox['width'] = 12
