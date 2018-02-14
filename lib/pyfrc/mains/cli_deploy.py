@@ -136,6 +136,8 @@ class PyFrcDeploy:
         if options.no_version_check:
             check_version = ''
         
+        check_startup_dlls = '(if [ "$(grep ^StartupDLLs /etc/natinst/share/ni-rt.ini)" != "" ]; then exit 91; fi)'
+        
         # This is a nasty bit of code now...
         sshcmd = inspect.cleandoc("""
             %(bash_cmd)s '[ -x /usr/local/bin/python3 ] || exit 87
@@ -143,19 +145,13 @@ class PyFrcDeploy:
             [ -f $SITEPACKAGES/wpilib/version.py ] || exit 88
             %(check_version)s
             %(del_cmd)s
-            echo "%(cmd)s" > %(deploy_dir)s/%(cmd_fname)s
-            %(extra_cmd)s'
+            echo "%(deployed_cmd)s" > %(deploy_dir)s/%(deployed_cmd_fname)s
+            %(extra_cmd)s
+            %(check_startup_dlls)s
+            '
         """)
               
-        sshcmd %= {
-            'bash_cmd': bash_cmd,
-            'del_cmd': del_cmd,
-            'deploy_dir': deploy_dir,
-            'cmd': deployed_cmd,
-            'cmd_fname': deployed_cmd_fname,
-            'extra_cmd': extra_cmd,
-            'check_version': check_version
-        }
+        sshcmd %= locals()
         
         sshcmd = re.sub("\n+", ";", sshcmd)
         
@@ -169,9 +165,40 @@ class PyFrcDeploy:
                                                 allow_mitm=True,
                                                 no_resolve=options.no_resolve)
             
-            # Housekeeping first
-            logger.debug('SSH: %s', sshcmd)
-            controller.ssh(sshcmd)
+            try:
+                # Housekeeping first
+                logger.debug('SSH: %s', sshcmd)
+                controller.ssh(sshcmd)
+            except installer.SshExecError as e:
+                doret = True
+                if e.retval == 87:
+                    print_err("ERROR: python3 was not found on the roboRIO: have you installed robotpy?")
+                elif e.retval == 88:
+                    print_err("ERROR: WPILib was not found on the roboRIO: have you installed robotpy?")
+                elif e.retval == 89:
+                    print_err("ERROR: expected WPILib version %s" % wpilib.__version__)
+                    print_err()
+                    print_err("You should either:")
+                    print_err("- If the robot version is older, upgrade the RobotPy on your robot")
+                    print_err("- Otherwise, upgrade pyfrc on your computer")
+                    print_err()
+                    print_err("Alternatively, you can specify --no-version-check to skip this check")
+                elif e.retval == 90:
+                    print_err("ERROR: error running compileall")
+                elif e.retval == 91:
+                    # Not an error; ssh in as admin and fix the startup dlls (Saves 24M of RAM)
+                    # -> https://github.com/wpilibsuite/EclipsePlugins/pull/154
+                    logger.info("Fixing StartupDLLs to save RAM...")
+                    controller.username = 'admin'
+                    controller.ssh('sed -i -e "s/^StartupDLLs/;StartupDLLs/" /etc/natinst/share/ni-rt.ini')
+                    
+                    controller.username = 'lvuser'
+                    doret = False
+                else:
+                    print_err("ERROR: %s" % e)
+                
+                if doret:
+                    return 1
             
             # Copy the files over, copy to a temporary directory first
             # -> this is inefficient, but it's easier in sftp
@@ -217,25 +244,7 @@ class PyFrcDeploy:
             
                 logger.debug('SSH: %s', sshcmd)
                 controller.ssh(sshcmd)
-            
-        except installer.SshExecError as e:
-            if e.retval == 87:
-                print_err("ERROR: python3 was not found on the roboRIO: have you installed robotpy?")
-            elif e.retval == 88:
-                print_err("ERROR: WPILib was not found on the roboRIO: have you installed robotpy?")
-            elif e.retval == 89:
-                print_err("ERROR: expected WPILib version %s" % wpilib.__version__)
-                print_err()
-                print_err("You should either:")
-                print_err("- If the robot version is older, upgrade the RobotPy on your robot")
-                print_err("- Otherwise, upgrade pyfrc on your computer")
-                print_err()
-                print_err("Alternatively, you can specify --no-version-check to skip this check")
-            elif e.retval == 90:
-                print_err("ERROR: error running compileall")
-            else:
-                print_err("ERROR: %s" % e)
-            return 1
+        
         except installer.Error as e:
             print_err("ERROR: %s" % e)
             return 1
