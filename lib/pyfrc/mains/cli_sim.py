@@ -21,6 +21,12 @@ class PyFrcSim:
 
     def run(self, options, robot_class, **static_options):
         
+        import wpilib
+        assert not hasattr(wpilib.DriverStation, 'instance'), \
+            "You must not call DriverStation.getInstance() before your robot " + \
+            "code executes. Perhaps you have a global somewhere? Globals are " + \
+            "generally evil and should be avoided!"
+        
         from .. import config
         from ..configloader import _load_config
         
