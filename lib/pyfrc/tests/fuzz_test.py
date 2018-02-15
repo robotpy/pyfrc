@@ -17,47 +17,42 @@ import math
 
 from .. import config
 _gsms = config.config_obj['pyfrc']['game_specific_messages']
-        
+
+
 def fuzz_bool():
-                    
-    if random.randrange(0,2,1) == 0:
-        return False
-    else:
-        return True
-        
-    
-    
+    return random.randrange(0, 2, 1) == 0
+
+
 def fuzz_all(hal_data):
 
     # fuzz the eio switches
     for dio in hal_data['dio']:
     
         # inputs only
-        if not dio['is_input'] or not dio['initialized'] :
+        if not dio['is_input'] or not dio['initialized']:
             continue
             
         # activate at random times
         dio['value'] = fuzz_bool()
 
-            
     # fuzz the joysticks
     for stick in hal_data['joysticks']:
-        if stick['has_source']:
+        #if stick['has_source']:
             # axes
-            for axes in stick['axes']:
+            for axis in range(len(stick['axes'])):
                 if fuzz_bool():
-                    axes = random.uniform(-1,1)
-                    
-            # buttons
-            for button in stick['buttons']:
-                    self._fuzz_bool(tm, j, self.ds.stick_buttons[i], stick[1])
+                    stick['axes'][axis] = random.uniform(-1, 1)
 
-                
+            # buttons
+            for button in range(len(stick['buttons'])):
+                stick['buttons'][button] = fuzz_bool()
+
     # fuzz analog channels
     for analog in hal_data['analog_in']:
-        if analog['has_source'] and fuzz_bool():
-            analog['voltage'] = analog[ 'avg_voltage']= random.uniform(0.0,5.0)
-            analog['value'] = analog['value'] = (analog['voltage']/5.0) * analog['offset']
+        #if analog['has_source'] and fuzz_bool():
+            analog['voltage'] = analog['avg_voltage'] = random.uniform(0.0, 5.0)
+            analog['value'] = analog['voltage'] / 5.0 * analog['offset']
+
 
 def test_fuzz(hal_data, control, fake_time, robot):
     '''
@@ -71,7 +66,6 @@ def test_fuzz(hal_data, control, fake_time, robot):
             self.disabled = 0
             self.autonomous = 0
             self.teleop = 0
-            
             
         def on_step(self, tm):
             '''
@@ -107,7 +101,6 @@ def test_fuzz(hal_data, control, fake_time, robot):
             
             self.mode = mode
     
-    
     if _gsms:
         control.game_specific_message = _gsms[0]
     
@@ -120,6 +113,3 @@ def test_fuzz(hal_data, control, fake_time, robot):
     assert tc.disabled == 2
     assert tc.autonomous == 1
     assert tc.teleop == 1
-
-
-     
