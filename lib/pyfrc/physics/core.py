@@ -140,7 +140,6 @@ class PhysicsInterface:
         
         self.config_obj = config_obj
         self.engine = None
-        self.analog_gyro_channels = []
         self.device_gyro_channels = []
         
         self.hal_data = hal_data
@@ -217,16 +216,8 @@ class PhysicsInterface:
     
     def add_analog_gyro_channel(self, ch):
         '''
-            If you want to enable a wpilib :class:`.AnalogGyro` object to
-            be updated when the robot rotates, add the channel number via
-            this function.
-            
-            :param ch: Analog input channel that the gyro is on
-            :type  ch: int
+            This function is no longer needed
         '''
-        
-        # TODO: use hal_data to detect gyros
-        self.analog_gyro_channels.append(ch)
         
     # deprecated alias
     add_gyro_channel = add_analog_gyro_channel
@@ -319,13 +310,8 @@ class PhysicsInterface:
         for k in self.device_gyro_channels:
             self.hal_data['robot'][k] += angle
         
-        # XXX: for now, use a constant to compute the output voltage
-        #      .. however, we should do the actual calculation at some point?
-        
-        gyro_value =  angle / 2.7901785714285715e-12
-        
-        for gyro_ch in self.analog_gyro_channels:
-            self.hal_data['analog_in'][gyro_ch]['accumulator_value'] += gyro_value
+        for gyro in self.hal_data['analog_gyro']:
+            gyro['angle'] += angle
     
     def get_position(self):
         '''
