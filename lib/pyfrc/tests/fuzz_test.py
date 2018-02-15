@@ -17,16 +17,12 @@ import math
 
 from .. import config
 _gsms = config.config_obj['pyfrc']['game_specific_messages']
-        
+
+
 def fuzz_bool():
-                    
-    if random.randrange(0,2,1) == 0:
-        return False
-    else:
-        return True
-        
-    
-    
+    return random.randrange(0, 2, 1) == 0
+
+
 def fuzz_all(hal_data):
 
     # fuzz the eio switches
@@ -71,7 +67,6 @@ def test_fuzz(hal_data, control, fake_time, robot):
             self.autonomous = 0
             self.teleop = 0
             
-            
         def on_step(self, tm):
             '''
                 Called on each simulation step. This runs through each mode,
@@ -106,7 +101,6 @@ def test_fuzz(hal_data, control, fake_time, robot):
             
             self.mode = mode
     
-    
     if _gsms:
         control.game_specific_message = _gsms[0]
     
@@ -119,6 +113,3 @@ def test_fuzz(hal_data, control, fake_time, robot):
     assert tc.disabled == 2
     assert tc.autonomous == 1
     assert tc.teleop == 1
-
-
-     
