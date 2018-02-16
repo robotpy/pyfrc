@@ -196,6 +196,9 @@ class SimUI(object):
         # solenoid (pcm)
         self.pcm = {}
         
+        # gyros
+        self.gyros = {}
+        
         # CAN
         self.can_slot = tk.LabelFrame(csfm, text='CAN')
         self.can_slot.pack(side=tk.LEFT, fill=tk.BOTH, expand=1, padx=5)
@@ -405,8 +408,32 @@ class SimUI(object):
                     sol.set_disabled()
                 else:
                     sol.set_value(ch['value'])
-        
     
+    def _render_gyro(self):
+        for k, v in hal_data['robot'].items():
+            if not k.endswith('_angle'):
+                continue
+            gyro_label = self.gyros.get(k)
+            if not gyro_label:
+                gyro_label = self._create_gyro(k)
+            gyro_label['text'] = '%.3f' % v
+        
+        for i, gyro in enumerate(hal_data['analog_gyro']):
+            if not gyro['initialized']:
+                continue
+            gyro_label = self.gyros.get(i)
+            if not gyro_label:
+                gyro_label = self._create_gyro(i)
+            gyro_label['text'] = '%.3f' % gyro['angle']
+    
+    def _create_gyro(self, k):
+        slot = tk.LabelFrame(self.csfm, text='Gyro %s' % k)
+        gyro_label = tk.Label(slot)
+        gyro_label.pack(side=tk.TOP, fill=tk.BOTH)
+        slot.pack(side=tk.TOP, fill=tk.BOTH, padx=5)
+        self.gyros[k] = gyro_label
+        return gyro_label
+
     def idle_add(self, callable, *args):
         '''Call this with a function as the argument, and that function
            will be called on the GUI thread via an event
@@ -491,6 +518,9 @@ class SimUI(object):
         
         # solenoid
         self._render_pcm()
+        
+        # gyro
+        self._render_gyro()
         
         # joystick/driver station
         #sticks = _core.DriverStation.GetInstance().sticks
