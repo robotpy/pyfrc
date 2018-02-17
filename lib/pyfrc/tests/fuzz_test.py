@@ -51,7 +51,7 @@ def fuzz_all(hal_data):
     for analog in hal_data['analog_in']:
         #if analog['has_source'] and fuzz_bool():
             analog['voltage'] = analog['avg_voltage'] = random.uniform(0.0, 5.0)
-            analog['value'] = analog['voltage'] / 5.0 * analog['offset']
+            analog['value'] = int(analog['voltage'] / 5.0 * analog['offset'])
 
 
 def test_fuzz(hal_data, control, fake_time, robot):
