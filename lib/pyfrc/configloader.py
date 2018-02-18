@@ -71,6 +71,9 @@ def _load_config(robot_path):
     config_obj['pyfrc']['robot'].setdefault('starting_y', 0)
     config_obj['pyfrc']['robot'].setdefault('starting_angle', 0)
     
+    # list of dictionaries of x=, y=, angle=, name=
+    config_obj['pyfrc']['robot'].setdefault('start_positions', [])
+    
     config_obj['pyfrc'].setdefault('field', {})
     
     # backwards compat

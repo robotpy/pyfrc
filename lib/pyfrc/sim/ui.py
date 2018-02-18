@@ -23,6 +23,37 @@ from pkg_resources import iter_entry_points
 
 logger = logging.getLogger(__name__)
 
+def _get_pos_callback(pos, root, selected):
+    def _fn():
+        selected[0] = pos
+        root.destroy()
+    return _fn
+        
+
+def configure_starting_position(config_obj):
+    start_positions = config_obj['pyfrc']['robot']['start_positions']
+    if not start_positions:
+        return
+    if len(start_positions) == 1:
+        selected = start_positions[0]
+    elif len(start_positions) > 1:
+        root = tk.Tk()
+        root.title("Robot Starting Position")
+        
+        label = tk.Label(root, text="Choose starting position")
+        label.pack(side="top", fill="none", expand=True)
+        selected = [start_positions[0]]
+        for pos in start_positions:
+            name = pos['name']
+            button = tk.Button(root, text=name, command=_get_pos_callback(pos, root, selected))
+            button.pack(side="bottom", fill="both", expand=True)
+        root.mainloop()
+        selected = selected[0]
+    
+    config_obj['pyfrc']['robot']['starting_x'] = selected['x']
+    config_obj['pyfrc']['robot']['starting_y'] = selected['y']
+    config_obj['pyfrc']['robot']['starting_angle'] = selected['angle']
+
 
 class SimUI(object):
     
