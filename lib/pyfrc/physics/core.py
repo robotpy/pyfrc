@@ -320,6 +320,25 @@ class PhysicsInterface:
         '''
         with self._lock:
             return self.x, self.y, self.angle
+            
+    def get_offset(self, x, y):
+        '''
+            Computes how far away and at what angle a coordinate is
+            located.
+            
+            Distance is returned in feet, angle is returned in degrees
+        
+            :returns: distance,angle offset of the given x,y coordinate
+            
+            .. versionadded:: 2018.1.7
+        '''
+        with self._lock:
+            dx = self.x - x
+            dy = self.y - y
+        
+        distance = math.hypot(dx, dy)
+        angle = math.atan2(dy, dx)
+        return distance, math.degrees(angle)
     
     def _get_vector(self):
         '''
