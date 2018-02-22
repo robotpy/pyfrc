@@ -46,7 +46,7 @@ def configure_starting_position(config_obj):
         for pos in start_positions:
             name = pos['name']
             button = tk.Button(root, text=name, command=_get_pos_callback(pos, root, selected))
-            button.pack(side="bottom", fill="both", expand=True)
+            button.pack(side="top", fill="both", expand=True)
         root.mainloop()
         selected = selected[0]
     
