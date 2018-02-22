@@ -35,6 +35,7 @@ class PyFrcSim:
         # Load these late so tk isn't loaded each time we run a test
         from ..physics.core import PhysicsInitException
         from .. import sim
+        from ..sim.field.user_renderer import UserRenderer
         
         # load the config json file
         robot_file = abspath(inspect.getfile(robot_class))
@@ -71,6 +72,8 @@ class PyFrcSim:
         
         if robot_element is not None:
             ui.field.add_moving_element(robot_element)
+            
+        UserRenderer._attach_ui(ui, robot_element)
         
         ui.run()
     

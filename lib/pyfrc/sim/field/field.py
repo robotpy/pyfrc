@@ -33,6 +33,7 @@ class RobotField(object):
         self.margin = 5
         self.objects = config_obj['pyfrc']['field']['objects']
         self.cellSize = px_per_ft
+        self.px_per_ft = px_per_ft
 
         self.canvasWidth = 2 * self.margin + self.cellSize * self.cols
         self.canvasHeight = 2 * self.margin + self.cellSize * self.rows

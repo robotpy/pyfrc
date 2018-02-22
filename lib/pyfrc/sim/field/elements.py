@@ -16,6 +16,15 @@ class DrawableElement(object):
         self.pts = pts          # list of (x,y)
         self.center = center    # (x,y)
         self.angle = angle      # radians
+        
+    @property
+    def flat_pts(self):
+        '''Converts points into a flat list'''
+        return [c for p in self.pts for c in p]
+    
+    def delete(self):
+        if hasattr(self, 'id'):
+            self.canvas.delete(self.id)
 
     def initialize(self, canvas):
         
@@ -79,8 +88,7 @@ class DrawableElement(object):
     
         # flatten the list of coordinates
         if hasattr(self, 'canvas'):
-            pts = [c for p in self.pts for c in p]
-            self.canvas.coords(self.id, *pts)
+            self.canvas.coords(self.id, *self.flat_pts)
         
     def perform_move(self):
         self.update_coordinates()
@@ -111,7 +119,21 @@ class CompositeElement(object):
     def update_coordinates(self):
         for e in self.elements:
             e.update_coordinates()
-        
+
+
+class DrawableLine(DrawableElement):
+    '''
+        Represents some line drawn on the canvas
+    '''
+    def __init__(self, pts, color, tkargs):
+        super().__init__(pts, pts[0], 0, color)
+        self.tkargs = tkargs.copy()
+    
+    def initialize(self, canvas):
+        self.canvas = canvas
+        self.tkargs['fill'] = self.color
+        self.id = self.canvas.create_line(self.flat_pts, **self.tkargs)
+
 
 class TextElement(DrawableElement):
     '''
