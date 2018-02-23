@@ -227,8 +227,8 @@ class SimUI(object):
         # solenoid (pcm)
         self.pcm = {}
         
-        # gyros
-        self.gyros = {}
+        # values
+        self.values = {}
         
         # CAN
         self.can_slot = tk.LabelFrame(csfm, text='CAN')
@@ -440,30 +440,43 @@ class SimUI(object):
                 else:
                     sol.set_value(ch['value'])
     
-    def _render_gyro(self):
+    def _render_values(self):
         for k, v in hal_data['robot'].items():
             if not k.endswith('_angle'):
                 continue
-            gyro_label = self.gyros.get(k)
+            gyro_label = self.values.get(k)
             if not gyro_label:
-                gyro_label = self._create_gyro(k)
+                gyro_label = self._create_value(k, k, 'Angle (Degrees)')
             gyro_label['text'] = '%.3f' % v
         
         for i, gyro in enumerate(hal_data['analog_gyro']):
             if not gyro['initialized']:
                 continue
-            gyro_label = self.gyros.get(i)
+            k = 'Gyro %s' % i
+            gyro_label = self.values.get(k)
             if not gyro_label:
-                gyro_label = self._create_gyro(i)
+                gyro_label = self._create_value(k, k, 'Angle (Degrees)')
             gyro_label['text'] = '%.3f' % gyro['angle']
+        
+        for i, encoder in enumerate(hal_data['encoder']):
+            if not encoder['initialized']:
+                continue
+            k = 'Encoder %s' % i
+            label = self.values.get(k)
+            if not label:
+                txt = 'Encoder (%s,%s)' % (encoder['config']['ASource_Channel'], encoder['config']['BSource_Channel'])
+                label = self._create_value(k, txt, 'Count / Distance')
+            label['text'] = '%s / %.3f' % (encoder['count'], encoder['count']*encoder['distance_per_pulse'])
+                
     
-    def _create_gyro(self, k):
-        slot = tk.LabelFrame(self.csfm, text='Gyro %s' % k)
-        gyro_label = tk.Label(slot)
-        gyro_label.pack(side=tk.TOP, fill=tk.BOTH)
+    def _create_value(self, key, text, tooltip):
+        slot = tk.LabelFrame(self.csfm, text=text)
+        label = tk.Label(slot)
+        label.pack(side=tk.TOP, fill=tk.BOTH)
         slot.pack(side=tk.TOP, fill=tk.BOTH, padx=5)
-        self.gyros[k] = gyro_label
-        return gyro_label
+        self.values[key] = label
+        Tooltip.create(label, tooltip)
+        return label
 
     def idle_add(self, callable, *args):
         '''Call this with a function as the argument, and that function
@@ -550,8 +563,8 @@ class SimUI(object):
         # solenoid
         self._render_pcm()
         
-        # gyro
-        self._render_gyro()
+        # gyro/encoder
+        self._render_values()
         
         # joystick/driver station
         #sticks = _core.DriverStation.GetInstance().sticks
