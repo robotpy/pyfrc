@@ -14,8 +14,12 @@ from unittest import mock
 sys.modules['wpilib'] = mock.MagicMock()
 sys.modules['hal_impl'] = mock.MagicMock()
 sys.modules['hal_impl.data'] = mock.MagicMock()
+sys.modules['hal_impl.sim_hooks'] = mock.MagicMock()
 sys.modules['hal_impl.types'] = mock.MagicMock()
 sys.modules['hal_impl.mode_helpers'] = mock.MagicMock()
+
+import pyfrc.config
+pyfrc.config.config_obj['pyfrc'] = dict(game_specific_messages=[])
 
 # -- RTD configuration ------------------------------------------------
 
