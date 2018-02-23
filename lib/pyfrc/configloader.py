@@ -17,7 +17,7 @@ _field_defaults = {
     },
     '2018': {
         'h': 27,
-        'w': 27,
+        'w': 30,
         'px_per_ft': 15,
         'image': join(_field_root, '2018-field.gif'),
         'game_specific_messages': [
