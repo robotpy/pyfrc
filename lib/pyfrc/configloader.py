@@ -74,16 +74,33 @@ def _load_config(robot_path):
     # list of dictionaries of x=, y=, angle=, name=
     config_obj['pyfrc']['robot'].setdefault('start_positions', [])
     
-    config_obj['pyfrc'].setdefault('field', {})
+    field = config_obj['pyfrc'].setdefault('field', {})
+    force_defaults = False
+    
+    # The rules here are complex because of backwards compat
+    # -> if you specify a particular season, then it will override w/h/px
+    # -> if you specify objects then you will get your own stuff
+    # -> if you don't specify anything then it override w/h/px
+    #    -> if you add your own, it will warn you unless you specify an image
     
     # backwards compat
     if 'season' in config_obj['pyfrc']['field']:
         season = config_obj['pyfrc']['field']['season']
         defaults = _field_defaults.get(str(season), _field_defaults['default'])
+        force_defaults = True
     elif 'objects' in config_obj['pyfrc']['field']:
         defaults = _field_defaults['default']
     else:
+        if 'image' not in field:
+            force_defaults = True
         defaults = _field_defaults[_default_year]
+    
+    if force_defaults:
+        if 'w' in field or 'h' in field or 'px_per_ft' in field:
+            logger.warning("Ignoring field w/h/px_per_ft settings")
+        field['w'] = defaults['w']
+        field['h'] = defaults['h']
+        field['px_per_ft'] = defaults['px_per_ft']
     
     config_obj['pyfrc']['field'].setdefault('objects', [])
     config_obj['pyfrc']['field'].setdefault('w', defaults['w'])
