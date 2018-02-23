@@ -39,7 +39,8 @@ if rtd_version not in ['stable', 'latest']:
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    'sphinx.ext.intersphinx'
+    'sphinx.ext.intersphinx',
+    'sphinx_autodoc_typehints'
 ]
 
 # The suffix of source filenames.
