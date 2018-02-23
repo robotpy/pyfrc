@@ -18,6 +18,8 @@ sys.modules['hal_impl.sim_hooks'] = mock.MagicMock()
 sys.modules['hal_impl.types'] = mock.MagicMock()
 sys.modules['hal_impl.mode_helpers'] = mock.MagicMock()
 
+sys.modules['tkinter'] = mock.MagicMock()
+
 import pyfrc.config
 pyfrc.config.config_obj['pyfrc'] = dict(game_specific_messages=[])
 
