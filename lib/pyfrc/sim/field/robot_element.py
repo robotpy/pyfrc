@@ -57,6 +57,19 @@ class RobotElement(CompositeElement):
         if angle != 0:
             self.rotate(angle)
     
+    @property
+    def angle(self):
+        return self._vector[2]
+    
+    @property
+    def front_center(self):
+        x, y = self.elements[1].pts[1]
+        return x, y
+    
+    @property
+    def center(self):
+        return self.elements[1].center
+    
     def perform_move(self):
         
         if not self.controller.is_alive():

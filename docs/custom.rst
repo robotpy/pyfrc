@@ -20,23 +20,3 @@ Controlling the robot's state
    
 .. automodule:: pyfrc.test_support.fake_time
    :members:
-
-Robot 'physics model'
----------------------
-
-.. _physics_model:
-
-.. automodule:: pyfrc.physics.core
-   :members:
-
-Camera 'simulator'
-------------------
-
-.. automodule:: pyfrc.physics.visionsim
-   :members:
-
-Drivetrain support
-------------------
-
-.. automodule:: pyfrc.physics.drivetrains
-   :members:
