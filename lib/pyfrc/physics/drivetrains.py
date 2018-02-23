@@ -13,10 +13,31 @@
         
     Obviously, to get the best simulation results, you should try to
     estimate the speed of your robot accurately.
+    
+    Here's an example usage of the drivetrains::
+    
+        from pyfrc.physics import drivetrains
+    
+        class PhysicsEngine:
+            
+            def __init__(self, physics_controller):
+                self.physics_controller = physics_controller
+                self.drivetrain = drivetrains.TwoMotorDrivetrain(deadzone=drivetrains.linear_deadzone(0.2))
+                
+            def update_sim(self, hal_data, now, tm_diff):
+                # TODO: get motor values from hal_data
+                speed, rotation = self.drivetrain.get_vector(l_motor, r_motor)
+                self.physics_controller.drive(speed, rotation, tm_diff)
+                
+                # optional: compute encoder
+                # l_encoder = self.drivetrain.l_speed * tm_diff
 '''
 import math
+import typing
 
-def linear_deadzone(deadzone):
+DeadzoneCallable = typing.Callable[[float], float]
+
+def linear_deadzone(deadzone: float) -> DeadzoneCallable:
     '''
         Real motors won't actually move unless you give them some minimum amount
         of input. This computes an output speed for a motor and causes it to
@@ -34,20 +55,6 @@ def linear_deadzone(deadzone):
         returned function to one of the drivetrain simulation functions as the
         ``deadzone`` parameter.
         
-        Here's an example usage:
-        
-            from pyfrc.physics import drivetrains
-        
-            class PhysicsEngine:
-                
-                def __init__(self, physics_controller):
-                    self.drivetrain_deadzone = drivetrains.linear_deadzone(0.2)
-                    
-                def update_sim(self, hal_data, now, tm_diff):
-                    # TODO: get motor values from hal_data
-                    speed_rotation = drivetrains.two_motor_drivetrain(l_motor, r_motor,
-                                                                      deadzone=self.drivetrain_deadzone)
-        
         :param motor_input: The motor input (between -1 and 1)
         :param deadzone: Minimum input required for the motor to move (between 0 and 1)
     '''
@@ -61,8 +68,8 @@ def linear_deadzone(deadzone):
             return math.copysign((abs_motor_input - deadzone) / scale_param, motor_input)
     
     return _linear_deadzone
-    
-def two_motor_drivetrain(l_motor, r_motor, x_wheelbase=2, speed=5, deadzone=None):
+
+class TwoMotorDrivetrain:
     '''
         Two center-mounted motors with a simple drivetrain. The
         motion equations are as follows::
@@ -80,30 +87,56 @@ def two_motor_drivetrain(l_motor, r_motor, x_wheelbase=2, speed=5, deadzone=None
         .. note:: WPILib RobotDrive assumes that to make the robot go forward,
                   the left motor must be set to -1, and the right to +1
         
-        :param l_motor:    Left motor value (-1 to 1); -1 is forward
-        :param r_motor:    Right motor value (-1 to 1); 1 is forward
-        :param x_wheelbase: The distance in feet between right and left wheels.
-        :param speed:      Speed of robot in feet per second (see above)
-        :param deadzone:   A function that adjusts the output of the motor (see :func:`linear_deadzone`)
-        
-        :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
+        .. versionadded:: 2018.2.0
     '''
-    
-    if deadzone:
-        l_motor = deadzone(l_motor)
-        r_motor = deadzone(r_motor)
-    
-    l = -l_motor * speed
-    r = r_motor * speed
 
-    # Motion equations
-    fwd = (l + r) * 0.5
-    rcw = (l - r) / float(x_wheelbase)
+    def __init__(self, x_wheelbase:float=2, speed:float=5, deadzone:DeadzoneCallable=None):
+        '''
+            :param x_wheelbase: The distance in feet between right and left wheels.
+            :param speed:      Speed of robot in feet per second (see above)
+            :param deadzone:   A function that adjusts the output of the motor (see :func:`linear_deadzone`)
+        '''
+        self.x_wheelbase = x_wheelbase
+        self.speed = speed
+        self.deadzone = deadzone
         
-    return fwd, rcw
+        # Use these to compute encoder data after calling get_vector
+        self.l_speed = 0
+        self.r_speed = 0
+    
+    def get_vector(self, l_motor: float, r_motor: float) -> typing.Tuple[float, float]:
+        '''
+            Given motor values, retrieves the vector of (distance, speed) for your robot
+        
+            :param l_motor:    Left motor value (-1 to 1); -1 is forward
+            :param r_motor:    Right motor value (-1 to 1); 1 is forward
+
+            :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
+        '''
+        if self.deadzone:
+            l_motor = self.deadzone(l_motor)
+            r_motor = self.deadzone(r_motor)
+        
+        l = -l_motor * self.speed
+        r = r_motor * self.speed
+
+        # Motion equations
+        fwd = (l + r) * 0.5
+        rcw = (l - r) / float(self.x_wheelbase)
+        
+        self.l_speed = l
+        self.r_speed = r
+        return fwd, rcw
+
+def two_motor_drivetrain(l_motor, r_motor, x_wheelbase=2, speed=5, deadzone=None):
+    '''
+        .. deprecated:: 2018.2.0
+           Use :class:`TwoMotorDrivetrain` instead
+    '''
+    return TwoMotorDrivetrain(x_wheelbase, speed, deadzone).get_vector(l_motor, r_motor)
 
 
-def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, x_wheelbase=2, speed=5, deadzone=None):
+class FourMotorDrivetrain:
     '''
         Four motors, each side chained together. The motion equations are
         as follows::
@@ -121,34 +154,59 @@ def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, x_wheelbase=2,
         .. note:: WPILib RobotDrive assumes that to make the robot go forward,
                   the left motors must be set to -1, and the right to +1
         
-        :param lr_motor:   Left rear motor value (-1 to 1); -1 is forward
-        :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
-        :param lf_motor:   Left front motor value (-1 to 1); -1 is forward
-        :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
-        :param x_wheelbase: The distance in feet between right and left wheels.
-        :param speed:      Speed of robot in feet per second (see above)
-        :param deadzone:   A function that adjusts the output of the motor (see :func:`linear_deadzone`)
-        
-        :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
+        .. versionadded:: 2018.2.0
     '''
     
-    if deadzone:
-        lf_motor = deadzone(lf_motor)
-        lr_motor = deadzone(lr_motor)
-        rf_motor = deadzone(rf_motor)
-        rr_motor = deadzone(rr_motor)
+    #: Use this to compute encoder data after get_vector is called
+    l_speed = 0
+    r_speed = 0
     
-    l = -(lf_motor + lr_motor) * 0.5 * speed
-    r = (rf_motor + rr_motor) * 0.5 * speed
+    def __init__(self, x_wheelbase:float=2, speed:float=5, deadzone:DeadzoneCallable=None):
+        '''
+            :param x_wheelbase: The distance in feet between right and left wheels.
+            :param speed:      Speed of robot in feet per second (see above)
+            :param deadzone:   A function that adjusts the output of the motor (see :func:`linear_deadzone`)
+        '''
+        self.x_wheelbase = x_wheelbase
+        self.speed = speed
+        self.deadzone = deadzone
     
-    # Motion equations
-    fwd = (l + r) * 0.5
-    rcw = (l - r) / float(x_wheelbase)
+    def get_vector(self, lr_motor: float, rr_motor: float, lf_motor: float, rf_motor: float) -> typing.Tuple[float, float]:
+        '''
+            :param lr_motor:   Left rear motor value (-1 to 1); -1 is forward
+            :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
+            :param lf_motor:   Left front motor value (-1 to 1); -1 is forward
+            :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
+            
+            :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
+        '''
         
-    return fwd, rcw
+        if self.deadzone:
+            lf_motor = self.deadzone(lf_motor)
+            lr_motor = self.deadzone(lr_motor)
+            rf_motor = self.deadzone(rf_motor)
+            rr_motor = self.deadzone(rr_motor)
+        
+        l = -(lf_motor + lr_motor) * 0.5 * self.speed
+        r = (rf_motor + rr_motor) * 0.5 * self.speed
+        
+        # Motion equations
+        fwd = (l + r) * 0.5
+        rcw = (l - r) / float(self.x_wheelbase)
+            
+        self.l_speed = l
+        self.r_speed = r
+        return fwd, rcw
+
+def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, x_wheelbase=2, speed=5, deadzone=None):
+    '''
+        .. deprecated:: 2018.2.0
+           Use :class:`FourMotorDrivetrain` instead
+    '''
+    return FourMotorDrivetrain(x_wheelbase, speed, deadzone).get_vector(lr_motor, rr_motor, lf_motor, rf_motor)
 
 
-def mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, x_wheelbase=2, y_wheelbase=3, speed=5, deadzone=None):
+class MecanumDrivetrain:
     '''
         Four motors, each with a mechanum wheel attached to it.
         
@@ -158,53 +216,85 @@ def mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, x_wheelbase=2, y_
         .. note:: WPILib RobotDrive assumes that to make the robot go forward,
                   all motors are set to +1
         
-        :param lr_motor:   Left rear motor value (-1 to 1); 1 is forward
-        :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
-        :param lf_motor:   Left front motor value (-1 to 1); 1 is forward
-        :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
-        :param x_wheelbase: The distance in feet between right and left wheels.
-        :param y_wheelbase: The distance in feet between forward and rear wheels.
-        :param speed:      Speed of robot in feet per second (see above)
-        :param deadzone:   A function that adjusts the output of the motor (see :func:`linear_deadzone`)
-        
-        :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s),
-                  clockwise rotation of robot (radians/s)
+        .. versionadded:: 2018.2.0
     '''
-
-    #
-    # From http://www.chiefdelphi.com/media/papers/download/2722 pp7-9
-    # [F] [omega](r) = [V]
-    #
-    # F is
-    # .25  .25  .25 .25
-    # -.25 .25 -.25 .25
-    # -.25k -.25k .25k .25k
-    #
-    # omega is
-    # [lf lr rr rf]
     
-    if deadzone:
-        lf_motor = deadzone(lf_motor)
-        lr_motor = deadzone(lr_motor)
-        rf_motor = deadzone(rf_motor)
-        rr_motor = deadzone(rr_motor)
-
-    # Calculate speed of each wheel
-    lr = lr_motor * speed
-    rr = rr_motor * speed
-    lf = lf_motor * speed
-    rf = rf_motor * speed
-
-    # Calculate K
-    k = abs(x_wheelbase/2) + abs(y_wheelbase/2)
-
-    # Calculate resulting motion
-    Vy = .25 * (lf + lr + rr + rf)
-    Vx = .25 * (lf + -lr + rr + -rf)
-    Vw = (.25/k) * (lf + lr + -rr + -rf)
+    #: Use this to compute encoder data after get_vector is called
+    lr_speed = 0
+    rr_speed = 0
+    lf_speed = 0
+    rf_speed = 0
     
-    return Vx, Vy, Vw
+    def __init__(self, x_wheelbase:float=2, y_wheelbase:float=3, speed:float=5, deadzone:DeadzoneCallable=None):
+        '''
+            :param x_wheelbase: The distance in feet between right and left wheels.
+            :param y_wheelbase: The distance in feet between forward and rear wheels.
+            :param speed:      Speed of robot in feet per second (see above)
+            :param deadzone:   A function that adjusts the output of the motor (see :func:`linear_deadzone`)
+        '''
+        self.x_wheelbase = x_wheelbase
+        self.y_wheelbase = y_wheelbase
+        self.speed = speed
+        self.deadzone = deadzone
     
+    def get_vector(self, lr_motor: float, rr_motor: float, lf_motor: float, rf_motor: float) -> typing.Tuple[float, float, float]:
+        '''
+            Given motor values, retrieves the vector of (distance, speed) for your robot
+        
+            :param lr_motor:   Left rear motor value (-1 to 1); 1 is forward
+            :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
+            :param lf_motor:   Left front motor value (-1 to 1); 1 is forward
+            :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
+            
+            :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s),
+                      clockwise rotation of robot (radians/s)
+        '''
+        #
+        # From http://www.chiefdelphi.com/media/papers/download/2722 pp7-9
+        # [F] [omega](r) = [V]
+        #
+        # F is
+        # .25  .25  .25 .25
+        # -.25 .25 -.25 .25
+        # -.25k -.25k .25k .25k
+        #
+        # omega is
+        # [lf lr rr rf]
+        
+        if self.deadzone:
+            lf_motor = self.deadzone(lf_motor)
+            lr_motor = self.deadzone(lr_motor)
+            rf_motor = self.deadzone(rf_motor)
+            rr_motor = self.deadzone(rr_motor)
+
+        # Calculate speed of each wheel
+        lr = lr_motor * self.speed
+        rr = rr_motor * self.speed
+        lf = lf_motor * self.speed
+        rf = rf_motor * self.speed
+
+        # Calculate K
+        k = abs(self.x_wheelbase/2.0) + abs(self.x_wheelbase/2.0)
+
+        # Calculate resulting motion
+        Vy = .25 * (lf + lr + rr + rf)
+        Vx = .25 * (lf + -lr + rr + -rf)
+        Vw = (.25/k) * (lf + lr + -rr + -rf)
+        
+        self.lr_speed = lr
+        self.rr_speed = rr
+        self.lf_speed = lf
+        self.rf_speed = rf
+        return Vx, Vy, Vw
+
+def mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, x_wheelbase=2, y_wheelbase=3, speed=5, deadzone=None):
+    '''
+        .. deprecated:: 2018.2.0
+           Use :class:`MecanumDrivetrain` instead
+    '''
+    return MecanumDrivetrain(x_wheelbase, y_wheelbase, speed, deadzone).get_vector(lr_motor, rr_motor, lf_motor, rf_motor)
+
+
 def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angle, rr_angle, lf_angle, rf_angle, x_wheelbase=2, y_wheelbase=2, speed=5, deadzone=None):
     '''
         Four motors that can be rotated in any direction
@@ -250,7 +340,7 @@ def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angl
     rf_rad = math.radians(rf_angle)
 
     # Calculate wheelbase radius
-    wheelbase_radius = math.hypot(x_wheelbase / 2, y_wheelbase / 2)
+    wheelbase_radius = math.hypot(x_wheelbase / 2.0, y_wheelbase / 2.0)
 
     # Calculates the Vx and Vy components
     # Sin an Cos inverted because forward is 0 on swerve wheels
