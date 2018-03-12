@@ -9,6 +9,7 @@ import tempfile
 import threading
 
 from os.path import abspath, basename, dirname, exists, join, splitext
+from pathlib import PurePosixPath
 
 from ..util import print_err, yesno
 
@@ -106,8 +107,10 @@ class PyFrcDeploy:
         
         # This probably should be configurable... oh well
         
-        deploy_dir = '/home/lvuser'
-        py_deploy_dir = '%s/py' % deploy_dir
+        deploy_dir = PurePosixPath('/home/lvuser')
+        py_deploy_subdir = 'py'
+        py_new_deploy_subdir = 'py_new'
+        py_deploy_dir = deploy_dir / py_deploy_subdir
         
         # note below: deployed_cmd appears that it only can be a single line
         
@@ -126,11 +129,13 @@ class PyFrcDeploy:
             bash_cmd = '/bin/bash -ce'
 
         if options.in_place:
-            del_cmd = ''
+            replace_cmd = 'true'
+            py_new_deploy_subdir = py_deploy_subdir
         else:
-            del_cmd = "[ -d %(py_deploy_dir)s ] && rm -rf %(py_deploy_dir)s"
+            replace_cmd = "[ -d %(py_deploy_dir)s ] && rm -rf %(py_deploy_dir)s; mv %(py_new_deploy_dir)s %(py_deploy_dir)s"
 
-        del_cmd %= {"py_deploy_dir": py_deploy_dir}
+        py_new_deploy_dir = deploy_dir / py_new_deploy_subdir
+        replace_cmd %= {"py_deploy_dir": py_deploy_dir, "py_new_deploy_dir": py_new_deploy_dir}
         
         check_version = '/usr/local/bin/python3 -c "exec(open(\\"$SITEPACKAGES/wpilib/version.py\\", \\"r\\").read(), globals()); print(\\"WPILib version on robot is \\" + __version__);exit(0) if __version__ == \\"%s\\" else exit(89)"' % wpilib.__version__
         if options.no_version_check:
@@ -144,7 +149,6 @@ class PyFrcDeploy:
             SITEPACKAGES=$(/usr/local/bin/python3 -c "import site; print(site.getsitepackages()[0])")
             [ -f $SITEPACKAGES/wpilib/version.py ] || exit 88
             %(check_version)s
-            %(del_cmd)s
             echo "%(deployed_cmd)s" > %(deploy_dir)s/%(deployed_cmd_fname)s
             %(extra_cmd)s
             %(check_startup_dlls)s
@@ -203,9 +207,8 @@ class PyFrcDeploy:
             # Copy the files over, copy to a temporary directory first
             # -> this is inefficient, but it's easier in sftp
             tmp_dir = tempfile.mkdtemp()
-            py_tmp_dir = join(tmp_dir, 'py')
-                    
             try:
+                py_tmp_dir = join(tmp_dir, py_new_deploy_subdir)
                 self._copy_to_tmpdir(py_tmp_dir, robot_path)
                 controller.sftp(py_tmp_dir, deploy_dir, mkdir=not options.in_place)
             finally:
@@ -230,6 +233,7 @@ class PyFrcDeploy:
             if not options.in_place:
                 # Restart the robot code and we're done!
                 sshcmd = "%(bash_cmd)s '" + \
+                         '%(replace_cmd)s;' + \
                          '/usr/local/bin/python3 -m compileall -q -r 5 /home/lvuser/py;' + \
                          '. /etc/profile.d/natinst-path.sh; ' + \
                          'chown -R lvuser:ni %(py_deploy_dir)s; ' + \
@@ -240,6 +244,7 @@ class PyFrcDeploy:
                 sshcmd %= {
                     'bash_cmd': bash_cmd,
                     'py_deploy_dir': py_deploy_dir,
+                    'replace_cmd': replace_cmd,
                 }
             
                 logger.debug('SSH: %s', sshcmd)
@@ -261,7 +266,6 @@ class PyFrcDeploy:
         upload_files = []
         
         for root, dirs, files in os.walk(robot_path):
-            
             prefix = root[len(robot_path)+1:]
             os.mkdir(join(tmp_dir, prefix))
             
