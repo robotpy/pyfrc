@@ -118,11 +118,13 @@ class PyFrcDeploy:
         # have been fixed, but need to use -u for it to really work properly
         
         if options.debug:
+            compileall_flags = ''
             deployed_cmd = 'env LD_LIBRARY_PATH=/usr/local/frc/lib/ /usr/local/bin/python3 -u %s/%s -v run' % (py_deploy_dir, robot_filename)
             deployed_cmd_fname = 'robotDebugCommand'
             extra_cmd = 'touch /tmp/frcdebug; chown lvuser:ni /tmp/frcdebug'
             bash_cmd = '/bin/bash -cex'
         else:
+            compileall_flags = '-O'
             deployed_cmd = 'env LD_LIBRARY_PATH=/usr/local/frc/lib/ /usr/local/bin/python3 -u -O %s/%s run' % (py_deploy_dir, robot_filename)
             deployed_cmd_fname = 'robotCommand'
             extra_cmd = ''
@@ -234,7 +236,7 @@ class PyFrcDeploy:
                 # Restart the robot code and we're done!
                 sshcmd = "%(bash_cmd)s '" + \
                          '%(replace_cmd)s;' + \
-                         '/usr/local/bin/python3 -m compileall -q -r 5 /home/lvuser/py;' + \
+                         '/usr/local/bin/python3 %(compileall_flags)s -m compileall -q -r 5 /home/lvuser/py;' + \
                          '. /etc/profile.d/natinst-path.sh; ' + \
                          'chown -R lvuser:ni %(py_deploy_dir)s; ' + \
                          'sync; ' + \
@@ -243,6 +245,7 @@ class PyFrcDeploy:
             
                 sshcmd %= {
                     'bash_cmd': bash_cmd,
+                    'compileall_flags': compileall_flags,
                     'py_deploy_dir': py_deploy_dir,
                     'replace_cmd': replace_cmd,
                 }
