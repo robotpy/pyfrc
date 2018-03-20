@@ -140,16 +140,18 @@ class TextElement(DrawableElement):
         An element that shows text
     '''
     
-    def __init__(self, text, center, angle, color, fontSize):
+    def __init__(self, text, center, angle, color, fontSize, **kwargs):
         super().__init__([center], center, angle, color)
         self.text = text
         self.fontSize = fontSize
+        self.tkargs = kwargs.copy()
         
     def initialize(self, canvas):
         self.canvas = canvas
         x, y = self.center
-        self.id = self.canvas.create_text(y, x, text=self.text,
-                                          font=("Helvetica", self.fontSize, "bold"))
+        self.id = self.canvas.create_text(x, y, text=self.text,
+                                          font=("Helvetica", self.fontSize, "bold"),
+                                          **self.tkargs)
         
         self.set_color(self.color)
 
