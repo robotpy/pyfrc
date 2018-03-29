@@ -467,7 +467,15 @@ class SimUI(object):
                 txt = 'Encoder (%s,%s)' % (encoder['config']['ASource_Channel'], encoder['config']['BSource_Channel'])
                 label = self._create_value(k, txt, 'Count / Distance')
             label['text'] = '%s / %.3f' % (encoder['count'], encoder['count']*encoder['distance_per_pulse'])
-                
+        
+        for k, v in hal_data.get('custom', {}).items():
+            label = self.values.get(k)
+            if not label:
+                label = self._create_value(k, k, k)
+            if isinstance(v, float):
+                label['text'] = '%.3f' % v
+            else:
+                label['text'] = str(v)
     
     def _create_value(self, key, text, tooltip):
         slot = tk.LabelFrame(self.csfm, text=text)
