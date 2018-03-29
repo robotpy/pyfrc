@@ -12,6 +12,12 @@ Drivetrain support
 .. automodule:: pyfrc.physics.drivetrains
    :members:
 
+Motion support
+--------------
+
+.. automodule:: pyfrc.physics.motion
+   :members:
+
 Custom labels
 -------------
 
