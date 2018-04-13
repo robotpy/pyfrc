@@ -79,6 +79,8 @@ class SimUI(object):
         self.root = tk.Tk()
         self.root.wm_title("PyFRC Robot Simulator v%s" % __version__)
 
+        self.root.protocol("WM_DELETE_WINDOW", self._delete_window)
+
         # setup mode switch
         frame = tk.Frame(self.root)
         frame.pack(side=tk.TOP, anchor=tk.W)
@@ -129,6 +131,11 @@ class SimUI(object):
             pass
 
         self.timer_fired()
+
+    def _delete_window(self):
+        self.root.destroy()
+        if self.usb_joysticks is not None:
+            self.usb_joysticks.close()
 
     def _setup_widgets(self, frame):
 

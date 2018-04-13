@@ -11,6 +11,10 @@ class UsbJoysticks(object):
         self.joysticks = self.getUsbJoystickList()
         self.initJoystickList(self.joysticks)
 
+    def close(self):
+        pygame.display.quit()
+        pygame.quit()
+
     def getUsbJoystickList(self):
         joysticks = []
 
