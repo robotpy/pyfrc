@@ -16,7 +16,7 @@ class RobotElement(CompositeElement):
         px_per_ft = config_obj['pyfrc']['field']['px_per_ft']
         
         robot_w = config_obj['pyfrc']['robot']['w']
-        robot_h = config_obj['pyfrc']['robot']['h']
+        robot_l = config_obj['pyfrc']['robot']['l']
         center_x = config_obj['pyfrc']['robot']['starting_x']
         center_y = config_obj['pyfrc']['robot']['starting_y']
         angle = math.radians(config_obj['pyfrc']['robot']['starting_angle'])
@@ -26,7 +26,7 @@ class RobotElement(CompositeElement):
         self.px_per_ft = px_per_ft
         
         robot_w *= px_per_ft
-        robot_h *= px_per_ft
+        robot_l *= px_per_ft
         center_x *= px_per_ft
         center_y *= px_per_ft
         
@@ -36,19 +36,19 @@ class RobotElement(CompositeElement):
         # create a bunch of drawable objects that represent the robot
         center = (center_x, center_y)
         pts = [
-            (center_x - robot_w/2, center_y - robot_h/2),
-            (center_x + robot_w/2, center_y - robot_h/2),
-            (center_x + robot_w/2, center_y + robot_h/2),
-            (center_x - robot_w/2, center_y + robot_h/2),
+            (center_x - robot_w/2, center_y - robot_l/2),
+            (center_x + robot_w/2, center_y - robot_l/2),
+            (center_x + robot_w/2, center_y + robot_l/2),
+            (center_x - robot_w/2, center_y + robot_l/2),
         ]
         
         robot = DrawableElement(pts, center, 0, 'red')
         self.elements.append(robot)
         
         pts = [
-            (center_x - robot_w/2, center_y - robot_h/2),
+            (center_x - robot_w/2, center_y - robot_l/2),
             (center_x + robot_w/2, center_y),
-            (center_x - robot_w/2, center_y + robot_h/2),
+            (center_x - robot_w/2, center_y + robot_l/2),
         ]
         
         robot_pt = DrawableElement(pts, center, 0, 'green')

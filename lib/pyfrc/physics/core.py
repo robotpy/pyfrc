@@ -127,6 +127,9 @@ class PhysicsInterface:
         self.y = config_obj['pyfrc']['robot']['starting_y']
         self.angle = math.radians(config_obj['pyfrc']['robot']['starting_angle'])
         
+        self.robot_w = config_obj['pyfrc']['robot']['w']
+        self.robot_l = config_obj['pyfrc']['robot']['l']
+        
         # HACK: Used for drawing
         self.vx = 0
         self.vy = 0

@@ -66,7 +66,11 @@ def _load_config(robot_path):
     
     config_obj['pyfrc'].setdefault('robot', {})
     config_obj['pyfrc']['robot'].setdefault('w', 2)
-    config_obj['pyfrc']['robot'].setdefault('h', 3)
+    
+    # switched from 'h' to 'l' in 2018, but keeping it there for legacy reasons
+    l = config_obj['pyfrc']['robot'].get('h', 3)
+    config_obj['pyfrc']['robot'].setdefault('l', l)
+    
     config_obj['pyfrc']['robot'].setdefault('starting_x', 0)
     config_obj['pyfrc']['robot'].setdefault('starting_y', 0)
     config_obj['pyfrc']['robot'].setdefault('starting_angle', 0)
