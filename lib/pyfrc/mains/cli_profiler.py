@@ -1,9 +1,9 @@
-
 import argparse
 import inspect
 from os.path import abspath
 import subprocess
 import sys
+
 
 class PyFrcProfiler:
     """
@@ -13,34 +13,45 @@ class PyFrcProfiler:
     """
 
     def __init__(self, parser):
-        parser.add_argument('-o', '--outfile', default=None,
-                            help="Save stats to <outfile>")
-        parser.add_argument('args', nargs=argparse.REMAINDER,
-                            help='Arguments to pass to robot.py')
+        parser.add_argument(
+            "-o", "--outfile", default=None, help="Save stats to <outfile>"
+        )
+        parser.add_argument(
+            "args", nargs=argparse.REMAINDER, help="Arguments to pass to robot.py"
+        )
 
     def run(self, options, robot_class, **static_options):
 
         from .. import config
-        config.mode = 'profiler'
+
+        config.mode = "profiler"
 
         try:
             import cProfile
         except ImportError:
-            print("Error importing cProfile module for profiling, your python interpreter may not support profiling\n", file=sys.stderr)
+            print(
+                "Error importing cProfile module for profiling, your python interpreter may not support profiling\n",
+                file=sys.stderr,
+            )
             return 1
-        
+
         if len(options.args) == 0:
             print("ERROR: Profiler command requires arguments to run other commands")
             return 1
-        
+
         file_location = abspath(inspect.getfile(robot_class))
-    
+
         if options.outfile:
-            profile_args = ['-o', options.outfile]
+            profile_args = ["-o", options.outfile]
         else:
-            profile_args = ['-s', 'tottime']
-        
+            profile_args = ["-s", "tottime"]
+
         # construct the arguments to run the profiler
-        args = [sys.executable, '-m', 'cProfile'] + profile_args + [file_location] + options.args
-        
+        args = (
+            [sys.executable, "-m", "cProfile"]
+            + profile_args
+            + [file_location]
+            + options.args
+        )
+
         return subprocess.call(args)

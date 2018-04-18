@@ -8,3 +8,4 @@ git+git://github.com/robotpy/robotpy-wpilib-utilities.git
 
 coverage
 pytest>=2.8
+black

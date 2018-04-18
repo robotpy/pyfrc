@@ -1,4 +1,4 @@
-'''
+"""
     .. warning:: These drivetrain models are not particularly realistic, and
                  if you are using a tank drive style drivetrain you should use
                  the :class:`.TankModel` instead.
@@ -35,14 +35,15 @@
                 
                 # optional: compute encoder
                 # l_encoder = self.drivetrain.l_speed * tm_diff
-'''
+"""
 import math
 import typing
 
 DeadzoneCallable = typing.Callable[[float], float]
 
+
 def linear_deadzone(deadzone: float) -> DeadzoneCallable:
-    '''
+    """
         Real motors won't actually move unless you give them some minimum amount
         of input. This computes an output speed for a motor and causes it to
         'not move' if the input isn't high enough. Additionally, the output is
@@ -61,20 +62,24 @@ def linear_deadzone(deadzone: float) -> DeadzoneCallable:
         
         :param motor_input: The motor input (between -1 and 1)
         :param deadzone: Minimum input required for the motor to move (between 0 and 1)
-    '''
+    """
     assert 0.0 < deadzone < 1.0
     scale_param = 1.0 - deadzone
+
     def _linear_deadzone(motor_input):
         abs_motor_input = abs(motor_input)
         if abs_motor_input < deadzone:
             return 0.0
         else:
-            return math.copysign((abs_motor_input - deadzone) / scale_param, motor_input)
-    
+            return math.copysign(
+                (abs_motor_input - deadzone) / scale_param, motor_input
+            )
+
     return _linear_deadzone
 
+
 class TwoMotorDrivetrain:
-    '''
+    """
         Two center-mounted motors with a simple drivetrain. The
         motion equations are as follows::
     
@@ -92,56 +97,62 @@ class TwoMotorDrivetrain:
                   the left motor must be set to -1, and the right to +1
         
         .. versionadded:: 2018.2.0
-    '''
+    """
 
-    def __init__(self, x_wheelbase:float=2, speed:float=5, deadzone:DeadzoneCallable=None):
-        '''
+    def __init__(
+        self,
+        x_wheelbase: float = 2,
+        speed: float = 5,
+        deadzone: DeadzoneCallable = None,
+    ):
+        """
             :param x_wheelbase: The distance in feet between right and left wheels.
             :param speed:      Speed of robot in feet per second (see above)
             :param deadzone:   A function that adjusts the output of the motor (see :func:`linear_deadzone`)
-        '''
+        """
         self.x_wheelbase = x_wheelbase
         self.speed = speed
         self.deadzone = deadzone
-        
+
         # Use these to compute encoder data after calling get_vector
         self.l_speed = 0
         self.r_speed = 0
-    
+
     def get_vector(self, l_motor: float, r_motor: float) -> typing.Tuple[float, float]:
-        '''
+        """
             Given motor values, retrieves the vector of (distance, speed) for your robot
         
             :param l_motor:    Left motor value (-1 to 1); -1 is forward
             :param r_motor:    Right motor value (-1 to 1); 1 is forward
 
             :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
-        '''
+        """
         if self.deadzone:
             l_motor = self.deadzone(l_motor)
             r_motor = self.deadzone(r_motor)
-        
+
         l = -l_motor * self.speed
         r = r_motor * self.speed
 
         # Motion equations
         fwd = (l + r) * 0.5
         rcw = (l - r) / float(self.x_wheelbase)
-        
+
         self.l_speed = l
         self.r_speed = r
         return fwd, rcw
 
+
 def two_motor_drivetrain(l_motor, r_motor, x_wheelbase=2, speed=5, deadzone=None):
-    '''
+    """
         .. deprecated:: 2018.2.0
            Use :class:`TwoMotorDrivetrain` instead
-    '''
+    """
     return TwoMotorDrivetrain(x_wheelbase, speed, deadzone).get_vector(l_motor, r_motor)
 
 
 class FourMotorDrivetrain:
-    '''
+    """
         Four motors, each side chained together. The motion equations are
         as follows::
     
@@ -159,59 +170,71 @@ class FourMotorDrivetrain:
                   the left motors must be set to -1, and the right to +1
         
         .. versionadded:: 2018.2.0
-    '''
-    
+    """
+
     #: Use this to compute encoder data after get_vector is called
     l_speed = 0
     r_speed = 0
-    
-    def __init__(self, x_wheelbase:float=2, speed:float=5, deadzone:DeadzoneCallable=None):
-        '''
+
+    def __init__(
+        self,
+        x_wheelbase: float = 2,
+        speed: float = 5,
+        deadzone: DeadzoneCallable = None,
+    ):
+        """
             :param x_wheelbase: The distance in feet between right and left wheels.
             :param speed:      Speed of robot in feet per second (see above)
             :param deadzone:   A function that adjusts the output of the motor (see :func:`linear_deadzone`)
-        '''
+        """
         self.x_wheelbase = x_wheelbase
         self.speed = speed
         self.deadzone = deadzone
-    
-    def get_vector(self, lr_motor: float, rr_motor: float, lf_motor: float, rf_motor: float) -> typing.Tuple[float, float]:
-        '''
+
+    def get_vector(
+        self, lr_motor: float, rr_motor: float, lf_motor: float, rf_motor: float
+    ) -> typing.Tuple[float, float]:
+        """
             :param lr_motor:   Left rear motor value (-1 to 1); -1 is forward
             :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
             :param lf_motor:   Left front motor value (-1 to 1); -1 is forward
             :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
             
             :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
-        '''
-        
+        """
+
         if self.deadzone:
             lf_motor = self.deadzone(lf_motor)
             lr_motor = self.deadzone(lr_motor)
             rf_motor = self.deadzone(rf_motor)
             rr_motor = self.deadzone(rr_motor)
-        
+
         l = -(lf_motor + lr_motor) * 0.5 * self.speed
         r = (rf_motor + rr_motor) * 0.5 * self.speed
-        
+
         # Motion equations
         fwd = (l + r) * 0.5
         rcw = (l - r) / float(self.x_wheelbase)
-            
+
         self.l_speed = l
         self.r_speed = r
         return fwd, rcw
 
-def four_motor_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, x_wheelbase=2, speed=5, deadzone=None):
-    '''
+
+def four_motor_drivetrain(
+    lr_motor, rr_motor, lf_motor, rf_motor, x_wheelbase=2, speed=5, deadzone=None
+):
+    """
         .. deprecated:: 2018.2.0
            Use :class:`FourMotorDrivetrain` instead
-    '''
-    return FourMotorDrivetrain(x_wheelbase, speed, deadzone).get_vector(lr_motor, rr_motor, lf_motor, rf_motor)
+    """
+    return FourMotorDrivetrain(x_wheelbase, speed, deadzone).get_vector(
+        lr_motor, rr_motor, lf_motor, rf_motor
+    )
 
 
 class MecanumDrivetrain:
-    '''
+    """
         Four motors, each with a mechanum wheel attached to it.
         
         If you called "SetInvertedMotor" on any of your motors in RobotDrive,
@@ -221,28 +244,36 @@ class MecanumDrivetrain:
                   all motors are set to +1
         
         .. versionadded:: 2018.2.0
-    '''
-    
+    """
+
     #: Use this to compute encoder data after get_vector is called
     lr_speed = 0
     rr_speed = 0
     lf_speed = 0
     rf_speed = 0
-    
-    def __init__(self, x_wheelbase:float=2, y_wheelbase:float=3, speed:float=5, deadzone:DeadzoneCallable=None):
-        '''
+
+    def __init__(
+        self,
+        x_wheelbase: float = 2,
+        y_wheelbase: float = 3,
+        speed: float = 5,
+        deadzone: DeadzoneCallable = None,
+    ):
+        """
             :param x_wheelbase: The distance in feet between right and left wheels.
             :param y_wheelbase: The distance in feet between forward and rear wheels.
             :param speed:      Speed of robot in feet per second (see above)
             :param deadzone:   A function that adjusts the output of the motor (see :func:`linear_deadzone`)
-        '''
+        """
         self.x_wheelbase = x_wheelbase
         self.y_wheelbase = y_wheelbase
         self.speed = speed
         self.deadzone = deadzone
-    
-    def get_vector(self, lr_motor: float, rr_motor: float, lf_motor: float, rf_motor: float) -> typing.Tuple[float, float, float]:
-        '''
+
+    def get_vector(
+        self, lr_motor: float, rr_motor: float, lf_motor: float, rf_motor: float
+    ) -> typing.Tuple[float, float, float]:
+        """
             Given motor values, retrieves the vector of (distance, speed) for your robot
         
             :param lr_motor:   Left rear motor value (-1 to 1); 1 is forward
@@ -252,7 +283,7 @@ class MecanumDrivetrain:
             
             :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s),
                       clockwise rotation of robot (radians/s)
-        '''
+        """
         #
         # From http://www.chiefdelphi.com/media/papers/download/2722 pp7-9
         # [F] [omega](r) = [V]
@@ -264,7 +295,7 @@ class MecanumDrivetrain:
         #
         # omega is
         # [lf lr rr rf]
-        
+
         if self.deadzone:
             lf_motor = self.deadzone(lf_motor)
             lr_motor = self.deadzone(lr_motor)
@@ -278,29 +309,54 @@ class MecanumDrivetrain:
         rf = rf_motor * self.speed
 
         # Calculate K
-        k = abs(self.x_wheelbase/2.0) + abs(self.y_wheelbase/2.0)
+        k = abs(self.x_wheelbase / 2.0) + abs(self.y_wheelbase / 2.0)
 
         # Calculate resulting motion
         Vy = .25 * (lf + lr + rr + rf)
         Vx = .25 * (lf + -lr + rr + -rf)
-        Vw = (.25/k) * (lf + lr + -rr + -rf)
-        
+        Vw = (.25 / k) * (lf + lr + -rr + -rf)
+
         self.lr_speed = lr
         self.rr_speed = rr
         self.lf_speed = lf
         self.rf_speed = rf
         return Vx, Vy, Vw
 
-def mecanum_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, x_wheelbase=2, y_wheelbase=3, speed=5, deadzone=None):
-    '''
+
+def mecanum_drivetrain(
+    lr_motor,
+    rr_motor,
+    lf_motor,
+    rf_motor,
+    x_wheelbase=2,
+    y_wheelbase=3,
+    speed=5,
+    deadzone=None,
+):
+    """
         .. deprecated:: 2018.2.0
            Use :class:`MecanumDrivetrain` instead
-    '''
-    return MecanumDrivetrain(x_wheelbase, y_wheelbase, speed, deadzone).get_vector(lr_motor, rr_motor, lf_motor, rf_motor)
+    """
+    return MecanumDrivetrain(x_wheelbase, y_wheelbase, speed, deadzone).get_vector(
+        lr_motor, rr_motor, lf_motor, rf_motor
+    )
 
 
-def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angle, rr_angle, lf_angle, rf_angle, x_wheelbase=2, y_wheelbase=2, speed=5, deadzone=None):
-    '''
+def four_motor_swerve_drivetrain(
+    lr_motor,
+    rr_motor,
+    lf_motor,
+    rf_motor,
+    lr_angle,
+    rr_angle,
+    lf_angle,
+    rf_angle,
+    x_wheelbase=2,
+    y_wheelbase=2,
+    speed=5,
+    deadzone=None,
+):
+    """
         Four motors that can be rotated in any direction
         
         If any motors are inverted, then you will need to multiply that motor's
@@ -323,14 +379,14 @@ def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angl
         
         :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s),
                   clockwise rotation of robot (radians/s)
-    '''
-    
+    """
+
     if deadzone:
         lf_motor = deadzone(lf_motor)
         lr_motor = deadzone(lr_motor)
         rf_motor = deadzone(rf_motor)
         rr_motor = deadzone(rr_motor)
-    
+
     # Calculate speed of each wheel
     lr = lr_motor * speed
     rr = rr_motor * speed
@@ -348,10 +404,19 @@ def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angl
 
     # Calculates the Vx and Vy components
     # Sin an Cos inverted because forward is 0 on swerve wheels
-    Vx = (math.sin(lr_rad) * lr) + (math.sin(rr_rad) * rr) + (math.sin(lf_rad) * lf) + (math.sin(rf_rad) * rf)
-    Vy = (math.cos(lr_rad) * lr) + (math.cos(rr_rad) * rr) + (math.cos(lf_rad) * lf) + (math.cos(rf_rad) * rf)
-    
-    
+    Vx = (
+        (math.sin(lr_rad) * lr)
+        + (math.sin(rr_rad) * rr)
+        + (math.sin(lf_rad) * lf)
+        + (math.sin(rf_rad) * rf)
+    )
+    Vy = (
+        (math.cos(lr_rad) * lr)
+        + (math.cos(rr_rad) * rr)
+        + (math.cos(lf_rad) * lf)
+        + (math.cos(rf_rad) * rf)
+    )
+
     # Adjusts the angle corresponding to a diameter that is perpendicular to the radius (add or subtract 45deg)
     lr_rad = (lr_rad + (math.pi / 4)) % (2 * math.pi)
     rr_rad = (rr_rad - (math.pi / 4)) % (2 * math.pi)
@@ -359,12 +424,18 @@ def four_motor_swerve_drivetrain(lr_motor, rr_motor, lf_motor, rf_motor, lr_angl
     rf_rad = (rf_rad + (math.pi / 4)) % (2 * math.pi)
 
     # Finds the rotational velocity by finding the torque and adding them up
-    Vw = wheelbase_radius * ((math.cos(lr_rad) * lr) + (math.cos(rr_rad) * -rr) + (math.cos(lf_rad) * lf) + (math.cos(rf_rad) * -rf))
-    
+    Vw = wheelbase_radius * (
+        (math.cos(lr_rad) * lr)
+        + (math.cos(rr_rad) * -rr)
+        + (math.cos(lf_rad) * lf)
+        + (math.cos(rf_rad) * -rf)
+    )
+
     Vx *= 0.25
     Vy *= 0.25
     Vw *= 0.25
 
     return Vx, Vy, Vw
+
 
 # TODO: holonomic, etc

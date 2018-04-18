@@ -1,4 +1,4 @@
-'''
+"""
     .. versionadded:: 2018.4.0
 
     .. note:: The equations used in our :class:`TankModel` is derived from
@@ -10,7 +10,7 @@
               In the interest of making progress, this API may receive
               backwards-incompatible changes before the start of the 2019
               FRC season.
-'''
+"""
 
 import math
 import typing
@@ -19,86 +19,96 @@ from .motor_cfgs import MotorModelConfig
 from .units import units, Helpers
 
 import logging
-logger = logging.getLogger('pyfrc.physics')
+
+logger = logging.getLogger("pyfrc.physics")
 
 # default parameters for a kitbot
-_bumper_length =    3.25 * units.inch
+_bumper_length = 3.25 * units.inch
 
 _kitbot_wheelbase = 21.0 * units.inch
-_kitbot_width =     2.0 * units.inch + _bumper_length*2
-_kitbot_length =    30.0 * units.inch + _bumper_length*2
+_kitbot_width = 2.0 * units.inch + _bumper_length * 2
+_kitbot_length = 30.0 * units.inch + _bumper_length * 2
 
-_inertia_units =    (units.foot ** 2) * units.pound
-_bm_units =         units.foot * units.pound
+_inertia_units = (units.foot ** 2) * units.pound
+_bm_units = units.foot * units.pound
+
 
 class MotorModel:
-    '''
+    """
         Motor model used by the :class:`TankModel`. You should not need to create
         this object if you're using the :class:`TankModel` class.
-    '''
-    
-    @units.wraps(None, (None, None, 'tm_kv', 'tm_ka', 'volts'))
-    def __init__(self, motor_config: MotorModelConfig,
-                       kv: units.tm_kv,
-                       ka: units.tm_ka,
-                       vintercept: units.volts):
-        '''
+    """
+
+    @units.wraps(None, (None, None, "tm_kv", "tm_ka", "volts"))
+    def __init__(
+        self,
+        motor_config: MotorModelConfig,
+        kv: units.tm_kv,
+        ka: units.tm_ka,
+        vintercept: units.volts,
+    ):
+        """
             :param motor_config: The specification data for your motor
             :param kv: Computed ``kv`` for your robot
             :param ka: Computed ``ka`` for your robot
             :param vintercept: The minimum voltage required to generate enough
                                torque to overcome steady-state friction (see the
                                paper for more details)
-        '''
-        
+        """
+
         #: Current computed acceleration (in ft/s^2)
         self.acceleration = 0
-        
+
         #: Current computed velocity (in ft/s)
         self.velocity = 0
-        
+
         #: Current computed position (in ft)
         self.position = 0
-        
-        self._nominalVoltage = units.volts.m_from(motor_config.nominalVoltage, strict=False,
-                                                  name='motor_config.nominalVoltage')
+
+        self._nominalVoltage = units.volts.m_from(
+            motor_config.nominalVoltage,
+            strict=False,
+            name="motor_config.nominalVoltage",
+        )
         self._vintercept = vintercept
         self._kv = kv
         self._ka = ka
-    
+
     def compute(self, motor_pct: float, tm_diff: float) -> float:
-        '''
+        """
             :param motor_pct: Percentage of power for motor in range [1..-1]
             :param tm_diff:   Time elapsed since this function was last called
             
             :returns: velocity
-        '''
-        
+        """
+
         appliedVoltage = self._nominalVoltage * motor_pct
-        appliedVoltage = math.copysign(max(abs(appliedVoltage) - self._vintercept, 0), appliedVoltage)
-        
+        appliedVoltage = math.copysign(
+            max(abs(appliedVoltage) - self._vintercept, 0), appliedVoltage
+        )
+
         # Heun's method (taken from Ether's drivetrain calculator)
         # -> yn+1 = yn + (h/2) (f(xn, yn) + f(xn + h, yn +  h f(xn, yn)))
         a0 = self.acceleration
         v0 = self.velocity
-        
+
         # initial estimate for next velocity/acceleration
         v1 = v0 + a0 * tm_diff
         a1 = (appliedVoltage - self._kv * v1) / self._ka
-        
+
         # corrected trapezoidal estimate
         v1 = v0 + (a0 + a1) * 0.5 * tm_diff
         a1 = (appliedVoltage - self._kv * v1) / self._ka
         self.position += (v0 + v1) * 0.5 * tm_diff
-        
+
         self.velocity = v1
         self.acceleration = a1
-        
+
         return self.velocity
 
 
 class TankModel:
-    '''
+    """
         This is a model of a FRC tankdrive-style drivetrain that will provide
         vaguely realistic motion for the simulator.
     
@@ -152,22 +162,23 @@ class TankModel:
                     # optional: compute encoder
                     # l_encoder = self.drivetrain.l_position * ENCODER_TICKS_PER_FT
                     # r_encoder = self.drivetrain.r_position * ENCODER_TICKS_PER_FT
-    '''
-    
-    
+    """
+
     @classmethod
-    def theory(cls,
-               motor_config: MotorModelConfig,
-               robot_mass: units.Quantity,
-               gearing: float,
-               nmotors: int = 1,
-               x_wheelbase: units.Quantity = _kitbot_wheelbase,
-               robot_width: units.Quantity = _kitbot_width,
-               robot_length: units.Quantity = _kitbot_length,
-               wheel_diameter: units.Quantity = 6 * units.inch,
-               vintercept: units.volts = 1.3 * units.volts,
-               timestep: int = 5 * units.ms):
-        r'''
+    def theory(
+        cls,
+        motor_config: MotorModelConfig,
+        robot_mass: units.Quantity,
+        gearing: float,
+        nmotors: int = 1,
+        x_wheelbase: units.Quantity = _kitbot_wheelbase,
+        robot_width: units.Quantity = _kitbot_width,
+        robot_length: units.Quantity = _kitbot_length,
+        wheel_diameter: units.Quantity = 6 * units.inch,
+        vintercept: units.volts = 1.3 * units.volts,
+        timestep: int = 5 * units.ms,
+    ):
+        r"""
             Use this to create the drivetrain model when you haven't measured
             ``kv`` and ``ka`` for your robot.
             
@@ -203,8 +214,8 @@ class TankModel:
                 k_{v} = \frac{V_{max}}{velocity_{max}}
                 
                 k_{a} = \frac{V_{max}}{acceleration_{max}}
-        '''
-        
+        """
+
         # Check input units
         # -> pint doesn't seem to support default args in check()
         Helpers.ensure_mass(robot_mass)
@@ -212,42 +223,68 @@ class TankModel:
         Helpers.ensure_length(robot_width)
         Helpers.ensure_length(robot_length)
         Helpers.ensure_length(wheel_diameter)
-        
+
         max_velocity = (motor_config.freeSpeed * math.pi * wheel_diameter) / gearing
-        max_acceleration = (2.0 * nmotors * motor_config.stallTorque * gearing) / (wheel_diameter * robot_mass)
-        
+        max_acceleration = (2.0 * nmotors * motor_config.stallTorque * gearing) / (
+            wheel_diameter * robot_mass
+        )
+
         Helpers.ensure_velocity(max_velocity)
         Helpers.ensure_acceleration(max_acceleration)
-        
+
         kv = motor_config.nominalVoltage / max_velocity
         ka = motor_config.nominalVoltage / max_acceleration
-        
-        kv = units.tm_kv.from_(kv, name='kv')
-        ka = units.tm_ka.from_(ka, name='ka')
-        
-        logger.info("Motor config: %d %s motors @ %.2f gearing with %.1f diameter wheels",
-                     nmotors, motor_config.name, gearing, wheel_diameter.m)
-        
-        logger.info("- Theoretical: vmax=%.3f ft/s, amax=%.3f ft/s^2, kv=%.3f, ka=%.3f",
-                    max_velocity.m_as(units.foot / units.second),
-                    max_acceleration.m_as(units.foot / units.second**2),
-                    kv.m, ka.m)
-        
-        return cls(motor_config,
-                   robot_mass, x_wheelbase,
-                   robot_width, robot_length,
-                   kv, ka, vintercept,
-                   kv, ka, vintercept,
-                   timestep)
-    
-    def __init__(self, motor_config: MotorModelConfig,
-                       robot_mass: units.Quantity,
-                       x_wheelbase: units.Quantity,
-                       robot_width: units.Quantity, robot_length: units.Quantity,
-                       l_kv: units.Quantity, l_ka: units.Quantity, l_vi: units.volts,
-                       r_kv: units.Quantity, r_ka: units.Quantity, r_vi: units.volts,
-                       timestep: units.Quantity = 5 * units.ms):
-        '''
+
+        kv = units.tm_kv.from_(kv, name="kv")
+        ka = units.tm_ka.from_(ka, name="ka")
+
+        logger.info(
+            "Motor config: %d %s motors @ %.2f gearing with %.1f diameter wheels",
+            nmotors,
+            motor_config.name,
+            gearing,
+            wheel_diameter.m,
+        )
+
+        logger.info(
+            "- Theoretical: vmax=%.3f ft/s, amax=%.3f ft/s^2, kv=%.3f, ka=%.3f",
+            max_velocity.m_as(units.foot / units.second),
+            max_acceleration.m_as(units.foot / units.second ** 2),
+            kv.m,
+            ka.m,
+        )
+
+        return cls(
+            motor_config,
+            robot_mass,
+            x_wheelbase,
+            robot_width,
+            robot_length,
+            kv,
+            ka,
+            vintercept,
+            kv,
+            ka,
+            vintercept,
+            timestep,
+        )
+
+    def __init__(
+        self,
+        motor_config: MotorModelConfig,
+        robot_mass: units.Quantity,
+        x_wheelbase: units.Quantity,
+        robot_width: units.Quantity,
+        robot_length: units.Quantity,
+        l_kv: units.Quantity,
+        l_ka: units.Quantity,
+        l_vi: units.volts,
+        r_kv: units.Quantity,
+        r_ka: units.Quantity,
+        r_vi: units.volts,
+        timestep: units.Quantity = 5 * units.ms,
+    ):
+        """
             Use the constructor if you have measured ``kv``, ``ka``, and
             ``Vintercept`` for your robot. Use the :func:`.theory` function
             if you haven't.
@@ -271,66 +308,73 @@ class TankModel:
             :param r_ka:         Right side ``ka``
             :param r_vi:         Right side ``Vintercept``
             :param timestep:     Model computation timestep
-        '''
-        
+        """
+
         # check input parameters
         Helpers.ensure_mass(robot_mass)
         Helpers.ensure_length(x_wheelbase)
         Helpers.ensure_length(robot_width)
         Helpers.ensure_length(robot_length)
         Helpers.ensure_time(timestep)
-        
-        logger.info("Robot base: %.1fx%.1f frame, %.1f wheelbase, %.1f mass",
-                    robot_width.m, robot_length.m, x_wheelbase.m, robot_mass.m)
-        
+
+        logger.info(
+            "Robot base: %.1fx%.1f frame, %.1f wheelbase, %.1f mass",
+            robot_width.m,
+            robot_length.m,
+            x_wheelbase.m,
+            robot_mass.m,
+        )
+
         self._lmotor = MotorModel(motor_config, l_kv, l_ka, l_vi)
         self._rmotor = MotorModel(motor_config, r_kv, r_ka, r_vi)
-        
-        self.inertia = (1/12.0) * robot_mass * (robot_length**2 + robot_width**2)
-        
+
+        self.inertia = (1 / 12.0) * robot_mass * (robot_length ** 2 + robot_width ** 2)
+
         # This is used to compute the rotational velocity
-        self._bm = _bm_units.m_from((x_wheelbase/2.0)*robot_mass)
-        
-        self._timestep = units.milliseconds.m_from(timestep, name='timestep') * 100
-    
+        self._bm = _bm_units.m_from((x_wheelbase / 2.0) * robot_mass)
+
+        self._timestep = units.milliseconds.m_from(timestep, name="timestep") * 100
+
     @property
     def l_velocity(self):
-        '''The velocity of the left side (in ft/s)'''
+        """The velocity of the left side (in ft/s)"""
         return self._lmotor.velocity
-    
+
     @property
     def r_velocity(self):
-        '''The velocity of the right side (in ft/s)'''
+        """The velocity of the right side (in ft/s)"""
         return self._rmotor.velocity
-    
+
     @property
     def l_position(self):
-        '''The linear position of the left side wheel (in feet)'''
+        """The linear position of the left side wheel (in feet)"""
         return self._lmotor.position
-    
+
     @property
     def r_position(self):
-        '''The linear position of the right side wheel (in feet)'''
+        """The linear position of the right side wheel (in feet)"""
         return self._rmotor.position
-    
+
     @property
     def inertia(self):
-        '''
+        """
             The model computes a moment of inertia for your robot based on the
             given mass and robot width/length. If you wish to use a different
             moment of inertia, set this property after constructing the object
             
             Units are ``[mass] * [length] ** 2``
-        '''
+        """
         return self._inertia * _inertia_units
-    
+
     @inertia.setter
     @units.wraps(None, (None, _inertia_units))
     def inertia(self, value):
         self._inertia = value
-    
-    def get_distance(self, l_motor: float, r_motor: float, tm_diff: float) -> typing.Tuple[float, float]:
-        '''
+
+    def get_distance(
+        self, l_motor: float, r_motor: float, tm_diff: float
+    ) -> typing.Tuple[float, float]:
+        """
             Given motor values and the amount of time elapsed since this was last
             called, retrieves the x,y,angle that the robot has moved. Pass these
             values to :meth:`PhysicsInterface.distance_drive`.
@@ -347,14 +391,14 @@ class TankModel:
             .. note:: If you are using more than 2 motors, it is assumed that
                       all motors on each side are set to the same speed. Only
                       pass in one of the values from each side
-        '''
-        
+        """
+
         # This isn't quite right, the right way is to use matrix math. However,
         # this is Good Enough for now...
         x = 0
         y = 0
         angle = 0
-        
+
         # split the time difference into timestep_ms steps
         total_time = int(tm_diff * 100000)
         steps = total_time // self._timestep
@@ -365,31 +409,31 @@ class TankModel:
             steps += 1
         else:
             last_step = step
-        
+
         while steps != 0:
             if steps == 1:
                 tm_diff = last_step
             else:
                 tm_diff = step
-                
+
             steps -= 1
-        
+
             l = self._lmotor.compute(-l_motor, tm_diff)
             r = self._rmotor.compute(r_motor, tm_diff)
-            
+
             # Tank drive motion equations
             velocity = (l + r) * 0.5
-            
+
             # Thanks to Tyler Veness for fixing the rotation equation, via conservation
             # of angular momentum equations
             # -> omega = b * m * (l - r) / J
             rotation = self._bm * (l - r) / self._inertia
-            
+
             distance = velocity * tm_diff
             turn = rotation * tm_diff
-            
+
             x += distance * math.cos(turn)
             y += distance * math.sin(turn)
             angle += turn
-        
+
         return x, y, angle

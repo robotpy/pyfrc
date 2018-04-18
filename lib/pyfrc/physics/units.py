@@ -1,4 +1,4 @@
-'''
+"""
     pyfrc uses the pint library in some places for representing physical
     quantities to allow users to specify the physical parameters of their robot
     in a natural and non-ambiguous way. For example, to represent 5 feet::
@@ -24,7 +24,7 @@
     
     Refer to the `pint documentation <https://pint.readthedocs.io>`_ for more
     information on how to use pint.
-'''
+"""
 
 
 import pint
@@ -33,30 +33,31 @@ import pint
 units = pint.UnitRegistry()
 
 # Shorthand notation used to represent motor torque
-units.define('N_m = newton * meter')
+units.define("N_m = newton * meter")
 
 # Counts per minute. pint defines RPM, but it is in rad/s, which is not often
 # what we want
-units.define('counts_per_minute = count / minute = cpm')
+units.define("counts_per_minute = count / minute = cpm")
 
 # Special units used in the tankmodel
-units.define('tm_kv = volt / (foot / second)')
-units.define('tm_ka = volt / (foot / second ** 2)')
+units.define("tm_kv = volt / (foot / second)")
+units.define("tm_ka = volt / (foot / second ** 2)")
 
 # Helper functions
 class Helpers:
-    ensure_mass = units.check('[mass]')(lambda u: u)
-    ensure_length = units.check('[length]')(lambda u: u)
-    
-    ensure_acceleration = units.check('[length] / [time]**2')(lambda u: u)
-    ensure_time = units.check('[time]')(lambda u: u)
-    ensure_velocity = units.check('[length] / [time]')(lambda u: u)
+    ensure_mass = units.check("[mass]")(lambda u: u)
+    ensure_length = units.check("[length]")(lambda u: u)
+
+    ensure_acceleration = units.check("[length] / [time]**2")(lambda u: u)
+    ensure_time = units.check("[time]")(lambda u: u)
+    ensure_velocity = units.check("[length] / [time]")(lambda u: u)
+
 
 # Monkeypatch in these useful functions (hopefully they'll make it to pint 0.9)
 # -> https://github.com/hgrecco/pint/pull/637
-if not hasattr(units.Unit, 'from_'):
+if not hasattr(units.Unit, "from_"):
 
-    def _from_(self, value, strict=True, name='value'):
+    def _from_(self, value, strict=True, name="value"):
         """Converts a numerical value or quantity to this unit
 
         :param value: a Quantity (or numerical value if strict=False) to convert
@@ -74,12 +75,12 @@ if not hasattr(units.Unit, 'from_'):
             raise ValueError("%s must be a Quantity" % value)
         else:
             return value * self
-    
+
     units.Unit.from_ = _from_
 
-if not hasattr(units.Unit, 'm_from'):
+if not hasattr(units.Unit, "m_from"):
 
-    def _m_from(self, value, strict=True, name='value'):
+    def _m_from(self, value, strict=True, name="value"):
         """Converts a numerical value or quantity to this unit, then returns
         the magnitude of the converted value
 
