@@ -258,13 +258,13 @@ class PhysicsInterface:
         x = distance*math.cos(angle)
         y = distance*math.sin(angle)
         
-        self._move(x, y, angle)
+        self.distance_drive(x, y, angle)
             
     def vector_drive(self, vx, vy, vw, tm_diff):
         '''Call this from your :func:`PhysicsEngine.update_sim` function.
            Will update the robot's position on the simulation field.
            
-           This moves the robot using a vector relative to the robot
+           This moves the robot using a velocity vector relative to the robot
            instead of by speed/rotation speed.
            
            :param vx: Speed in x direction relative to robot in ft/s
@@ -284,11 +284,19 @@ class PhysicsInterface:
         x = vx*math.sin(angle) + vy*math.cos(angle)
         y = vx*math.cos(angle) + vy*math.sin(angle)
         
-        self._move(x, y, angle)
-    
-    def _move(self, x, y, angle):
-        # x, y, and angle are all relative to the robot
-        
+        self.distance_drive(x, y, angle)
+
+    def distance_drive(self, x, y, angle):
+        '''Call this from your :func:`PhysicsEngine.update_sim` function.
+           Will update the robot's position on the simulation field.
+           
+           This moves the robot some relative distance and angle from
+           its current position.
+           
+           :param x:     Feet to move the robot in the x direction
+           :param y:     Feet to move the robot in the y direction
+           :param angle: Radians to turn the robot
+        '''
         with self._lock:
             self.vx += x
             self.vy += y
