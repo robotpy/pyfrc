@@ -40,6 +40,7 @@ if rtd_version not in ['stable', 'latest']:
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.mathjax',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
     'sphinx_autodoc_typehints'

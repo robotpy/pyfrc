@@ -1,4 +1,8 @@
 '''
+    .. warning:: These drivetrain models are not particularly realistic, and
+                 if you are using a tank drive style drivetrain you should use
+                 the :class:`.TankModel` instead.
+
     Based on input from various drive motors, these helper functions
     simulate moving the robot in various ways. Many thanks to
     `Ether <http://www.chiefdelphi.com/forums/member.php?u=34863>`_
