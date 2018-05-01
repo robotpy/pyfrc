@@ -12,10 +12,30 @@ Drivetrain support
 .. automodule:: pyfrc.physics.drivetrains
    :members:
 
+Motor configurations
+--------------------
+
+.. automodule:: pyfrc.physics.motor_cfgs
+  :members:
+
 Motion support
 --------------
 
 .. automodule:: pyfrc.physics.motion
+   :members:
+
+Tank drive model support
+------------------------
+
+.. automodule:: pyfrc.physics.tankmodel
+   :members:
+
+.. _units:
+
+Unit conversions
+----------------
+
+.. automodule:: pyfrc.physics.units
    :members:
 
 Custom labels
