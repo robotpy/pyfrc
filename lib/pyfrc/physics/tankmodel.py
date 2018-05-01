@@ -57,6 +57,9 @@ class MotorModel:
         #: Current computed velocity (in ft/s)
         self.velocity = 0
         
+        #: Current computed position (in ft)
+        self.position = 0
+        
         self._nominalVoltage = units.volts.m_from(motor_config.nominalVoltage, strict=False,
                                                   name='motor_config.nominalVoltage')
         self._vintercept = vintercept
@@ -74,8 +77,22 @@ class MotorModel:
         appliedVoltage = self._nominalVoltage * motor_pct
         appliedVoltage = math.copysign(max(abs(appliedVoltage) - self._vintercept, 0), appliedVoltage)
         
-        self.acceleration = (appliedVoltage - (self._kv * self.velocity)) / self._ka
-        self.velocity += self.acceleration * tm_diff
+        # Heun's method (taken from Ether's drivetrain calculator)
+        # -> yn+1 = yn + (h/2) (f(xn, yn) + f(xn + h, yn +  h f(xn, yn)))
+        a0 = self.acceleration
+        v0 = self.velocity
+        
+        # initial estimate for next velocity/acceleration
+        v1 = v0 + a0 * tm_diff
+        a1 = (appliedVoltage - self._kv * v1) / self._ka
+        
+        # corrected trapezoidal estimate
+        v1 = v0 + (a0 + a1) * 0.5 * tm_diff
+        a1 = (appliedVoltage - self._kv * v1) / self._ka
+        self.position += (v0 + v1) * 0.5 * tm_diff
+        
+        self.velocity = v1
+        self.acceleration = a1
         
         return self.velocity
 
@@ -149,7 +166,7 @@ class TankModel:
                robot_length: units.Quantity = _kitbot_length,
                wheel_diameter: units.Quantity = 6 * units.inch,
                vintercept: units.volts = 1.3 * units.volts,
-               timestep: int = 1 * units.ms):
+               timestep: int = 5 * units.ms):
         r'''
             Use this to create the drivetrain model when you haven't measured
             ``kv`` and ``ka`` for your robot.
@@ -229,7 +246,7 @@ class TankModel:
                        robot_width: units.Quantity, robot_length: units.Quantity,
                        l_kv: units.Quantity, l_ka: units.Quantity, l_vi: units.volts,
                        r_kv: units.Quantity, r_ka: units.Quantity, r_vi: units.volts,
-                       timestep: units.Quantity = 1 * units.ms):
+                       timestep: units.Quantity = 5 * units.ms):
         '''
             Use the constructor if you have measured ``kv``, ``ka``, and
             ``Vintercept`` for your robot. Use the :func:`.theory` function
@@ -255,12 +272,6 @@ class TankModel:
             :param r_vi:         Right side ``Vintercept``
             :param timestep:     Model computation timestep
         '''
-        
-        #: The linear position of the left wheel (in feet)
-        self.l_position = 0
-        
-        #: The linear position of the right wheel (in feet)
-        self.r_position = 0
         
         # check input parameters
         Helpers.ensure_mass(robot_mass)
@@ -291,6 +302,16 @@ class TankModel:
     def r_velocity(self):
         '''The velocity of the right side (in ft/s)'''
         return self._rmotor.velocity
+    
+    @property
+    def l_position(self):
+        '''The linear position of the left side wheel (in feet)'''
+        return self._lmotor.position
+    
+    @property
+    def r_position(self):
+        '''The linear position of the right side wheel (in feet)'''
+        return self._rmotor.position
     
     @property
     def inertia(self):
@@ -363,12 +384,6 @@ class TankModel:
             # of angular momentum equations
             # -> omega = b * m * (l - r) / J
             rotation = self._bm * (l - r) / self._inertia
-            
-            # TODO: need to use that value to compute velocity at each point, set that back into the
-            #       model..
-            
-            self.l_position += self._lmotor.velocity * tm_diff
-            self.r_position += self._rmotor.velocity * tm_diff
             
             distance = velocity * tm_diff
             turn = rotation * tm_diff
