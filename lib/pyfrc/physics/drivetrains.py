@@ -278,7 +278,7 @@ class MecanumDrivetrain:
         rf = rf_motor * self.speed
 
         # Calculate K
-        k = abs(self.x_wheelbase/2.0) + abs(self.x_wheelbase/2.0)
+        k = abs(self.x_wheelbase/2.0) + abs(self.y_wheelbase/2.0)
 
         # Calculate resulting motion
         Vy = .25 * (lf + lr + rr + rf)
