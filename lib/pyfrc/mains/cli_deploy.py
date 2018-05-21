@@ -55,7 +55,10 @@ class PyFrcDeploy:
                             help="If specified, don't verify that your local wpilib install matches the version on the robot (not recommended)")
         
         parser.add_argument('--robot', default=None,
-                            help="Set hostname or IP address of robot")
+                            help="Set hostname or IP address of robot (overrides --team)")
+        
+        parser.add_argument('--team', default=None, type=int,
+                            help="Set team number to deploy robot for")
         
         parser.add_argument('--no-resolve', action='store_true', default=False,
                             help="If specified, don't do a DNS lookup, allow ssh et al to do it instead")
@@ -163,11 +166,15 @@ class PyFrcDeploy:
         
         nc_thread = None
         
+        hostname_or_team = options.robot
+        if not hostname_or_team and options.team:
+            hostname_or_team = options.team
+        
         try:
             controller = installer.ssh_from_cfg(cfg_filename,
                                                 username='lvuser',
                                                 password='',
-                                                hostname=options.robot,
+                                                hostname=hostname_or_team,
                                                 allow_mitm=True,
                                                 no_resolve=options.no_resolve)
             
