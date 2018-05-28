@@ -25,7 +25,7 @@ logger = logging.getLogger('pyfrc.physics')
 _bumper_length =    3.25 * units.inch
 
 _kitbot_wheelbase = 21.0 * units.inch
-_kitbot_width =     2.0 * units.inch + _bumper_length*2
+_kitbot_width =     _kitbot_wheelbase + _bumper_length*2
 _kitbot_length =    30.0 * units.inch + _bumper_length*2
 
 _inertia_units =    (units.foot ** 2) * units.pound
@@ -388,8 +388,8 @@ class TankModel:
             distance = velocity * tm_diff
             turn = rotation * tm_diff
             
-            x += distance * math.cos(turn)
-            y += distance * math.sin(turn)
+            x += distance * math.cos(angle)
+            y += distance * math.sin(angle)
             angle += turn
         
         return x, y, angle
