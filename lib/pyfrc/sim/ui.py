@@ -131,14 +131,39 @@ class SimUI(object):
         top.grid(column=0, row=0)
                 
         bottom = tk.Frame(frame)
-        bottom.grid(column=0, row=1)
+        bottom.grid(column=0, row=1, sticky=tk.W)
         
         self.field = RobotField(frame, self.manager, self.config_obj)
         self.field.grid(column=1, row=0, rowspan=2)
         
         # status bar
-        self.status = tk.Label(frame, bd=1, relief=tk.SUNKEN, anchor=tk.E)
+        self.status = tk.Frame(frame)
         self.status.grid(column=0, row=2, columnspan=2, sticky=tk.W+tk.E)
+        
+        # joystick selector
+        self.joystick_count = tk.IntVar()
+        
+        def _set_js():
+            for i, (_, _, _, jslot) in enumerate(self.joysticks):
+                hidden = i+1 > self.joystick_count.get()
+                if jslot.hidden != hidden:
+                    if not hidden:
+                        jslot.pack(side=tk.LEFT, fill=tk.Y)
+                    else:
+                        jslot.pack_forget()
+                    jslot.hidden = hidden
+        
+        label = tk.Label(self.status, text='Joysticks:')
+        label.pack(side=tk.LEFT)
+        Tooltip.create(label, 'Number of joysticks can be set in sim/config.json')
+        
+        for i in range(4):
+            button = tk.Radiobutton(self.status, text=str(i+1), variable=self.joystick_count,
+                                    value=i+1, command=_set_js)
+            button.pack(side=tk.LEFT)
+        
+        self.status_label = tk.Label(self.status, bd=1, relief=tk.SUNKEN, anchor=tk.E)
+        self.status_label.pack(side=tk.RIGHT, fill=tk.X)
         
         # analog
         slot = tk.LabelFrame(top, text='Analog')
@@ -237,31 +262,36 @@ class SimUI(object):
         
         csfm.pack(side=tk.LEFT, fill=tk.Y)
         
+        self._render_control_frame(bottom)
+        
         # joysticks
-        slot = tk.LabelFrame(bottom, text='Joysticks')
+        all_joy_slot = tk.LabelFrame(bottom, text='Joysticks')
         
         self.joysticks = []
         
         for i in range(4):
-        
+            
             axes = []
             buttons = []
             
             col = 1 + i*3
             row = 0
+            
+            slot = tk.Frame(all_joy_slot)
+            slot.grid(column=col, row=0)
         
             label = tk.Label(slot, text='Stick %s' % i)
-            label.grid(column=col, columnspan=3, row=row)
+            label.grid(column=0, columnspan=3, row=row)
             row += 1
             
             # TODO: make this configurable
             
             for j, t in enumerate(['X', 'Y', 'Z', 'T', '4', '5']):
                 label = tk.Label(slot, text=t)
-                label.grid(column=col, row=row)
+                label.grid(column=0, row=row)
                 
                 vw = ValueWidget(slot, clickable=True, default=0.0)
-                vw.grid(column=col+1, row=row, columnspan=2)
+                vw.grid(column=1, row=row, columnspan=2)
                 self.set_joy_tooltip(vw, i, 'axes', t)
                 
                 axes.append(vw)
@@ -269,25 +299,31 @@ class SimUI(object):
                 
             # POV: this needs improvement
             label = tk.Label(slot, text='POV')
-            label.grid(column=col, row=row)
+            label.grid(column=0, row=row)
             pov = ValueWidget(slot, clickable=True, default=-1, minval=-1, maxval=360, step=45, round_to_step=True)
-            pov.grid(column=col+1, row=row, columnspan=2)
+            pov.grid(column=1, row=row, columnspan=2)
             row += 1
             
             for j in range(1, 11):
                 var = tk.IntVar()
                 ck = tk.Checkbutton(slot, text=str(j), variable=var)
-                ck.grid(column=col+1+(1-j%2), row=row + int((j - 1) / 2))
+                ck.grid(column=1+(1-j%2), row=row + int((j - 1) / 2))
                 self.set_joy_tooltip(ck, i, 'buttons', j)
                 
                 buttons.append((ck, var))
                 
-            self.joysticks.append((axes, buttons, [pov]))
+            self.joysticks.append((axes, buttons, [pov], slot))
             
-        
-        slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
-        
+            slot.pack(side=tk.LEFT, fill=tk.Y)
+            slot.hidden = False
             
+        all_joy_slot.pack(side=tk.LEFT, fill=tk.Y, padx=5)
+        
+        visible_joysticks = self.config_obj['pyfrc']['visible_joysticks']
+        self.joystick_count.set(visible_joysticks)
+        _set_js()
+    
+    def _render_control_frame(self, bottom):
         ctrl_frame = tk.Frame(bottom)
         
         # timing control
@@ -578,7 +614,7 @@ class SimUI(object):
         #sticks = _core.DriverStation.GetInstance().sticks
         #stick_buttons = _core.DriverStation.GetInstance().stick_buttons
         
-        for i, (axes, buttons, povs) in enumerate(self.joysticks):
+        for i, (axes, buttons, povs, _) in enumerate(self.joysticks):
             joy = hal_data['joysticks'][i]
             jaxes = joy['axes']
             for j, ax in enumerate(axes):
@@ -600,7 +636,7 @@ class SimUI(object):
         tm = self.fake_time.get()
         mode_tm = tm - self.mode_start_tm
         
-        self.status.config(text="Time: %.03f mode, %.03f total" % (mode_tm, tm))
+        self.status_label.config(text="Time: %.03f mode, %.03f total" % (mode_tm, tm))
             
     
         
@@ -638,7 +674,7 @@ class SimUI(object):
         controls_disabled = False if mode == self.manager.MODE_OPERATOR_CONTROL else True
         state = tk.DISABLED if controls_disabled else tk.NORMAL
         
-        for axes, buttons, povs in self.joysticks:
+        for axes, buttons, povs, _ in self.joysticks:
             for axis in axes:
                 axis.set_disabled(disabled=controls_disabled)
             for ck, var in buttons:

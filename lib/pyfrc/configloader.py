@@ -133,3 +133,7 @@ def _load_config(robot_path):
         
         config_obj['pyfrc']['joysticks'][str(i)]['buttons'].setdefault("1", "Trigger")
         config_obj['pyfrc']['joysticks'][str(i)]['buttons'].setdefault("2", "Top")
+    
+    vj = config_obj['pyfrc'].setdefault('visible_joysticks', 2)
+    if not isinstance(vj, int):
+        raise ValueError("sim/config.json: visible_joysticks must be an integer (got %s)" % vj)
