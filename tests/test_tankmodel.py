@@ -2,7 +2,7 @@
 # import pytest
 from pyfrc.physics import tankmodel, motor_cfgs
 from pyfrc.physics.units import units
-from math import degrees, radians, isclose
+import math
 
 
 def test_tankdrive_get_distance():
@@ -26,7 +26,7 @@ def test_tankdrive_get_distance():
 
     # figure out how much time is needed to turn 90 degrees
     angle = 0.0
-    angle_target = radians(90.0)
+    angle_target = math.pi / 2.0 # 90 degrees
     total_time = 0.0
     tstep = 0.01
 
@@ -40,6 +40,6 @@ def test_tankdrive_get_distance():
     # OK, now do it in a single call. x should equal y
     result = tank.get_distance(l_motor, r_motor, total_time)
     # print(result[0], result[1], degrees(result[2]), result[0]/result[1])
-    assert isclose(degrees(result[2]), 90.0, abs_tol=2.0), 'Single call did not produce a 90deg turn'
-    assert isclose(result[0], result[1], rel_tol=0.01), 'For 90deg turn, x and y should be the same'
+    assert math.isclose(result[2], angle_target, abs_tol=2.0), 'Single call should produce a 90deg turn'
+    assert math.isclose(result[0], result[1], rel_tol=0.01), 'For 90deg turn, x and y should be the same'
     return
