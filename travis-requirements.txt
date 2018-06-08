@@ -3,6 +3,7 @@ git+git://github.com/robotpy/robotpy-wpilib.git#subdirectory=wpilib
 git+git://github.com/robotpy/robotpy-wpilib.git#subdirectory=hal-base
 git+git://github.com/robotpy/robotpy-wpilib.git#subdirectory=hal-sim
 git+git://github.com/robotpy/robotpy-wpilib-utilities.git
+git+git://github.com/robotpy/robotpy-navx.git
 
 -e .
 
