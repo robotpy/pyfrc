@@ -157,6 +157,7 @@ class PyFrcDeploy:
             echo "%(deployed_cmd)s" > %(deploy_dir)s/%(deployed_cmd_fname)s
             %(extra_cmd)s
             %(check_startup_dlls)s
+            rm -rf %(py_new_deploy_dir)s
             '
         """)
               
