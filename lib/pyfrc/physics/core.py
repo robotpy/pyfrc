@@ -361,7 +361,7 @@ class PhysicsInterface:
         with self._lock:
             self.vx += self.start_x - self.x
             self.vy += self.start_y - self.y
-            self._update_gyros(-self.angle)
+            self._update_gyros(self.start_angle - self.angle)
 
             self.x = self.start_x
             self.y = self.start_y
