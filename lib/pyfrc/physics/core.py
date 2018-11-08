@@ -359,8 +359,15 @@ class PhysicsInterface:
         
     def reset_position(self):
         with self._lock:
-            self.vx += self.start_x - self.x
-            self.vy += self.start_y - self.y
+            # move the robot backwards to reach its start position
+            # the change in rotation will be applied before the change in position
+            c = math.cos(self.start_angle)
+            s = math.sin(self.start_angle)
+            move_x = self.start_x - self.x  # in field coordinates
+            move_y = self.start_y - self.y
+            # convert to robot coordinates...
+            self.vx += move_x * c + move_y * s
+            self.vy += -move_x * s + move_y * c
             self._update_gyros(self.start_angle - self.angle)
 
             self.x = self.start_x
