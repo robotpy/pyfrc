@@ -406,6 +406,13 @@ class SimUI(object):
             Tooltip.create(self.gamedatabox, "Use this selection box to simulate game specific data")
             gamedata.pack(side=tk.TOP)
 
+        def _reset_robot():
+            for robot in self.manager.robots:
+                robot.physics_controller.reset_position()
+
+        button = tk.Button(ctrl_frame, text="Reset Robot", command=_reset_robot)
+        button.pack(side=tk.TOP)
+
         ctrl_frame.pack(side=tk.LEFT, fill=tk.Y)
     
     def _render_pcm(self):

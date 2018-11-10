@@ -123,9 +123,12 @@ class PhysicsInterface:
         self._lock = threading.Lock()
         
         # These are in units of feet relative to the field
-        self.x = config_obj['pyfrc']['robot']['starting_x']
-        self.y = config_obj['pyfrc']['robot']['starting_y']
-        self.angle = math.radians(config_obj['pyfrc']['robot']['starting_angle'])
+        self.start_x = config_obj['pyfrc']['robot']['starting_x']
+        self.start_y = config_obj['pyfrc']['robot']['starting_y']
+        self.start_angle = math.radians(config_obj['pyfrc']['robot']['starting_angle'])
+        self.x = self.start_x
+        self.y = self.start_y
+        self.angle = self.start_angle
         
         self.robot_w = config_obj['pyfrc']['robot']['w']
         self.robot_l = config_obj['pyfrc']['robot']['l']
@@ -354,4 +357,19 @@ class PhysicsInterface:
         '''
         return self.vx, self.vy, self.angle
         
-    
+    def reset_position(self):
+        with self._lock:
+            # move the robot backwards to reach its start position
+            # the change in rotation will be applied before the change in position
+            c = math.cos(self.start_angle)
+            s = math.sin(self.start_angle)
+            move_x = self.start_x - self.x  # in field coordinates
+            move_y = self.start_y - self.y
+            # convert to robot coordinates...
+            self.vx += move_x * c + move_y * s
+            self.vy += -move_x * s + move_y * c
+            self._update_gyros(self.start_angle - self.angle)
+
+            self.x = self.start_x
+            self.y = self.start_y
+            self.angle = self.start_angle
