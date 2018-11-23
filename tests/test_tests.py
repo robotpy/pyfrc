@@ -21,7 +21,7 @@ def get_plugin(cls):
     plugin.pytest_runtest_setup()
     
     try:
-        yield plugin, plugin.control()
+        yield plugin, plugin.get_control()
     finally:
         plugin.pytest_runtest_teardown(None)
 
@@ -104,11 +104,11 @@ class Iterative(wpilib.IterativeRobot):
 def test_iterative():
     '''Ensure that all states of the iterative robot run'''
     with get_plugin(Iterative) as (plugin, control):
-        _test_practice(plugin.control(),
-                       plugin.fake_time(),
-                       plugin.robot())
+        _test_practice(plugin.get_control(),
+                       plugin.get_fake_time(),
+                       plugin.get_robot())
         
-        robot = plugin.robot()
+        robot = plugin.get_robot()
         assert robot.did_robot_init == True
         assert robot.did_disabled_init == True
         assert robot.did_disabled_periodic == True
@@ -134,11 +134,11 @@ class Sample(wpilib.SampleRobot):
 def test_sample():
     '''Ensure that all states of the sample robot run'''
     with get_plugin(Sample) as (plugin, control):
-        _test_practice(plugin.control(),
-                       plugin.fake_time(),
-                       plugin.robot())
+        _test_practice(plugin.get_control(),
+                       plugin.get_fake_time(),
+                       plugin.get_robot())
         
-        robot = plugin.robot()
+        robot = plugin.get_robot()
         assert robot.did_robot_init == True
         assert robot.did_robot_disabled == True
         assert robot.did_autonomous == True
