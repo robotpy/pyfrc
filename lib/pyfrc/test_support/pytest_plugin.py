@@ -162,3 +162,17 @@ class PyFrcPlugin:
         '''The :mod:`wpilib` module. Provided for backwards compatibility'''
         import wpilib
         return wpilib
+    
+    #
+    # Internal use only because newer versions of pytest
+    # don't allow calling fixtures directly
+    #
+        
+    def get_control(self):
+        return self._test_controller
+    
+    def get_fake_time(self):
+        return self._fake_time
+    
+    def get_robot(self):
+        return self._test_controller._robot
