@@ -20,6 +20,17 @@ install:
 # command to run tests
 script:
   - tests/run_tests.sh
+
+jobs:
+  include:
+  - stage: format-check
+    python:
+    - "3.6"
+    install:
+    - pip install black
+    script:
+    - black --check --diff .
+
 deploy:
 - provider: pypi
   user: $PYPI_USERNAME

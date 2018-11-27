@@ -1,4 +1,3 @@
-
 #
 # Holds settings that can be checked
 #
