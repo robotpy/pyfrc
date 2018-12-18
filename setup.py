@@ -81,6 +81,7 @@ setup(
         "robotpy": [
             "add-tests = pyfrc.mains.cli_add_tests:PyFrcAddTests",
             "coverage = pyfrc.mains.cli_coverage:PyFrcCoverage",
+            "create-physics = pyfrc.mains.cli_create_physics:PyFrcCreatePhysics",
             "deploy = pyfrc.mains.cli_deploy:PyFrcDeploy",
             "profiler = pyfrc.mains.cli_profiler:PyFrcProfiler",
             "sim = pyfrc.mains.cli_sim:PyFrcSim",
