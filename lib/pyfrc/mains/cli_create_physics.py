@@ -1,7 +1,7 @@
 import inspect
 from os.path import abspath, dirname, exists, join
 
-physics_starter="""
+physics_starter = """
 #
 # See the documentation for more details on how this works
 #
@@ -43,6 +43,7 @@ class PhysicsEngine(object):
         pass
 """
 
+
 class PyFrcCreatePhysics:
     def __init__(self, parser=None):
         pass
@@ -50,7 +51,6 @@ class PyFrcCreatePhysics:
     def run(self, options, robot_class, **static_options):
         robot_file = abspath(inspect.getfile(robot_class))
         robot_path = dirname(robot_file)
-
 
         physics_file = join(robot_path, "physics.py")
         if exists(physics_file):
