@@ -1,7 +1,7 @@
 import inspect
 from os.path import abspath, dirname, exists, join
 
-physics_starter = """
+physics_starter = '''
 #
 # See the documentation for more details on how this works
 #
@@ -17,21 +17,21 @@ physics_starter = """
 # Examples can be found at https://github.com/robotpy/examples
 
 
-class PhysicsEngine(object):
-    \"\"\"
+class PhysicsEngine:
+    """
         Basic physics engine to be combined with the simulator
-    \"\"\"
+    """
 
     def __init__(self, physics_controller):
-        \"\"\"
+        """
             :param physics_controller: `pyfrc.physics.core.PhysicsInterface` object
                                        to communicate simulation effects to
-        \"\"\"
+        """
 
         self.physics_controller = physics_controller
 
     def update_sim(self, hal_data, now, tm_diff):
-        \"\"\"
+        """
             Called when the simulation parameters for the program need to be
             updated.
             
@@ -39,9 +39,9 @@ class PhysicsEngine(object):
             :param now: The current time as a float
             :param tm_diff: The amount of time that has passed since the last
                             time that this function was called
-        \"\"\"
+        """
         pass
-"""
+'''
 
 
 class PyFrcCreatePhysics:
