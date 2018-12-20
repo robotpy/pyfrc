@@ -1,4 +1,5 @@
 import inspect
+from os import mkdir
 from os.path import abspath, dirname, exists, join
 
 physics_starter = '''
@@ -19,29 +20,89 @@ physics_starter = '''
 
 class PhysicsEngine:
     """
-        Basic physics engine to be combined with the simulator
+       Simulates a 4-wheel robot using Tank Drive joystick control
     """
 
     def __init__(self, physics_controller):
         """
-            :param physics_controller: `pyfrc.physics.core.PhysicsInterface` object
+            :param physics_controller: `pyfrc.physics.core.Physics` object
                                        to communicate simulation effects to
         """
 
         self.physics_controller = physics_controller
+
+        """
+        # Change these parameters to fit your robot!
+        bumper_width = 3.25 * units.inch
+
+        self.drivetrain = tankmodel.TankModel.theory(
+            motor_cfgs.MOTOR_CFG_CIM,           # motor configuration
+            110 * units.lbs,                    # robot mass
+            10.71,                              # drivetrain gear ratio ωIn/ωOut
+            2,                                  # motors per side„
+            22 * units.inch,                    # robot wheelbase
+            23 * units.inch + bumper_width * 2, # robot width
+            32 * units.inch + bumper_width * 2, # robot length
+            6 * units.inch,                     # wheel diameter
+        )
+        """
 
     def update_sim(self, hal_data, now, tm_diff):
         """
             Called when the simulation parameters for the program need to be
             updated.
             
-            :param hal_data: Dictionary representing objects created through wpilib
             :param now: The current time as a float
             :param tm_diff: The amount of time that has passed since the last
                             time that this function was called
         """
-        pass
+
+        # Simulate the drivetrain
+        """
+        lr_motor = hal_data["pwm"][1]["value"]
+        rr_motor = hal_data["pwm"][2]["value"]
+
+        # Not needed because front and rear should be in sync
+        # lf_motor = hal_data['pwm'][3]['value']
+        # rf_motor = hal_data['pwm'][4]['value']
+
+        x, y, angle = self.drivetrain.get_distance(lr_motor, rr_motor, tm_diff)
+        self.physics_controller.distance_drive(x, y, angle)
+        """
 '''
+
+sim_starter = """{
+	"pyfrc": {
+		"robot": {
+			"w": 3,
+			"h": 2,
+			"starting_x": 10,
+			"starting_y": 10,
+			"starting_angle": 0
+		},
+		"pwm": {
+			"1": "Left Rear",
+			"2": "Right Rear",
+			"3": "Left Front",
+			"4": "Right Front"
+		},
+		"joysticks": {
+			"0": {
+				"axes": {
+					"Y": "Left Side"
+				},
+				"buttons": {}
+			},
+			"1": {
+				"axes": {
+					"Y": "Right Side"
+				},
+				"buttons": {}
+			}
+		}
+	}
+}
+"""
 
 
 class PyFrcCreatePhysics:
@@ -51,8 +112,10 @@ class PyFrcCreatePhysics:
     def run(self, options, robot_class, **static_options):
         robot_file = abspath(inspect.getfile(robot_class))
         robot_path = dirname(robot_file)
+        sim_path = join(robot_path, "sim")
 
         physics_file = join(robot_path, "physics.py")
+        sim_file = join(sim_path, "config.json")
         if exists(physics_file):
             print("- physics.py already exists")
         else:
@@ -60,5 +123,18 @@ class PyFrcCreatePhysics:
                 fp.write(physics_starter)
             print("- physics file created at", physics_file)
 
+        if exists(sim_path):
+
+            if exists(sim_file):
+                print("- config.json already exists")
+            else:
+                with open(sim_file, "w") as f:
+                    f.write(sim_starter)
+                print("- sim file created at", sim_file)
+        else:
+            mkdir(sim_path)
+            with open(sim_file, "w") as f:
+                f.write(sim_starter)
+            print("- sim file created at", sim_file)
         print()
         print("Robot simulation can be run via 'python3 robot.py sim'")
