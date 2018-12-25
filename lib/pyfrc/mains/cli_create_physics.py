@@ -1,4 +1,5 @@
 import inspect
+import json
 from os import mkdir
 from os.path import abspath, dirname, exists, join
 
@@ -71,38 +72,23 @@ class PhysicsEngine:
         """
 '''
 
-sim_starter = """{
-	"pyfrc": {
-		"robot": {
-			"w": 3,
-			"h": 2,
-			"starting_x": 10,
-			"starting_y": 10,
-			"starting_angle": 0
-		},
-		"pwm": {
-			"1": "Left Rear",
-			"2": "Right Rear",
-			"3": "Left Front",
-			"4": "Right Front"
-		},
-		"joysticks": {
-			"0": {
-				"axes": {
-					"Y": "Left Side"
-				},
-				"buttons": {}
-			},
-			"1": {
-				"axes": {
-					"Y": "Right Side"
-				},
-				"buttons": {}
-			}
-		}
-	}
+sim_starter = {
+    "pyfrc": {
+        "robot": {
+            "w": 3,
+            "h": 2,
+            "starting_x": 10,
+            "starting_y": 10,
+            "starting_angle": 0,
+        },
+        "pwm": {},
+        "can": {},
+        "joysticks": {
+            "0": {"axes": {}, "buttons": {}},
+            "1": {"axes": {}, "buttons": {}},
+        },
+    }
 }
-"""
 
 
 class PyFrcCreatePhysics:
@@ -124,17 +110,16 @@ class PyFrcCreatePhysics:
             print("- physics file created at", physics_file)
 
         if exists(sim_path):
-
             if exists(sim_file):
                 print("- config.json already exists")
             else:
                 with open(sim_file, "w") as f:
-                    f.write(sim_starter)
+                    f.write(json.dumps(sim_starter, indent=4) + "\n")
                 print("- sim file created at", sim_file)
         else:
             mkdir(sim_path)
             with open(sim_file, "w") as f:
-                f.write(sim_starter)
+                f.write(json.dumps(sim_starter, indent=4) + "\n")
             print("- sim file created at", sim_file)
         print()
         print("Robot simulation can be run via 'python3 robot.py sim'")
