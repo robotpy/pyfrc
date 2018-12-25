@@ -31,6 +31,7 @@ def test_autonomous(control, fake_time, robot, gamedata):
     assert int(fake_time.get()) == 15
 
 
+@pytest.mark.filterwarnings("ignore")
 def test_disabled(control, fake_time, robot):
     """Runs disabled mode by itself"""
 
@@ -42,6 +43,7 @@ def test_disabled(control, fake_time, robot):
     assert int(fake_time.get()) == 5
 
 
+@pytest.mark.filterwarnings("ignore")
 def test_operator_control(control, fake_time, robot):
     """Runs operator control mode by itself"""
 
@@ -53,6 +55,7 @@ def test_operator_control(control, fake_time, robot):
     assert int(fake_time.get()) == 15
 
 
+@pytest.mark.filterwarnings("ignore")
 def test_practice(control, fake_time, robot):
     """Runs through the entire span of a practice match"""
 
