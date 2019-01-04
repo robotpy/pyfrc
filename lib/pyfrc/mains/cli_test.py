@@ -1,6 +1,5 @@
 import os
 import inspect
-import warnings
 import sys
 
 from os.path import abspath, dirname, exists, join
@@ -53,10 +52,6 @@ class PyFrcTest:
 
         config.mode = "test"
         config.coverage_mode = options.coverage_mode
-
-        # Enable all warnings - see PEP 565
-        if not sys.warnoptions:
-            warnings.simplefilter("default")
 
         return self.run_test(
             options.pytest_args, robot_class, options.builtin, **static_options
