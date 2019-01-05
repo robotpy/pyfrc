@@ -67,7 +67,9 @@ class PyFrcPlugin:
 
         import wpilib
 
-        wpilib.RobotBase.initializeHardwareConfiguration()
+        hwcfg = getattr(wpilib.RobotBase, "initializeHardwareConfiguration", None)
+        if hwcfg:
+            hwcfg()
 
         self._test_controller._robot = self.robot_class()
 
