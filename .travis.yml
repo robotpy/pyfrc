@@ -30,14 +30,19 @@ jobs:
     - pip install black
     script:
     - black --check --diff .
-
-deploy:
-- provider: pypi
-  user: $PYPI_USERNAME
-  password: $PYPI_PASSWORD
-  on:
-    tags: true
+  - stage: deploy
+    if: tag IS present
     python: "3.7"
+    install: skip
+    script: skip
+    deploy:
+    - provider: pypi
+      user: $PYPI_USERNAME
+      password: $PYPI_PASSWORD
+      distributions: sdist bdist_wheel
+      on:
+        tags: true
+
 notifications:
   webhooks:
     urls:
