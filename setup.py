@@ -2,9 +2,7 @@
 
 import sys
 
-if sys.version_info.major < 3 or (
-    sys.version_info.major == 3 and sys.version_info.minor < 5
-):
+if sys.version_info < (3, 5):
     sys.stderr.write("ERROR: RobotPy requires Python 3.5+\n")
     exit(1)
 
@@ -62,20 +60,28 @@ setup(
     author="Dustin Spicuzza, Sam Rosenblum",
     author_email="robotpy@googlegroups.com",
     url="https://github.com/robotpy/pyfrc",
-    license="BSD",
+    license="BSD-3-Clause",
     packages=find_packages(where="lib"),
     package_dir={"": "lib"},
     include_package_data=True,
     install_requires=install_requires
     if not os.environ.get("ROBOTPY_NO_DEPS")
     else None,
+    extras_require={"coverage": ["coverage"]},
+    requires_python=">=3.5",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
+        "Framework :: Pytest",
         "Intended Audience :: Developers",
+        "Intended Audience :: Education",
         "License :: OSI Approved :: BSD License",
+        "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Topic :: Scientific/Engineering",
         "Topic :: Software Development",
+        "Topic :: Software Development :: Testing",
     ],
     entry_points={
         "robotpy": [
