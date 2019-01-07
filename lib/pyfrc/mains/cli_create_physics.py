@@ -26,8 +26,8 @@ class PhysicsEngine:
 
     def __init__(self, physics_controller):
         """
-            :param physics_controller: `pyfrc.physics.core.Physics` object
-                                       to communicate simulation effects to
+        :param physics_controller: `pyfrc.physics.core.Physics` object
+                                   to communicate simulation effects to
         """
 
         self.physics_controller = physics_controller
@@ -50,12 +50,12 @@ class PhysicsEngine:
 
     def update_sim(self, hal_data, now, tm_diff):
         """
-            Called when the simulation parameters for the program need to be
-            updated.
-            
-            :param now: The current time as a float
-            :param tm_diff: The amount of time that has passed since the last
-                            time that this function was called
+        Called when the simulation parameters for the program need to be
+        updated.
+
+        :param now: The current time as a float
+        :param tm_diff: The amount of time that has passed since the last
+                        time that this function was called
         """
 
         # Simulate the drivetrain
