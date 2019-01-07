@@ -10,16 +10,13 @@ python:
 matrix:
   fast_finish: true
 
-env:
-  - RUNCOVERAGE=1 ROBOTPY_NO_DEPS=1
-
 # command to install dependencies
 install:
   - pip install -U pip
-  - pip install -r travis-requirements.txt
+  - ROBOTPY_NO_DEPS=1 pip install -r travis-requirements.txt
 # command to run tests
 script:
-  - tests/run_tests.sh
+  - RUNCOVERAGE=1 tests/run_tests.sh
 
 jobs:
   include:
