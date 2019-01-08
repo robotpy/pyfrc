@@ -120,7 +120,7 @@ def _load_config(robot_path):
         "game_specific_messages", defaults.get("game_specific_messages", [])
     )
     config_obj["pyfrc"]["field"].setdefault(
-        "auto_joysticks", defaults["auto_joysticks"]
+        "auto_joysticks", defaults.get("auto_joysticks", False)
     )
     assert isinstance(config_obj["pyfrc"]["game_specific_messages"], (list, type(None)))
 
