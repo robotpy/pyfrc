@@ -22,15 +22,22 @@ _field_defaults = {
         "image": join(_field_root, "2018-field.gif"),
         "game_specific_messages": ["RRR", "RLR", "LRL", "LLL"],
     },
-    "default": {"h": 1, "w": 1, "px_per_ft": 10, "image": None},
+    "2019": {
+        "h": 27,
+        "w": 27,
+        "px_per_ft": 15,
+        "image": join(_field_root, "2019-field.gif"),
+        "auto_joysticks": True,
+    },
+    "default": {"h": 1, "w": 1, "px_per_ft": 10, "image": None, "auto_joysticks": True},
 }
 
-_default_year = "2018"
+_default_year = "2019"
 
 # Do this to avoid breaking teams that created their own field stuff
-_field_defaults["default"]["game_specific_messages"] = _field_defaults[_default_year][
-    "game_specific_messages"
-]
+_field_defaults["default"]["game_specific_messages"] = _field_defaults[
+    _default_year
+].get("game_specific_messages")
 
 
 def _load_config(robot_path):
@@ -111,6 +118,9 @@ def _load_config(robot_path):
 
     config_obj["pyfrc"].setdefault(
         "game_specific_messages", defaults.get("game_specific_messages", [])
+    )
+    config_obj["pyfrc"]["field"].setdefault(
+        "auto_joysticks", defaults["auto_joysticks"]
     )
     assert isinstance(config_obj["pyfrc"]["game_specific_messages"], list)
 
