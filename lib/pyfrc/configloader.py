@@ -122,7 +122,7 @@ def _load_config(robot_path):
     config_obj["pyfrc"]["field"].setdefault(
         "auto_joysticks", defaults["auto_joysticks"]
     )
-    assert isinstance(config_obj["pyfrc"]["game_specific_messages"], list)
+    assert isinstance(config_obj["pyfrc"]["game_specific_messages"], (list, type(None)))
 
     if img and not isabs(config_obj["pyfrc"]["field"]["image"]):
         config_obj["pyfrc"]["field"]["image"] = abspath(join(sim_path, img))
