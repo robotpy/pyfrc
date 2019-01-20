@@ -39,8 +39,8 @@ class PhysicsEngine:
         self.drivetrain = tankmodel.TankModel.theory(
             motor_cfgs.MOTOR_CFG_CIM,           # motor configuration
             110 * units.lbs,                    # robot mass
-            10.71,                              # drivetrain gear ratio ωIn/ωOut
-            2,                                  # motors per side„
+            10.71,                              # drivetrain gear ratio \omega In/\omega Out
+            2,                                  # motors per side
             22 * units.inch,                    # robot wheelbase
             23 * units.inch + bumper_width * 2, # robot width
             32 * units.inch + bumper_width * 2, # robot length
