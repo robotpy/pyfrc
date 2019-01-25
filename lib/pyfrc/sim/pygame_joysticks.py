@@ -27,25 +27,17 @@ class UsbJoysticks(object):
     def update(self):
         pygame.event.get()
 
-        for i in range(len(self.joysticks)):
-            joystick = self.joysticks[i]
-            ui_joystick = self.ui.joysticks[i]
+        for joystick, (ui_axes, ui_buttons, _) in zip(
+            self.joysticks, self.ui.joysticks
+        ):
 
-            ui_axes = ui_joystick[0]
-            for axis in range(joystick.get_numaxes()):
-                if axis == 6:
-                    break
-
+            for axis in range(min(len(ui_axes), joystick.get_numaxes())):
                 ui_current_axis = ui_axes[axis]
 
                 value = joystick.get_axis(axis)
                 ui_current_axis.set_value(value)
 
-            ui_buttons = ui_joystick[1]
-            for button in range(joystick.get_numbuttons()):
-                if button == 10:
-                    break
-
+            for button in range(min(len(ui_buttons), joystick.get_numbuttons())):
                 ui_current_button = ui_buttons[button]
                 ui_current_button = ui_current_button[0]
 
