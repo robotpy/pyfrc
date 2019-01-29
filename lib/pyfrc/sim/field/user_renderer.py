@@ -30,6 +30,7 @@ class UserRenderer:
     def clear(self):
         for e in self._elements:
             e.delete()
+        self._elements.clear()
 
     # draw a line in robot coordinates
 
