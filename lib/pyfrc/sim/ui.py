@@ -438,30 +438,31 @@ class SimUI(object):
 
             auton.pack(side=tk.TOP)
 
-            gamedata = tk.LabelFrame(ctrl_frame, text="Game Data")
-
-            self.gamedataval = tk.StringVar()
-            if hasattr(self.gamedataval, "trace_add"):
-                self.gamedataval.trace_add("write", self.on_gamedata_selected)
-            else:
-                self.gamedataval.trace_variable("w", self.on_gamedata_selected)
-
-            self.gamedatabox = Combobox(gamedata, textvariable=self.gamedataval)
-            self.gamedatabox["width"] = 12
-            self.gamedatabox.pack(fill=tk.X)
-
             messages = self.config_obj["pyfrc"]["game_specific_messages"]
             if messages:
+
+                gamedata = tk.LabelFrame(ctrl_frame, text="Game Data")
+
+                self.gamedataval = tk.StringVar()
+                if hasattr(self.gamedataval, "trace_add"):
+                    self.gamedataval.trace_add("write", self.on_gamedata_selected)
+                else:
+                    self.gamedataval.trace_variable("w", self.on_gamedata_selected)
+
+                self.gamedatabox = Combobox(gamedata, textvariable=self.gamedataval)
+                self.gamedatabox["width"] = 12
+                self.gamedatabox.pack(fill=tk.X)
+
                 self.gamedatabox["values"] = messages
                 self.gamedatabox.current(0)
 
-            self.manager.game_specific_message = self.gamedatabox.get()
+                self.manager.game_specific_message = self.gamedatabox.get()
 
-            Tooltip.create(
-                self.gamedatabox,
-                "Use this selection box to simulate game specific data",
-            )
-            gamedata.pack(side=tk.TOP)
+                Tooltip.create(
+                    self.gamedatabox,
+                    "Use this selection box to simulate game specific data",
+                )
+                gamedata.pack(side=tk.TOP)
 
         def _reset_robot():
             for robot in self.manager.robots:
