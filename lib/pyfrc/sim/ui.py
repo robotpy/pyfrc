@@ -254,11 +254,15 @@ class SimUI(object):
         slot = tk.LabelFrame(bottom, text="Joysticks")
 
         self.joysticks = []
+        joystick_count = self.config_obj["pyfrc"]["joystick_count"]
+        all_axes = ("X", "Y", "Z", "T", "4", "5")
 
-        for i in range(4):
+        for i in range(joystick_count):
 
             axes = []
             buttons = []
+            jdata = self.config_obj["pyfrc"]["joysticks"][str(i)]
+            adata = all_axes[: jdata["axes_count"]]
 
             col = 1 + i * 3
             row = 0
@@ -269,13 +273,13 @@ class SimUI(object):
 
             # TODO: make this configurable
 
-            for j, t in enumerate(["X", "Y", "Z", "T", "4", "5"]):
+            for j, t in enumerate(adata):
                 label = tk.Label(slot, text=t)
                 label.grid(column=col, row=row)
 
                 vw = ValueWidget(slot, clickable=True, default=0.0)
                 vw.grid(column=col + 1, row=row, columnspan=2)
-                self.set_joy_tooltip(vw, i, "axes", t)
+                self.set_joy_tooltip(vw, jdata, "axes", t)
 
                 axes.append(vw)
                 row += 1
@@ -295,11 +299,11 @@ class SimUI(object):
             pov.grid(column=col + 1, row=row, columnspan=2)
             row += 1
 
-            for j in range(1, 11):
+            for j in range(1, jdata["button_count"] + 1):
                 var = tk.IntVar()
                 ck = tk.Checkbutton(slot, text=str(j), variable=var)
                 ck.grid(column=col + 1 + (1 - j % 2), row=row + int((j - 1) / 2))
-                self.set_joy_tooltip(ck, i, "buttons", j)
+                self.set_joy_tooltip(ck, jdata, "buttons", j)
 
                 buttons.append((ck, var))
 
@@ -648,14 +652,15 @@ class SimUI(object):
         # sticks = _core.DriverStation.GetInstance().sticks
         # stick_buttons = _core.DriverStation.GetInstance().stick_buttons
 
-        for i, (axes, buttons, povs) in enumerate(self.joysticks):
-            joy = hal_data["joysticks"][i]
+        for i, (joy, (axes, buttons, povs)) in enumerate(
+            zip(hal_data["joysticks"], self.joysticks)
+        ):
             jaxes = joy["axes"]
-            for j, ax in enumerate(axes):
+            for j, (_, ax) in enumerate(zip(jaxes, axes)):
                 jaxes[j] = ax.get_value()
 
             jbuttons = joy["buttons"]
-            for j, (ck, var) in enumerate(buttons):
+            for j, (_, (ck, var)) in enumerate(zip(range(1, len(jbuttons)), buttons)):
                 jbuttons[j + 1] = True if var.get() else False
 
             jpovs = joy["povs"]
@@ -678,8 +683,8 @@ class SimUI(object):
         if tooltip is not None:
             Tooltip.create(widget, tooltip)
 
-    def set_joy_tooltip(self, widget, idx, typ, idx2):
-        tooltip = self.config_obj["pyfrc"]["joysticks"][str(idx)][typ].get(str(idx2))
+    def set_joy_tooltip(self, widget, jdata, typ, idx2):
+        tooltip = jdata[typ].get(str(idx2))
         if tooltip is not None:
             Tooltip.create(widget, tooltip)
 

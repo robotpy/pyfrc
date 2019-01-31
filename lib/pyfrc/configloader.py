@@ -134,11 +134,17 @@ def _load_config(robot_path):
     config_obj["pyfrc"].setdefault("relay", {})
     config_obj["pyfrc"].setdefault("solenoid", {})
 
+    joystick_count = config_obj["pyfrc"].setdefault("joystick_count", 4)
+
     config_obj["pyfrc"].setdefault("joysticks", {})
-    for i in range(6):
+    for i in range(joystick_count):
         config_obj["pyfrc"]["joysticks"].setdefault(str(i), {})
         config_obj["pyfrc"]["joysticks"][str(i)].setdefault("axes", {})
         config_obj["pyfrc"]["joysticks"][str(i)].setdefault("buttons", {})
+
+        # reduces the number of axes shown
+        config_obj["pyfrc"]["joysticks"][str(i)].setdefault("axes_count", 6)
+        config_obj["pyfrc"]["joysticks"][str(i)].setdefault("button_count", 10)
 
         config_obj["pyfrc"]["joysticks"][str(i)]["buttons"].setdefault("1", "Trigger")
         config_obj["pyfrc"]["joysticks"][str(i)]["buttons"].setdefault("2", "Top")
