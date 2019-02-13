@@ -2,8 +2,8 @@ pytest>=2.8.0
 pynetconsole>=2.0.1
 pint>=0.8
 
-wpilib>=2019.0.0,<2020.0.0
-robotpy-hal-sim>=2019.0.0,<2020.0.0
+wpilib>=2019.1.1,<2020.0.0
+robotpy-hal-sim>=2019.1.1,<2020.0.0
 
 robotpy-installer>=2019.1.0,<2020.0.0
 
