@@ -5,7 +5,7 @@ pint>=0.8
 wpilib>=2019.1.1,<2020.0.0
 robotpy-hal-sim>=2019.1.1,<2020.0.0
 
-robotpy-installer>=2019.1.0,<2020.0.0
+robotpy-installer>=2019.2.0,<2020.0.0
 
 # Not really a requirement, but this is on the robot, so just install by default
 robotpy-wpilib-utilities>=2019.0.0,<2020.0.0
