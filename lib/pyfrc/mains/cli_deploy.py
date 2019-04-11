@@ -1,3 +1,4 @@
+import argparse
 import inspect
 import os
 import sys
@@ -31,8 +32,7 @@ class PyFrcDeploy:
         Uploads your robot code to the robot and executes it immediately
     """
 
-    def __init__(self, parser):
-        """ :type parser: argparse.ArgumentParser """
+    def __init__(self, parser: argparse.ArgumentParser):
         parser.add_argument(
             "--builtin",
             default=False,
@@ -92,13 +92,13 @@ class PyFrcDeploy:
             help="If specified, don't verify that your local wpilib install matches the version on the robot (not recommended)",
         )
 
-        parser.add_argument(
-            "--robot",
-            default=None,
-            help="Set hostname or IP address of robot (overrides --team)",
+        robot_args = parser.add_mutually_exclusive_group()
+
+        robot_args.add_argument(
+            "--robot", default=None, help="Set hostname or IP address of robot"
         )
 
-        parser.add_argument(
+        robot_args.add_argument(
             "--team", default=None, type=int, help="Set team number to deploy robot for"
         )
 
