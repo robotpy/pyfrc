@@ -199,7 +199,9 @@ class PyFrcDeploy:
             replace_cmd = "true"
             py_new_deploy_subdir = py_deploy_subdir
         else:
-            replace_cmd = "[ -d %(py_deploy_dir)s ] && rm -rf %(py_deploy_dir)s; mv %(py_new_deploy_dir)s %(py_deploy_dir)s"
+            replace_cmd = (
+                "rm -rf %(py_deploy_dir)s; mv %(py_new_deploy_dir)s %(py_deploy_dir)s"
+            )
 
         py_new_deploy_dir = deploy_dir / py_new_deploy_subdir
         replace_cmd %= {
