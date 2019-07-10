@@ -17,7 +17,7 @@ from hal_impl.data import hal_data
 
 from .. import __version__
 from .field.field import RobotField
-from .ui_widgets import CheckButtonWrapper, PanelIndicator, Tooltip, ValueWidget
+from .ui_widgets import PanelIndicator, Tooltip, ValueWidget
 
 from pkg_resources import iter_entry_points
 
@@ -60,7 +60,7 @@ def configure_starting_position(config_obj):
 
 
 class SimUI(object):
-    def __init__(self, manager, fake_time, config_obj):
+    def __init__(self, manager, fake_time, config_obj: dict) -> None:
         """
             initializes all default values and creates
             a board, waits for run() to be called
@@ -701,12 +701,13 @@ class SimUI(object):
 
         self.mode_start_tm = self.fake_time.get()
 
-        # this is not strictly true... a robot can actually receive joystick
-        # commands from the driver station in disabled mode. However, most
-        # people aren't going to use that functionality...
-        controls_disabled = (
-            False if mode == self.manager.MODE_OPERATOR_CONTROL else True
-        )
+        if mode == self.manager.MODE_AUTONOMOUS:
+            controls_disabled = not self.config_obj["pyfrc"]["field"]["auto_joysticks"]
+        else:
+            controls_disabled = (
+                not self.config_obj["pyfrc"]["field"]["disabled_joysticks"]
+                and mode == self.manager.MODE_DISABLED
+            )
         state = tk.DISABLED if controls_disabled else tk.NORMAL
 
         for axes, buttons, povs in self.joysticks:
