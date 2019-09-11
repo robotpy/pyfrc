@@ -29,7 +29,16 @@ _field_defaults = {
         "image": join(_field_root, "2019-field.gif"),
         "auto_joysticks": True,
     },
-    "default": {"h": 1, "w": 1, "px_per_ft": 10, "image": None, "auto_joysticks": True},
+    "default": {
+        "h": 1,
+        "w": 1,
+        "px_per_ft": 10,
+        "image": None,
+        "auto_joysticks": False,
+        # The DS sends joystick data in disabled mode. However,
+        # most people will never use this. Let advanced teams mess around.
+        "disabled_joysticks": False,
+    },
 }
 
 _default_year = "2019"
@@ -121,6 +130,9 @@ def _load_config(robot_path):
     )
     config_obj["pyfrc"]["field"].setdefault(
         "auto_joysticks", defaults.get("auto_joysticks", False)
+    )
+    config_obj["pyfrc"]["field"].setdefault(
+        "disabled_joysticks", defaults.get("disabled_joysticks", False)
     )
     assert isinstance(config_obj["pyfrc"]["game_specific_messages"], (list, type(None)))
 
