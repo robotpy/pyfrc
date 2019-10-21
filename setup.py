@@ -2,8 +2,8 @@
 
 import sys
 
-if sys.version_info < (3, 5):
-    sys.stderr.write("ERROR: RobotPy requires Python 3.5+\n")
+if sys.version_info < (3, 6):
+    sys.stderr.write("ERROR: RobotPy requires Python 3.6+\n")
     exit(1)
 
 import os
@@ -68,7 +68,7 @@ setup(
     if not os.environ.get("ROBOTPY_NO_DEPS")
     else None,
     extras_require={"coverage": ["coverage"]},
-    requires_python=">=3.5",
+    requires_python=">=3.6",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Framework :: Pytest",
@@ -76,9 +76,9 @@ setup(
         "Intended Audience :: Education",
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Scientific/Engineering",
         "Topic :: Software Development",
         "Topic :: Software Development :: Testing",
