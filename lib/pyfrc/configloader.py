@@ -29,6 +29,12 @@ _field_defaults = {
         "image": join(_field_root, "2019-field.gif"),
         "auto_joysticks": True,
     },
+    "2020": {
+        "h": 27,
+        "w": 52,
+        "px_per_ft": 15,
+        "image": join(_field_root, "2020-field.gif"),
+    },
     "default": {
         "h": 1,
         "w": 1,
@@ -41,7 +47,7 @@ _field_defaults = {
     },
 }
 
-_default_year = "2019"
+_default_year = "2020"
 
 # Do this to avoid breaking teams that created their own field stuff
 _field_defaults["default"]["game_specific_messages"] = _field_defaults[
