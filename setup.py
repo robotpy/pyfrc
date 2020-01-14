@@ -61,8 +61,7 @@ setup(
     author_email="robotpy@googlegroups.com",
     url="https://github.com/robotpy/pyfrc",
     license="BSD-3-Clause",
-    packages=find_packages(where="lib"),
-    package_dir={"": "lib"},
+    packages=find_packages(),
     include_package_data=True,
     install_requires=install_requires
     if not os.environ.get("ROBOTPY_NO_DEPS")

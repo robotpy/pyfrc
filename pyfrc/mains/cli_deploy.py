@@ -11,6 +11,8 @@ import threading
 from os.path import abspath, basename, dirname, exists, join, splitext
 from pathlib import PurePosixPath
 
+from robotpy_installer import sshcontroller
+
 from ..util import print_err, yesno
 
 import wpilib
@@ -111,19 +113,13 @@ class PyFrcDeploy:
 
     def run(self, options, robot_class, **static_options):
 
-        try:
-            from robotpy_installer import installer
-        except ImportError:
-            raise ImportError(
-                "You must have the robotpy-installer package installed to deploy code!"
-            )
-
         from .. import config
 
         config.mode = "upload"
 
         # run the test suite before uploading
-        if not options.skip_tests:
+        # TODO: disabled for 2020
+        if False and not options.skip_tests:
             from .cli_test import PyFrcTest
 
             tester = PyFrcTest()
@@ -210,7 +206,7 @@ class PyFrcDeploy:
         }
 
         check_version = (
-            '/usr/local/bin/python3 -c "exec(open(\\"$SITEPACKAGES/wpilib/version.py\\", \\"r\\").read(), globals()); print(\\"WPILib version on robot is \\" + __version__);exit(0) if __version__ == \\"%s\\" else exit(89)"'
+            '/usr/local/bin/python3 -c "exec(open(\\"$SITEPACKAGES/wpilib/version.py\\", \\"r\\").read(), globals()); print(\\"WPILib version on robot is \\" + version);exit(0) if version == \\"%s\\" else exit(89)"'
             % wpilib.__version__
         )
         if options.no_version_check:
@@ -243,21 +239,24 @@ class PyFrcDeploy:
         if not hostname_or_team and options.team:
             hostname_or_team = options.team
 
+        controller = None
+
         try:
-            controller = installer.ssh_from_cfg(
+            controller = sshcontroller.ssh_from_cfg(
                 cfg_filename,
                 username="lvuser",
                 password="",
                 hostname=hostname_or_team,
-                allow_mitm=True,
                 no_resolve=options.no_resolve,
             )
+
+            controller.ssh_connect()
 
             try:
                 # Housekeeping first
                 logger.debug("SSH: %s", sshcmd)
-                controller.ssh(sshcmd)
-            except installer.SshExecError as e:
+                controller.ssh_exec_commands(sshcmd, True)
+            except sshcontroller.SshExecError as e:
                 doret = True
                 if e.retval == 87:
                     print_err(
@@ -286,8 +285,9 @@ class PyFrcDeploy:
                     # -> https://github.com/wpilibsuite/EclipsePlugins/pull/154
                     logger.info("Fixing StartupDLLs to save RAM...")
                     controller.username = "admin"
-                    controller.ssh(
-                        'sed -i -e "s/^StartupDLLs/;StartupDLLs/" /etc/natinst/share/ni-rt.ini'
+                    controller.ssh_exec_commands(
+                        'sed -i -e "s/^StartupDLLs/;StartupDLLs/" /etc/natinst/share/ni-rt.ini',
+                        True,
                     )
 
                     controller.username = "lvuser"
@@ -345,13 +345,16 @@ class PyFrcDeploy:
                 }
 
                 logger.debug("SSH: %s", sshcmd)
-                controller.ssh(sshcmd)
+                controller.ssh_exec_commands(sshcmd, True)
 
-        except installer.Error as e:
+        except sshcontroller.Error as e:
             print_err("ERROR: %s" % e)
             return 1
         else:
             print("\nSUCCESS: Deploy was successful!")
+        finally:
+            if controller is not None:
+                controller.ssh_close_connection()
 
         if nc_thread is not None:
             nc_thread.join()

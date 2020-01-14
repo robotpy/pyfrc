@@ -7,7 +7,7 @@ from os.path import abspath, dirname, exists, join
 import pytest
 
 from ..util import yesno
-from ..test_support import pytest_plugin
+# from ..test_support import pytest_plugin
 
 # TODO: setting the plugins so that the end user can invoke py.test directly
 # could be a useful thing. Will have to consider that later.
