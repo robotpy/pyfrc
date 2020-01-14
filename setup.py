@@ -15,7 +15,7 @@ import glob
 setup_dir = dirname(__file__)
 git_dir = join(setup_dir, ".git")
 base_package = "pyfrc"
-version_file = join(setup_dir, "lib", base_package, "version.py")
+version_file = join(setup_dir, base_package, "version.py")
 
 # Automatically generate a version.py based on the git version
 if exists(git_dir):
