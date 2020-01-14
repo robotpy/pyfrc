@@ -96,6 +96,10 @@ class PyFrcCreatePhysics:
         pass
 
     def run(self, options, robot_class, **static_options):
+
+        print("Robot physics are not yet implemented for RobotPy 2020")
+        return 1
+
         robot_file = abspath(inspect.getfile(robot_class))
         robot_path = dirname(robot_file)
         sim_path = join(robot_path, "sim")

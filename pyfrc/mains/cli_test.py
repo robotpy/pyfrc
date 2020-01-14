@@ -48,6 +48,9 @@ class PyFrcTest:
     def run(self, options, robot_class, **static_options):
         # wrapper around run_test that sets the appropriate mode
 
+        print("tests are not yet implemented for RobotPy 2020")
+        return 1
+
         from .. import config
 
         config.mode = "test"
@@ -85,11 +88,6 @@ class PyFrcTest:
                     "ERROR: Cannot run profiling from a directory that does not contain robot.py"
                 )
                 return 1
-
-        # Load the simulation configuration for use in tests
-        from .. import configloader
-
-        configloader._load_config(robot_path)
 
         self.try_dirs = [
             abspath(join(robot_path, "tests")),

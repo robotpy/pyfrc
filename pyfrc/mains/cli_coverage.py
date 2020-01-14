@@ -18,6 +18,9 @@ class PyFrcCoverage:
 
     def run(self, options, robot_class, **static_options):
 
+        print("tests+coverage are not yet implemented for RobotPy 2020")
+        return 1
+
         try:
             import coverage
         except ImportError:

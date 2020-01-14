@@ -5,11 +5,8 @@ __pycache__
 *.pyc
 .coverage
 .cache
-lib/pyfrc.egg-info
-lib/pyfrc/version.py
-
-lib/pyfrc/robotpy/win32/plink.exe
-lib/pyfrc/robotpy/win32/psftp.exe
+pyfrc.egg-info
+pyfrc/version.py
 
 .settings
 docs/_build
