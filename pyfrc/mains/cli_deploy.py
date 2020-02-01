@@ -364,6 +364,7 @@ class PyFrcDeploy:
     def _copy_to_tmpdir(self, tmp_dir, robot_path):
 
         upload_files = []
+        ignore_exts = {"pyc", "whl", "ipk", "zip", "gz"}
 
         for root, dirs, files in os.walk(robot_path):
             prefix = root[len(robot_path) + 1 :]
@@ -378,7 +379,7 @@ class PyFrcDeploy:
             for filename in files:
 
                 r, ext = splitext(filename)
-                if ext == "pyc" or r.startswith("."):
+                if ext in ignore_exts or r.startswith("."):
                     continue
 
                 shutil.copy(join(root, filename), join(tmp_dir, prefix, filename))
