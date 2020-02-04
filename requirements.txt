@@ -1,5 +1,5 @@
 pytest>=2.8.0
-pynetconsole>=2.0.1
+pynetconsole>=2.0.2
 pint>=0.8
 
 wpilib>=2020.2.2.1,<2021.0.0
