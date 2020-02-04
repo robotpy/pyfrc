@@ -2,13 +2,13 @@ pytest>=2.8.0
 pynetconsole>=2.0.1
 pint>=0.8
 
-wpilib>=2020.1.2.2,<2021.0.0
-robotpy-halsim-gui>=2020.1.2.1,<2021.0.0
+wpilib>=2020.2.2.1,<2021.0.0
+robotpy-halsim-gui>=2020.2.2.0,<2021.0.0
 
-robotpy-installer>=2020.0.1,<2021.0.0
+robotpy-installer>=2020.0.2,<2021.0.0
 
 # Not really a requirement, but this is on the robot, so just install by default
-robotpy-wpilib-utilities>=2020.0.1,<2021.0.0
+robotpy-wpilib-utilities>=2020.1.0,<2021.0.0
 
 # coverage isn't in here because it requires an installed compiler, which
 # many students may not have installed
