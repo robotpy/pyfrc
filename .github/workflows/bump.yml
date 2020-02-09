@@ -10,7 +10,7 @@ jobs:
     steps:
     - name: Information
       run: |
-        echo "'${{ github.event.action }}' received from '${{ github.event.client_payload.repository }}'"
+        echo "Version update for ${{ github.event.client_payload.package_name }} -> ${{ github.event.client_payload.package_version }} requested"
     - uses: actions/checkout@v2
       with:
         token: ${{ secrets.REPO_ACCESS_TOKEN }}
@@ -19,13 +19,9 @@ jobs:
       with:
         python-version: 3.8
 
-    - name: Install Dependencies
-      run: |
-        pip install gitpython
-
     - name: Bump Requirements
       run: |
-        python update_req.py '${{ github.event.client_payload.repository }}' '${{ github.event.client_payload.package_name }}'
+        python update_req.py '${{ github.event.client_payload.package_name }}' '${{ github.event.client_payload.package_version }}'
 
     - name: Push changes
       run: |

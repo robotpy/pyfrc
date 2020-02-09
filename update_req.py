@@ -1,42 +1,25 @@
 import sys
-import git
-
 
 def main():
-    repo_name = sys.argv[1]  # Ex. robotpy/robotpy-wpilib
-    repo_path = "https://github.com/" + repo_name + ".git"
-    package_name = sys.argv[2]  # Ex. wpilib
+    package_name = sys.argv[1]  # Ex. robotpy/robotpy-wpilib
+    package_version = sys.argv[2]  # Ex. wpilib
 
-    print("Repository Name:", repo_name)
-    print("Repository Path:", repo_path)
     print("Package Name:", package_name)
+    print("Package Version:", package_version)
 
-    tag = git.Repo.clone_from(repo_path, "./temp", branch="master").git.describe(
-        "--tags", "--abbrev=0"
-    )
-
-    lower_bound = tag
-
+    lower_bound = package_version
     print("Latest Version:", lower_bound)
 
-    version = tag.split(".")
-
-    for i in range(len(version)):
-        if i == 0:
-            version[i] = str(int(version[i]) + 1)
-        else:
-            version[i] = "0"
-
-    upper_bound = ".".join(version)
-
+    upper_bound = getNextMajorVersion(lower_bound)
     print("Next Major Version:", upper_bound)
 
+    # Read requirements
     file_data = None
     with open("requirements.txt", "r") as file:
         file_data = file.readlines()
 
+    # Find desired requirement
     line_idx = None
-
     for i in range(len(file_data)):
         if file_data[i].find(package_name + ">=") == 0:
             line_idx = i
@@ -78,6 +61,15 @@ def getCurrentVersion(line: str):
     )  # remove newlines, tabs and spaces
     return v
 
+def getNextMajorVersion(curr_version: str):
+    version = curr_version.split(".")
+    version[0] = str(int(version[0]) + 1)
+
+    for i in range(1, len(version)):
+        version[i] = "0"
+
+    next_major = ".".join(version)
+    return next_major
 
 if __name__ == "__main__":
     main()
