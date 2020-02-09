@@ -1,5 +1,6 @@
 import sys
 
+
 def main():
     package_name = sys.argv[1]  # Ex. robotpy/robotpy-wpilib
     package_version = sys.argv[2]  # Ex. wpilib
@@ -61,6 +62,7 @@ def getCurrentVersion(line: str):
     )  # remove newlines, tabs and spaces
     return v
 
+
 def getNextMajorVersion(curr_version: str):
     version = curr_version.split(".")
     version[0] = str(int(version[0]) + 1)
@@ -70,6 +72,7 @@ def getNextMajorVersion(curr_version: str):
 
     next_major = ".".join(version)
     return next_major
+
 
 if __name__ == "__main__":
     main()
