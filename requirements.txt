@@ -2,7 +2,7 @@ pytest>=2.8.0
 pynetconsole>=2.0.2
 pint>=0.8
 
-wpilib>=2020.2.2.11,<2021.0.0.0
+wpilib>=2020.2.2.12,<2021.0.0.0
 robotpy-halsim-gui>=2020.2.2.0,<2021.0.0
 
 robotpy-installer>=2020.0.2,<2021.0.0
