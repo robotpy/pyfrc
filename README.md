@@ -11,27 +11,13 @@ This library contains a few primary parts:
 * A built-in uploader that will upload your robot code to the robot
 * Integration with the py.test testing tool to allow you to easily write unit
   tests for your robot code.
-* A robot simulator tool which allows you to run your code in (vaguely) real
-  time and get simple feedback via a tk-based UI
+* Various support for robot simulation
   
 Documentation
 =============
 
-For usage, detailed installation information, and other notes, please see
-our documentation at http://pyfrc.readthedocs.io
-
-Quick Install + Demo
-====================
-
-If you have python3 and pip installed, then do:
-
-    pip3 install pyfrc
-
-Once this is done, you can run a quick demo by running:
-
-    cd samples/physics/src/
-    python3 robot.py sim
-
+* RobotPy documentation: https://robotpy.readthedocs.io
+* Installation: https://robotpy.readthedocs.io/en/stable/install/pyfrc.html
 
 Contributing new changes
 ========================
