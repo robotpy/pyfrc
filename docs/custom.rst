@@ -4,19 +4,4 @@
 Custom Test Support
 ===================
 
-.. contents::
-
-pytest fixtures
----------------
-
-.. automodule:: pyfrc.test_support.pytest_plugin
-   :members:
-
-Controlling the robot's state
------------------------------
-
-.. automodule:: pyfrc.test_support.controller
-   :members:
-   
-.. automodule:: pyfrc.test_support.fake_time
-   :members:
+Test support has not yet been upgraded for 2020.

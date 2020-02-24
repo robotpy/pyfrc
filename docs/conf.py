@@ -1,26 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+#
+# Imports
+#
+
 import sys
 import os
+from os.path import abspath, dirname
 
-from os.path import abspath, join, dirname
-
-# Insert module path here
-sys.path.insert(0, abspath(dirname(__file__)))
-sys.path.insert(0, abspath(join(dirname(__file__), "..", "lib")))
-
-from unittest import mock
-
-sys.modules["wpilib"] = mock.MagicMock()
-sys.modules["hal_impl"] = mock.MagicMock()
-sys.modules["hal_impl.data"] = mock.MagicMock()
-sys.modules["hal_impl.sim_hooks"] = mock.MagicMock()
-sys.modules["hal_impl.types"] = mock.MagicMock()
-sys.modules["hal_impl.mode_helpers"] = mock.MagicMock()
-
-sys.modules["tkinter"] = mock.MagicMock()
-
+# Project must be built+installed to generate docs
+import pyfrc
 import pyfrc.config
 
 pyfrc.config.config_obj["pyfrc"] = dict(game_specific_messages=[])
@@ -56,12 +46,16 @@ master_doc = "index"
 
 # General information about the project.
 project = "pyfrc"
-copyright = "2014-2017, RobotPy development team"
+copyright = "2014-2020, RobotPy development team"
 
 autoclass_content = "both"
 
 intersphinx_mapping = {
-    "wpilib": ("http://robotpy-wpilib.readthedocs.io/en/%s/" % rtd_version, None)
+    "robotpy": ("https://robotpy.readthedocs.io/en/%s/" % rtd_version, None),
+    "wpilib": (
+        "https://robotpy.readthedocs.io/projects/wpilib/en/%s/" % rtd_version,
+        None,
+    ),
 }
 
 # The version info for the project you're documenting, acts as replacement for
@@ -135,9 +129,13 @@ texinfo_documents = [
 
 # -- Custom Document processing ----------------------------------------------
 
-import gensidebar
+from robotpy_sphinx.sidebar import generate_sidebar
 
-gensidebar.generate_sidebar(globals(), "pyfrc")
+generate_sidebar(
+    globals(),
+    "pyfrc",
+    "https://raw.githubusercontent.com/robotpy/docs-sidebar/master/sidebar.toml",
+)
 
 import sphinx.addnodes
 import docutils.nodes

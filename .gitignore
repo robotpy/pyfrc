@@ -9,8 +9,6 @@ pyfrc.egg-info
 pyfrc/version.py
 
 .settings
-docs/_build
-docs/_sidebar.rst.inc
 
 .deploy_cfg
 

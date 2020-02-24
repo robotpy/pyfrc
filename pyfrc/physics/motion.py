@@ -1,5 +1,4 @@
-from hal_impl.data import hal_data
-
+import hal
 import typing
 
 

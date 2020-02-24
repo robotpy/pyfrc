@@ -59,7 +59,7 @@ import logging
 
 logger = logging.getLogger("pyfrc.physics")
 
-from hal_impl.data import hal_data
+# from hal_impl.data import hal_data
 
 
 class PhysicsInitException(Exception):
