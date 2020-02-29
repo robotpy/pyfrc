@@ -89,6 +89,7 @@ setup(
             "create-physics = pyfrc.mains.cli_create_physics:PyFrcCreatePhysics",
             "deploy = pyfrc.mains.cli_deploy:PyFrcDeploy",
             "profiler = pyfrc.mains.cli_profiler:PyFrcProfiler",
+            "sim = pyfrc.mains.cli_sim:PyFrcSim",
             "test = pyfrc.mains.cli_test:PyFrcTest",
         ]
     },
