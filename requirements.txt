@@ -7,8 +7,8 @@ pint>=0.8
 # which is always going to be the desired behavior for our users
 robotpy-wpiutil>=2020.3.2.0,<2021.0.0
 pyntcore>=2020.3.2.0,<2021.0.0
-robotpy-hal>=2020.3.2.0,<2021.0.0
-wpilib>=2020.3.2.1,<2021.0.0.0
+robotpy-hal>=2020.3.2.1,<2021.0.0
+wpilib>=2020.3.2.3,<2021.0.0.0
 robotpy-halsim-gui>=2020.3.2.0,<2021.0.0.0
 
 robotpy-installer>=2020.0.5,<2021.0.0
