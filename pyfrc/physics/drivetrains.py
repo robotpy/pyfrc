@@ -20,6 +20,7 @@
     
     Here's an example usage of the drivetrains::
     
+        import hal.simulation
         from pyfrc.physics import drivetrains
     
         class PhysicsEngine:
@@ -28,16 +29,39 @@
                 self.physics_controller = physics_controller
                 self.drivetrain = drivetrains.TwoMotorDrivetrain(deadzone=drivetrains.linear_deadzone(0.2))
                 
-            def update_sim(self, hal_data, now, tm_diff):
-                # TODO: get motor values from hal_data
-                speed, rotation = self.drivetrain.get_vector(l_motor, r_motor)
-                self.physics_controller.drive(speed, rotation, tm_diff)
+                self.l_motor = hal.simulation.PWMSim(1)
+                self.r_motor = hal.simulation.PWMSim(2)
+                
+            def update_sim(self, now, tm_diff):
+                l_motor = self.l_motor.getSpeed()
+                r_motor = self.r_motor.getSpeed()
+
+                speeds = self.drivetrain.calculate(l_motor, r_motor)
+                self.physics_controller.drive(speeds, tm_diff)
                 
                 # optional: compute encoder
-                # l_encoder = self.drivetrain.l_speed * tm_diff
+                # l_encoder = self.drivetrain.wheelSpeeds.left * tm_diff
+    
+    .. versionchanged:: 2020.1.0
+
+       The input speeds and output rotation angles were changed to reflect
+       the current WPILib drivetrain/field objects. Wheelbases and default
+       speeds all require units.
 """
 import math
 import typing
+
+from .units import units, Helpers
+
+from wpilib.geometry import Translation2d
+
+from wpilib.kinematics import (
+    ChassisSpeeds,
+    DifferentialDriveKinematics,
+    DifferentialDriveWheelSpeeds,
+    MecanumDriveKinematics,
+    MecanumDriveWheelSpeeds,
+)
 
 DeadzoneCallable = typing.Callable[[float], float]
 
@@ -84,71 +108,61 @@ class TwoMotorDrivetrain:
         motion equations are as follows::
     
             FWD = (L+R)/2
-            RCW = (L-R)/W
+            RCCW = (R-L)/W
         
         * L is forward speed of the left wheel(s), all in sync
         * R is forward speed of the right wheel(s), all in sync
         * W is wheelbase in feet
         
-        If you called "SetInvertedMotor" on any of your motors in RobotDrive,
-        then you will need to multiply that motor's value by -1.
-        
-        .. note:: WPILib RobotDrive assumes that to make the robot go forward,
-                  the left motor must be set to -1, and the right to +1
+        .. note:: :class:`wpilib.drive.DifferentialDrive` assumes that to make
+                  the robot go forward, the left motor output is 1, and the
+                  right motor output is -1
         
         .. versionadded:: 2018.2.0
     """
 
+    #: Wheel speeds you can use for encoder calculations (updated by calculate)
+    wheelSpeeds: DifferentialDriveWheelSpeeds
+
     def __init__(
         self,
-        x_wheelbase: float = 2,
-        speed: float = 5,
-        deadzone: DeadzoneCallable = None,
+        x_wheelbase: units.Quantity = 2 * units.feet,
+        speed: units.Quantity = 5 * units.fps,
+        deadzone: typing.Optional[DeadzoneCallable] = None,
     ):
         """
-            :param x_wheelbase: The distance in feet between right and left wheels.
-            :param speed:      Speed of robot in feet per second (see above)
-            :param deadzone:   A function that adjusts the output of the motor (see :func:`linear_deadzone`)
+            :param x_wheelbase: The distance between right and left wheels.
+            :param speed:       Speed of robot (see above)
+            :param deadzone:    A function that adjusts the output of the motor (see :func:`linear_deadzone`)
         """
-        self.x_wheelbase = x_wheelbase
-        self.speed = speed
+        trackwidth = units.meters.m_from(x_wheelbase, name="x_wheelbase")
+        self.kinematics = DifferentialDriveKinematics(trackwidth)
+        self.speed = units.mps.m_from(speed, name="speed")
+        self.wheelSpeeds = DifferentialDriveWheelSpeeds()
         self.deadzone = deadzone
 
-        # Use these to compute encoder data after calling get_vector
-        self.l_speed = 0
-        self.r_speed = 0
-
-    def get_vector(self, l_motor: float, r_motor: float) -> typing.Tuple[float, float]:
+    def calculate(self, l_motor: float, r_motor: float) -> ChassisSpeeds:
         """
-            Given motor values, retrieves the vector of (distance, speed) for your robot
+            Given motor values, computes resulting chassis speeds of robot
         
-            :param l_motor:    Left motor value (-1 to 1); -1 is forward
-            :param r_motor:    Right motor value (-1 to 1); 1 is forward
+            :param l_motor:    Left motor value (-1 to 1); 1 is forward
+            :param r_motor:    Right motor value (-1 to 1); -1 is forward
 
-            :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
+            :returns: ChassisSpeeds that can be passed to 'drive'
+
+            .. versionadded:: 2020.1.0
         """
         if self.deadzone:
             l_motor = self.deadzone(l_motor)
             r_motor = self.deadzone(r_motor)
 
-        l = -l_motor * self.speed
-        r = r_motor * self.speed
+        l = l_motor * self.speed
+        r = -r_motor * self.speed
 
-        # Motion equations
-        fwd = (l + r) * 0.5
-        rcw = (l - r) / float(self.x_wheelbase)
+        self.wheelSpeeds.left = l
+        self.wheelSpeeds.right = r
 
-        self.l_speed = l
-        self.r_speed = r
-        return fwd, rcw
-
-
-def two_motor_drivetrain(l_motor, r_motor, x_wheelbase=2, speed=5, deadzone=None):
-    """
-        .. deprecated:: 2018.2.0
-           Use :class:`TwoMotorDrivetrain` instead
-    """
-    return TwoMotorDrivetrain(x_wheelbase, speed, deadzone).get_vector(l_motor, r_motor)
+        return self.kinematics.toChassisSpeeds(self.wheelSpeeds)
 
 
 class FourMotorDrivetrain:
@@ -157,50 +171,53 @@ class FourMotorDrivetrain:
         as follows::
     
             FWD = (L+R)/2
-            RCW = (L-R)/W
+            RCCW = (R-L)/W
         
         * L is forward speed of the left wheel(s), all in sync
         * R is forward speed of the right wheel(s), all in sync
         * W is wheelbase in feet
         
-        If you called "SetInvertedMotor" on any of your motors in RobotDrive,
-        then you will need to multiply that motor's value by -1.
-        
-        .. note:: WPILib RobotDrive assumes that to make the robot go forward,
-                  the left motors must be set to -1, and the right to +1
+        .. note:: :class:`wpilib.drive.DifferentialDrive` assumes that to make
+                  the robot go forward, the left motors must be set to 1, and
+                  the right to -1
         
         .. versionadded:: 2018.2.0
     """
 
-    #: Use this to compute encoder data after get_vector is called
-    l_speed = 0
-    r_speed = 0
+    #: Wheel speeds you can use for encoder calculations (updated by calculate)
+    wheelSpeeds: DifferentialDriveWheelSpeeds
 
     def __init__(
         self,
-        x_wheelbase: float = 2,
-        speed: float = 5,
-        deadzone: DeadzoneCallable = None,
+        x_wheelbase: units.Quantity = 2 * units.feet,
+        speed: units.Quantity = 5 * units.fps,
+        deadzone: typing.Optional[DeadzoneCallable] = None,
     ):
         """
-            :param x_wheelbase: The distance in feet between right and left wheels.
-            :param speed:      Speed of robot in feet per second (see above)
-            :param deadzone:   A function that adjusts the output of the motor (see :func:`linear_deadzone`)
+            :param x_wheelbase: The distance between right and left wheels.
+            :param speed:       Speed of robot (see above)
+            :param deadzone:    A function that adjusts the output of the motor (see :func:`linear_deadzone`)
         """
-        self.x_wheelbase = x_wheelbase
-        self.speed = speed
+        trackwidth = units.meters.m_from(x_wheelbase, name="x_wheelbase")
+        self.kinematics = DifferentialDriveKinematics(trackwidth)
+        self.speed = units.mps.m_from(speed, name="speed")
+        self.wheelSpeeds = DifferentialDriveWheelSpeeds()
         self.deadzone = deadzone
 
-    def get_vector(
-        self, lr_motor: float, rr_motor: float, lf_motor: float, rf_motor: float
-    ) -> typing.Tuple[float, float]:
+    def calculate(
+        self, lf_motor: float, lr_motor: float, rf_motor: float, rr_motor: float
+    ) -> ChassisSpeeds:
         """
-            :param lr_motor:   Left rear motor value (-1 to 1); -1 is forward
-            :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
-            :param lf_motor:   Left front motor value (-1 to 1); -1 is forward
-            :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
+            Given motor values, computes resulting chassis speeds of robot
+        
+            :param lf_motor:   Left front motor value (-1 to 1); 1 is forward
+            :param lr_motor:   Left rear motor value (-1 to 1); 1 is forward
+            :param rf_motor:   Right front motor value (-1 to 1); -1 is forward
+            :param rr_motor:   Right rear motor value (-1 to 1); -1 is forward
             
-            :returns: speed of robot (ft/s), clockwise rotation of robot (radians/s)
+            :returns: ChassisSpeeds that can be passed to 'drive'
+
+            .. versionadded:: 2020.1.0
         """
 
         if self.deadzone:
@@ -209,92 +226,70 @@ class FourMotorDrivetrain:
             rf_motor = self.deadzone(rf_motor)
             rr_motor = self.deadzone(rr_motor)
 
-        l = -(lf_motor + lr_motor) * 0.5 * self.speed
-        r = (rf_motor + rr_motor) * 0.5 * self.speed
+        l = (lf_motor + lr_motor) * 0.5 * self.speed
+        r = -(rf_motor + rr_motor) * 0.5 * self.speed
 
-        # Motion equations
-        fwd = (l + r) * 0.5
-        rcw = (l - r) / float(self.x_wheelbase)
+        self.wheelSpeeds.left = l
+        self.wheelSpeeds.right = r
 
-        self.l_speed = l
-        self.r_speed = r
-        return fwd, rcw
-
-
-def four_motor_drivetrain(
-    lr_motor, rr_motor, lf_motor, rf_motor, x_wheelbase=2, speed=5, deadzone=None
-):
-    """
-        .. deprecated:: 2018.2.0
-           Use :class:`FourMotorDrivetrain` instead
-    """
-    return FourMotorDrivetrain(x_wheelbase, speed, deadzone).get_vector(
-        lr_motor, rr_motor, lf_motor, rf_motor
-    )
+        return self.kinematics.toChassisSpeeds(self.wheelSpeeds)
 
 
 class MecanumDrivetrain:
     """
-        Four motors, each with a mechanum wheel attached to it.
+        Four motors, each with a mecanum wheel attached to it.
         
-        If you called "SetInvertedMotor" on any of your motors in RobotDrive,
-        then you will need to multiply that motor's value by -1.
-        
-        .. note:: WPILib RobotDrive assumes that to make the robot go forward,
-                  all motors are set to +1
+        .. note:: :class:`wpilib.drive.MecanumDrive` assumes that to make
+                  the robot go forward, the left motor outputs are 1, and the
+                  right motor outputs are -1
         
         .. versionadded:: 2018.2.0
     """
 
-    #: Use this to compute encoder data after get_vector is called
-    lr_speed = 0
-    rr_speed = 0
-    lf_speed = 0
-    rf_speed = 0
+    #: Use this to compute encoder data after calculate is called
+    wheelSpeeds: MecanumDriveWheelSpeeds
 
     def __init__(
         self,
-        x_wheelbase: float = 2,
-        y_wheelbase: float = 3,
-        speed: float = 5,
-        deadzone: DeadzoneCallable = None,
+        x_wheelbase: units.Quantity = 2 * units.feet,
+        y_wheelbase: units.Quantity = 3 * units.feet,
+        speed: units.Quantity = 5 * units.fps,
+        deadzone: typing.Optional[DeadzoneCallable] = None,
     ):
         """
-            :param x_wheelbase: The distance in feet between right and left wheels.
-            :param y_wheelbase: The distance in feet between forward and rear wheels.
-            :param speed:      Speed of robot in feet per second (see above)
-            :param deadzone:   A function that adjusts the output of the motor (see :func:`linear_deadzone`)
+            :param x_wheelbase: The distance between right and left wheels.
+            :param y_wheelbase: The distance between forward and rear wheels.
+            :param speed:       Speed of robot (see above)
+            :param deadzone:    A function that adjusts the output of the motor (see :func:`linear_deadzone`)
         """
-        self.x_wheelbase = x_wheelbase
-        self.y_wheelbase = y_wheelbase
-        self.speed = speed
+        x2 = units.meters.m_from(x_wheelbase, name="x_wheelbase") / 2.0
+        y2 = units.meters.m_from(y_wheelbase, name="y_wheelbase") / 2.0
+
+        self.kinematics = MecanumDriveKinematics(
+            Translation2d(x2, y2),
+            Translation2d(x2, -y2),
+            Translation2d(-x2, y2),
+            Translation2d(-x2, -y2),
+        )
+
+        self.speed = units.mps.m_from(speed, name="speed")
         self.deadzone = deadzone
 
-    def get_vector(
-        self, lr_motor: float, rr_motor: float, lf_motor: float, rf_motor: float
-    ) -> typing.Tuple[float, float, float]:
+        self.wheelSpeeds = MecanumDriveWheelSpeeds()
+
+    def calculate(
+        self, lf_motor: float, lr_motor: float, rf_motor: float, rr_motor: float,
+    ) -> ChassisSpeeds:
         """
-            Given motor values, retrieves the vector of (distance, speed) for your robot
-        
-            :param lr_motor:   Left rear motor value (-1 to 1); 1 is forward
-            :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
             :param lf_motor:   Left front motor value (-1 to 1); 1 is forward
-            :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
+            :param lr_motor:   Left rear motor value (-1 to 1); 1 is forward
+            :param rf_motor:   Right front motor value (-1 to 1); -1 is forward
+            :param rr_motor:   Right rear motor value (-1 to 1); -1 is forward
             
-            :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s),
-                      clockwise rotation of robot (radians/s)
+            :returns: ChassisSpeeds that can be passed to 'drive'
+
+            .. versionadded:: 2020.1.0
         """
-        #
-        # From http://www.chiefdelphi.com/media/papers/download/2722 pp7-9
-        # [F] [omega](r) = [V]
-        #
-        # F is
-        # .25  .25  .25 .25
-        # -.25 .25 -.25 .25
-        # -.25k -.25k .25k .25k
-        #
-        # omega is
-        # [lf lr rr rf]
 
         if self.deadzone:
             lf_motor = self.deadzone(lf_motor)
@@ -304,58 +299,32 @@ class MecanumDrivetrain:
 
         # Calculate speed of each wheel
         lr = lr_motor * self.speed
-        rr = rr_motor * self.speed
+        rr = -rr_motor * self.speed
         lf = lf_motor * self.speed
-        rf = rf_motor * self.speed
+        rf = -rf_motor * self.speed
 
-        # Calculate K
-        k = abs(self.x_wheelbase / 2.0) + abs(self.y_wheelbase / 2.0)
+        self.wheelSpeeds.frontLeft = lf
+        self.wheelSpeeds.rearLeft = lr
+        self.wheelSpeeds.frontRight = rf
+        self.wheelSpeeds.rearRight = rr
 
-        # Calculate resulting motion
-        Vy = 0.25 * (lf + lr + rr + rf)
-        Vx = 0.25 * (lf + -lr + rr + -rf)
-        Vw = (0.25 / k) * (lf + lr + -rr + -rf)
-
-        self.lr_speed = lr
-        self.rr_speed = rr
-        self.lf_speed = lf
-        self.rf_speed = rf
-        return Vx, Vy, Vw
-
-
-def mecanum_drivetrain(
-    lr_motor,
-    rr_motor,
-    lf_motor,
-    rf_motor,
-    x_wheelbase=2,
-    y_wheelbase=3,
-    speed=5,
-    deadzone=None,
-):
-    """
-        .. deprecated:: 2018.2.0
-           Use :class:`MecanumDrivetrain` instead
-    """
-    return MecanumDrivetrain(x_wheelbase, y_wheelbase, speed, deadzone).get_vector(
-        lr_motor, rr_motor, lf_motor, rf_motor
-    )
+        return self.kinematics.toChassisSpeeds(self.wheelSpeeds)
 
 
 def four_motor_swerve_drivetrain(
-    lr_motor,
-    rr_motor,
-    lf_motor,
-    rf_motor,
-    lr_angle,
-    rr_angle,
-    lf_angle,
-    rf_angle,
+    lr_motor: float,
+    rr_motor: float,
+    lf_motor: float,
+    rf_motor: float,
+    lr_angle: float,
+    rr_angle: float,
+    lf_angle: float,
+    rf_angle: float,
     x_wheelbase=2,
     y_wheelbase=2,
     speed=5,
     deadzone=None,
-):
+) -> ChassisSpeeds:
     """
         Four motors that can be rotated in any direction
         
@@ -374,11 +343,15 @@ def four_motor_swerve_drivetrain(
         
         :param x_wheelbase: The distance in feet between right and left wheels.
         :param y_wheelbase: The distance in feet between forward and rear wheels.
-        :param speed:      Speed of robot in feet per second (see above)
-        :param deadzone:   A function that adjusts the output of the motor (see :func:`linear_deadzone`)
+        :param speed:       Speed of robot in feet per second (see above)
+        :param deadzone:    A function that adjusts the output of the motor (see :func:`linear_deadzone`)
         
-        :returns: Speed of robot in x (ft/s), Speed of robot in y (ft/s),
-                  clockwise rotation of robot (radians/s)
+        :returns: ChassisSpeeds that can be passed to 'drive'
+        
+        .. versionchanged:: 2020.1.0
+
+           The output rotation angle was changed from CW to CCW to reflect the
+           current WPILib drivetrain/field objects
     """
 
     if deadzone:
@@ -425,17 +398,14 @@ def four_motor_swerve_drivetrain(
 
     # Finds the rotational velocity by finding the torque and adding them up
     Vw = wheelbase_radius * (
-        (math.cos(lr_rad) * lr)
-        + (math.cos(rr_rad) * -rr)
-        + (math.cos(lf_rad) * lf)
-        + (math.cos(rf_rad) * -rf)
+        (math.cos(lr_rad) * -lr)
+        + (math.cos(rr_rad) * rr)
+        + (math.cos(lf_rad) * -lf)
+        + (math.cos(rf_rad) * rf)
     )
 
     Vx *= 0.25
     Vy *= 0.25
     Vw *= 0.25
 
-    return Vx, Vy, Vw
-
-
-# TODO: holonomic, etc
+    return ChassisSpeeds.fromFeet(Vx, Vy, Vw)

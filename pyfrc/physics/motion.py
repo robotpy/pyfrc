@@ -11,17 +11,20 @@ class LinearMotion:
         360-count-per-ft encoder, coupled to a PWM motor on port 0 and the
         first encoder object::
         
+            import hal.simulation
             from pyfrc.physics import motion
         
             class PhysicsEngine:
                 
                 def __init__(self, physics_controller):
                     self.motion = pyfrc.physics.motion.LinearMotion('Motion', 2, 360, 6)
+                    self.motor = hal.simulation.PWMSim(0)
+                    self.encoder = hal.simulation
                 
-                def update_sim(self, hal_data, now, tm_diff):
-                    
-                    motor_value = hal_data['pwm'][0]['value']
-                    hal_data['encoder'][0]['value'] = self.motion.compute(motor_value)
+                def update_sim(self, now, tm_diff):
+                    motor_value = self.motor.getValue()
+                    count = self.motion.compute(motor_value, tm_diff)
+                    self.encoder.setCount(count)
         
         .. versionadded:: 2018.3.0
     """
@@ -41,7 +44,7 @@ class LinearMotion:
         min_position: typing.Optional[float] = 0,
     ):
         """
-            :param name: Name of motion, shown in pyfrc simulation UI
+            :param name: Name of motion, shown in simulation UI
             :param motor_ft_per_sec: Motor travel in feet per second (or whatever units you want)
             :param ticks_per_feet: Number of encoder ticks per feet
             :param max_position: Maximum position that this motion travels to
@@ -53,7 +56,8 @@ class LinearMotion:
         self.min_position = min_position
         self.max_position = max_position
 
-        hal_data.setdefault("custom", {})[self.name] = 0
+        self.device = hal.SimDevice(self.name)
+        self.position = self.device.createDouble("position", True, 0.0)
 
     def compute(self, motor_val, tm_diff):
         self.position_ft += motor_val * tm_diff * self.motor_ft_per_sec
@@ -66,5 +70,5 @@ class LinearMotion:
         self.position_ticks = int(self.position_ft * self.ticks_per_feet)
 
         # This causes a label to be rendered in the UI
-        hal_data["custom"][self.name] = self.position_ft
+        self.position.set(self.position_ft)
         return self.position_ticks

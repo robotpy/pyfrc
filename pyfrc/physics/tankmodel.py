@@ -15,6 +15,8 @@
 import math
 import typing
 
+from wpilib.geometry import Transform2d
+
 from .motor_cfgs import MotorModelConfig
 from .units import units, Helpers
 
@@ -147,6 +149,9 @@ class TankModel:
                 
                 def __init__(self, physics_controller):
                     self.physics_controller = physics_controller
+
+                    self.l_motor = hal.simulation.PWMSim(1)
+                    self.r_motor = hal.simulation.PWMSim(2)
                     
                     self.drivetrain = tankmodel.TankModel.theory(motors.MOTOR_CFG_CIM_IMP,
                                                                  robot_mass=90 * units.lbs,
@@ -154,10 +159,12 @@ class TankModel:
                                                                  x_wheelbase=2.0*feet,
                                                                  wheel_diameter=6*units.inch)
                     
-                def update_sim(self, hal_data, now, tm_diff):
-                    # TODO: get motor values from hal_data
-                    velocity, rotation = self.drivetrain.get_vector(l_motor, r_motor)
-                    self.physics_controller.drive(velocity, rotation, tm_diff)
+                def update_sim(self, now, tm_diff):
+                    l_motor = self.l_motor.getSpeed()
+                    r_motor = self.r_motor.getSpeed()
+
+                    transform = self.drivetrain.calculate(l_motor, r_motor, tm_diff)
+                    self.physics_controller.move_robot(transform)
                     
                     # optional: compute encoder
                     # l_encoder = self.drivetrain.l_position * ENCODER_TICKS_PER_FT
@@ -371,9 +378,7 @@ class TankModel:
     def inertia(self, value):
         self._inertia = value
 
-    def get_distance(
-        self, l_motor: float, r_motor: float, tm_diff: float
-    ) -> typing.Tuple[float, float]:
+    def calculate(self, l_motor: float, r_motor: float, tm_diff: float) -> Transform2d:
         """
             Given motor values and the amount of time elapsed since this was last
             called, retrieves the x,y,angle that the robot has moved. Pass these
@@ -382,15 +387,17 @@ class TankModel:
             To update your encoders, use the ``l_position`` and ``r_position``
             attributes of this object.
         
-            :param l_motor:    Left motor value (-1 to 1); -1 is forward
-            :param r_motor:    Right motor value (-1 to 1); 1 is forward
+            :param l_motor:    Left motor value (-1 to 1); 1 is forward
+            :param r_motor:    Right motor value (-1 to 1); -1 is forward
             :param tm_diff:    Elapsed time since last call to this function
 
-            :returns: x travel, y travel, angle turned (radians)
+            :returns: transform containing x/y/angle offsets of robot travel 
             
             .. note:: If you are using more than 2 motors, it is assumed that
                       all motors on each side are set to the same speed. Only
                       pass in one of the values from each side
+            
+            .. versionadded:: 2020.1.0
         """
 
         # This isn't quite right, the right way is to use matrix math. However,
@@ -418,8 +425,8 @@ class TankModel:
 
             steps -= 1
 
-            l = self._lmotor.compute(-l_motor, tm_diff)
-            r = self._rmotor.compute(r_motor, tm_diff)
+            l = self._lmotor.compute(l_motor, tm_diff)
+            r = self._rmotor.compute(-r_motor, tm_diff)
 
             # Tank drive motion equations
             velocity = (l + r) * 0.5
@@ -427,7 +434,7 @@ class TankModel:
             # Thanks to Tyler Veness for fixing the rotation equation, via conservation
             # of angular momentum equations
             # -> omega = b * m * (l - r) / J
-            rotation = self._bm * (l - r) / self._inertia
+            rotation = self._bm * (r - l) / self._inertia
 
             distance = velocity * tm_diff
             turn = rotation * tm_diff
@@ -436,4 +443,4 @@ class TankModel:
             y += distance * math.sin(angle)
             angle += turn
 
-        return x, y, angle
+        return Transform2d.fromFeet(x, y, angle)
