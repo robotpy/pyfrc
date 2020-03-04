@@ -117,4 +117,24 @@ MOTOR_CFG_BB_RS550 = MotorModelConfig(
     84.0 * units.amps,
 )
 
+#: Motor configuration for NEO 550 Brushless Motor
+MOTOR_CFG_NEO_550 = MotorModelConfig(
+    "NEO 550",
+    NOMINAL_VOLTAGE,
+    11000 * units.cpm,
+    1.4 * units.amps,
+    0.97 * units.N_m,
+    100 * units.amps,
+)
+
+#: Motor configuration for Falcon 500 Brushless Motor
+MOTOR_CFG_FALCON_500 = MotorModelConfig(
+    "Falcon 500",
+    NOMINAL_VOLTAGE,
+    6380 * units.cpm,
+    1.5 * units.amps,
+    4.69 * units.N_m,
+    257 * units.amps,
+)
+
 del units
