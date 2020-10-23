@@ -1,3 +1,4 @@
+import os
 from os.path import abspath, dirname, join
 
 import halsim_gui
@@ -16,7 +17,10 @@ class PyFrcSim:
         pass
 
     def run(self, options, robot_class, **static_options):
+        # gui extension changes the current directory
+        cwd = os.getcwd()
         halsim_gui.loadExtension()
+        os.chdir(cwd)
 
         # initialize physics, attach to the user robot class
         from ..physics.core import PhysicsInterface, PhysicsInitException
