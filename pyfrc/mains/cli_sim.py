@@ -2,6 +2,7 @@ from os.path import abspath, dirname
 import argparse
 import inspect
 import logging
+import importlib
 
 logger = logging.getLogger("pyfrc.sim")
 
@@ -14,7 +15,7 @@ class PyFrcSim:
     def __init__(self, parser: argparse.ArgumentParser):
         parser.add_argument(
             "--gui",
-            default=False,
+            default=bool(importlib.util.find_spec("halsim_gui")),
             action="store_true",
             help="Use the WPIlib simulation gui",
         )
