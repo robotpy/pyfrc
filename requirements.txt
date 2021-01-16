@@ -2,19 +2,9 @@ pytest>=3.9
 pynetconsole>=2.0.2
 pint>=0.11.0
 
-# Explicitly specify each robotpy package so that pip install -U pyfrc
-# is an easy shortcut to upgrade to the latest version of everything,
-# which is always going to be the desired behavior for our users
-robotpy-wpiutil>=2020.3.2.1,<2021.0.0.0
-pyntcore>=2020.3.2.1,<2021.0.0.0
-robotpy-hal>=2020.3.2.5,<2021.0.0.0
-wpilib>=2020.3.2.4,<2021.0.0.0
-robotpy-halsim-gui>=2020.3.2.1,<2021.0.0.0
+robotpy-wpiutil>=2021,<2022
+pyntcore>=2021,<2022
+robotpy-hal>=2021,<2022
+wpilib>=2021,<2022
 
-robotpy-installer>=2020.0.5,<2021.0.0
-
-# Not really a requirement, but this is on the robot, so just install by default
-robotpy-wpilib-utilities>=2020.2.0,<2021.0.0
-
-# coverage isn't in here because it requires an installed compiler, which
-# many students may not have installed
+robotpy-installer>=2021,<2022
