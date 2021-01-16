@@ -1,6 +1,5 @@
-from os.path import abspath, dirname, join
-
-import halsim_gui
+from os.path import abspath, dirname
+import argparse
 import inspect
 import logging
 
@@ -12,11 +11,24 @@ class PyFrcSim:
     Runs the robot using WPILib's GUI HAL Simulator
     """
 
-    def __init__(self, parser):
-        pass
+    def __init__(self, parser: argparse.ArgumentParser):
+        parser.add_argument(
+            "--gui",
+            default=False,
+            action="store_true",
+            help="Use the WPIlib simulation gui",
+        )
 
     def run(self, options, robot_class, **static_options):
-        halsim_gui.loadExtension()
+
+        if options.gui:
+            try:
+                import halsim_gui
+            except ImportError:
+                print("robotpy-halsim-gui is not installed!")
+                exit(1)
+            else:
+                halsim_gui.loadExtension()
 
         # initialize physics, attach to the user robot class
         from ..physics.core import PhysicsInterface, PhysicsInitException
