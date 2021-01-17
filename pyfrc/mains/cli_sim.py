@@ -14,15 +14,15 @@ class PyFrcSim:
 
     def __init__(self, parser: argparse.ArgumentParser):
         parser.add_argument(
-            "--gui",
-            default=bool(importlib.util.find_spec("halsim_gui")),
+            "--nogui",
+            default=False,
             action="store_true",
-            help="Use the WPIlib simulation gui",
+            help="Don't use the WPIlib simulation gui",
         )
 
     def run(self, options, robot_class, **static_options):
 
-        if options.gui:
+        if not options.nogui:
             try:
                 import halsim_gui
             except ImportError:
