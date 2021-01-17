@@ -49,42 +49,42 @@ class PhysicsInitException(Exception):
 
 class PhysicsEngine:
     """
-        Your physics module must contain a class called ``PhysicsEngine``,
-        and it must implement the same functions as this class.
-        
-        Alternatively, you can inherit from this object. However, that is
-        not required.
+    Your physics module must contain a class called ``PhysicsEngine``,
+    and it must implement the same functions as this class.
+
+    Alternatively, you can inherit from this object. However, that is
+    not required.
     """
 
     def __init__(self, physics_controller: "PhysicsInterface"):
         """
-            The constructor must take the following arguments:
-            
-            :param physics_controller: The physics controller interface
-            :type  physics_controller: :class:`.PhysicsInterface`
+        The constructor must take the following arguments:
+
+        :param physics_controller: The physics controller interface
+        :type  physics_controller: :class:`.PhysicsInterface`
         """
         self.physics_controller = physics_controller
 
     def update_sim(self, now: float, tm_diff: float):
         """
-            Called when the simulation parameters for the program should be
-            updated. This is called after robotPeriodic is called.
-            
-            :param now: The current time
-            :type  now: float
-            :param tm_diff: The amount of time that has passed since the last
-                            time that this function was called
-            :type  tm_diff: float
+        Called when the simulation parameters for the program should be
+        updated. This is called after robotPeriodic is called.
+
+        :param now: The current time
+        :type  now: float
+        :param tm_diff: The amount of time that has passed since the last
+                        time that this function was called
+        :type  tm_diff: float
         """
         pass
 
 
 class PhysicsInterface:
     """
-        An instance of this is passed to the constructor of your
-        :class:`PhysicsEngine` object. This instance is used to communicate
-        information to the simulation, such as moving the robot on the
-        field displayed to the user.
+    An instance of this is passed to the constructor of your
+    :class:`PhysicsEngine` object. This instance is used to communicate
+    information to the simulation, such as moving the robot on the
+    field displayed to the user.
     """
 
     @classmethod
@@ -160,22 +160,22 @@ class PhysicsInterface:
 
     def drive(self, speeds: ChassisSpeeds, tm_diff: float) -> Pose2d:
         """Call this from your :func:`PhysicsEngine.update_sim` function.
-           Will update the robot's position on the simulation field.
+        Will update the robot's position on the simulation field.
 
-           You can either calculate the chassis speeds yourself, or you
-           can use the predefined functions in :mod:`pyfrc.physics.drivetrains`.
-           
-           The outputs of the `drivetrains.*` functions should be passed
-           to this function.
+        You can either calculate the chassis speeds yourself, or you
+        can use the predefined functions in :mod:`pyfrc.physics.drivetrains`.
 
-           :param speeds:   Represents current speed/angle of robot travel
-           :param tm_diff:  Amount of time speed was traveled (this is the
-                            same value that was passed to update_sim)
-            
-           :return: current robot pose
+        The outputs of the `drivetrains.*` functions should be passed
+        to this function.
 
-           .. versionchanged:: 2020.1.0
-              Input parameter is ChassisSpeeds object
+        :param speeds:   Represents current speed/angle of robot travel
+        :param tm_diff:  Amount of time speed was traveled (this is the
+                         same value that was passed to update_sim)
+
+        :return: current robot pose
+
+        .. versionchanged:: 2020.1.0
+           Input parameter is ChassisSpeeds object
         """
 
         twist = Twist2d(
@@ -191,16 +191,16 @@ class PhysicsInterface:
 
     def move_robot(self, transform: Transform2d) -> Pose2d:
         """Call this from your :func:`PhysicsEngine.update_sim` function.
-           Will update the robot's position on the simulation field.
-           
-           This moves the robot some relative distance and angle from
-           its current position.
+        Will update the robot's position on the simulation field.
 
-           :param transform: The distance and angle to move the robot
+        This moves the robot some relative distance and angle from
+        its current position.
 
-           :return: current robot pose
+        :param transform: The distance and angle to move the robot
 
-           .. versionadded:: 2020.1.0
+        :return: current robot pose
+
+        .. versionadded:: 2020.1.0
         """
 
         pose = self.field.getRobotPose()
@@ -210,9 +210,9 @@ class PhysicsInterface:
 
     def get_pose(self):
         """
-            :returns: current robot pose
+        :returns: current robot pose
 
-            .. versionadded:: 2020.1.0
+        .. versionadded:: 2020.1.0
         """
         return self.field.getRobotPose()
 

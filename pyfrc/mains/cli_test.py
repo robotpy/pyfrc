@@ -23,7 +23,7 @@ class _TryAgain(Exception):
 #
 class PyFrcTest:
     """
-        Executes unit tests on the robot code using a special py.test plugin
+    Executes unit tests on the robot code using a special py.test plugin
     """
 
     def __init__(self, parser=None):

@@ -57,7 +57,7 @@ def fuzz_all(hal_data):
 
 def test_fuzz(hal_data, control, fake_time, robot):
     """
-        Runs through a whole game randomly setting components
+    Runs through a whole game randomly setting components
     """
 
     class TestController:
@@ -70,11 +70,11 @@ def test_fuzz(hal_data, control, fake_time, robot):
 
         def on_step(self, tm):
             """
-                Called on each simulation step. This runs through each mode,
-                and asserts that the robot didn't spend too much time in any
-                particular mode.This also calls fuzz_all and fuzzes all data
-            
-                :param tm: The current robot time
+            Called on each simulation step. This runs through each mode,
+            and asserts that the robot didn't spend too much time in any
+            particular mode.This also calls fuzz_all and fuzzes all data
+
+            :param tm: The current robot time
             """
 
             fuzz_all(hal_data)

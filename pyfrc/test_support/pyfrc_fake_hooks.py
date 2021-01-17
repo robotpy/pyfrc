@@ -3,7 +3,7 @@ from hal_impl.sim_hooks import SimHooks
 
 class PyFrcFakeHooks(SimHooks):
     """
-        Defines hal hooks that use the fake time object
+    Defines hal hooks that use the fake time object
     """
 
     def __init__(self, fake_time):

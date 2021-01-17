@@ -9,7 +9,7 @@ logger = logging.getLogger("pyfrc.sim")
 
 class PyFrcSim:
     """
-        Runs the robot using WPILib's GUI HAL Simulator
+    Runs the robot using WPILib's GUI HAL Simulator
     """
 
     def __init__(self, parser):

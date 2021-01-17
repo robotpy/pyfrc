@@ -31,7 +31,7 @@ def relpath(path):
 
 class PyFrcDeploy:
     """
-        Uploads your robot code to the robot and executes it immediately
+    Uploads your robot code to the robot and executes it immediately
     """
 
     def __init__(self, parser: argparse.ArgumentParser):

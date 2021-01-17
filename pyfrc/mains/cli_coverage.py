@@ -7,8 +7,8 @@ import sys
 
 class PyFrcCoverage:
     """
-        Wraps other commands by running them via the coverage module. Requires
-        the coverage module to be installed.
+    Wraps other commands by running them via the coverage module. Requires
+    the coverage module to be installed.
     """
 
     def __init__(self, parser):

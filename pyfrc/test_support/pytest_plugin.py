@@ -12,9 +12,9 @@ class ThreadStillRunningError(Exception):
 
 class PyFrcPlugin:
     """
-        Pytest plugin. Each documented member function name can be an argument
-        to your test functions, and the data that these functions return will
-        be passed to your test function.
+    Pytest plugin. Each documented member function name can be an argument
+    to your test functions, and the data that these functions return will
+    be passed to your test function.
     """
 
     def __init__(self, robot_class, robot_file, robot_path):
@@ -126,28 +126,28 @@ class PyFrcPlugin:
     @pytest.fixture()
     def control(self):
         """
-            A fixture that provides control over the robot
-            
-            :rtype: :class:`.TestController`
+        A fixture that provides control over the robot
+
+        :rtype: :class:`.TestController`
         """
         return self._test_controller
 
     @pytest.fixture()
     def fake_time(self):
         """
-            A fixture that gives you control over the time your robot is using
-            
-            :rtype:   :class:`.FakeTime`
+        A fixture that gives you control over the time your robot is using
+
+        :rtype:   :class:`.FakeTime`
         """
         return self._fake_time
 
     @pytest.fixture()
     def hal_data(self):
         """
-            Provides access to a dict with all the device data about the robot
-            
-            .. seealso:: For a listing of what the dict contains and some documentation, see
-                         https://github.com/robotpy/robotpy-wpilib/blob/master/hal-sim/hal_impl/data.py
+        Provides access to a dict with all the device data about the robot
+
+        .. seealso:: For a listing of what the dict contains and some documentation, see
+                     https://github.com/robotpy/robotpy-wpilib/blob/master/hal-sim/hal_impl/data.py
         """
         return hal_impl.data.hal_data
 

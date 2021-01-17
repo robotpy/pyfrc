@@ -4,13 +4,13 @@ import weakref
 
 class TestRanTooLong(BaseException):
     """
-        This is thrown when the time limit has expired
-        
-        This exception inherits from BaseException, so if you want to catch
-        it you must explicitly specify it, as a blanket except statement
-        will not catch this exception.'
-        
-        Generally, only internal pyfrc code needs to catch this
+    This is thrown when the time limit has expired
+
+    This exception inherits from BaseException, so if you want to catch
+    it you must explicitly specify it, as a blanket except statement
+    will not catch this exception.'
+
+    Generally, only internal pyfrc code needs to catch this
     """
 
     pass
@@ -18,13 +18,13 @@ class TestRanTooLong(BaseException):
 
 class TestEnded(BaseException):
     """
-        This is thrown when the controller has been signaled to end the test
-        
-        This exception inherits from BaseException, so if you want to catch
-        it you must explicitly specify it, as a blanket except statement
-        will not catch this exception.'
-        
-        Generally, only internal pyfrc code needs to catch this
+    This is thrown when the controller has been signaled to end the test
+
+    This exception inherits from BaseException, so if you want to catch
+    it you must explicitly specify it, as a blanket except statement
+    will not catch this exception.'
+
+    Generally, only internal pyfrc code needs to catch this
     """
 
     pass
@@ -32,8 +32,8 @@ class TestEnded(BaseException):
 
 class TestFroze(BaseException):
     """
-        This happens when an infinite loop of some kind in one of your
-        non-robot threads is detected.
+    This happens when an infinite loop of some kind in one of your
+    non-robot threads is detected.
     """
 
     pass
@@ -41,11 +41,11 @@ class TestFroze(BaseException):
 
 class FakeTime:
     """
-        Keeps track of time for robot code being tested, and makes sure the
-        DriverStation is notified that new packets are coming in.
-        
-        .. note:: Do not create this object, your testing code can use this
-                  object to control time via the ``fake_time`` fixture
+    Keeps track of time for robot code being tested, and makes sure the
+    DriverStation is notified that new packets are coming in.
+
+    .. note:: Do not create this object, your testing code can use this
+              object to control time via the ``fake_time`` fixture
     """
 
     def __init__(self):
@@ -58,7 +58,7 @@ class FakeTime:
 
     def initialize(self):
         """
-            Initializes fake time
+        Initializes fake time
         """
 
         self.reset()
@@ -138,7 +138,7 @@ class FakeTime:
 
     def reset(self):
         """
-            Resets the fake time to zero, and sets the time limit to default
+        Resets the fake time to zero, and sets the time limit to default
         """
         self.time = 0
         self.time_limit = 500
@@ -153,16 +153,16 @@ class FakeTime:
 
     def get(self):
         """
-            :returns: The current time for the robot
+        :returns: The current time for the robot
         """
         return self.time
 
     def increment_time_by(self, time):
         """
-            Increments time by some number of seconds
-            
-            :param time: Number of seconds to increment time by
-            :type time: float
+        Increments time by some number of seconds
+
+        :param time: Number of seconds to increment time by
+        :type time: float
         """
         # If it is a thread calling us, we intercept the call and insert
         # a blocking call to a threading.Event.wait() to force it to sleep
@@ -243,8 +243,8 @@ class FakeTime:
 
     def increment_new_packet(self):
         """
-            Increment time enough to where the new DriverStation packet
-            comes in
+        Increment time enough to where the new DriverStation packet
+        comes in
         """
         with self.lock:
             next_ds_time = self.next_ds_time
@@ -254,13 +254,13 @@ class FakeTime:
 
     def set_time_limit(self, time_limit):
         """
-            Sets the amount of time that a robot will run. When time is
-            incremented past this time, a TestRanTooLong is thrown.
-            
-            The default time limit is 500 seconds
-            
-            :param time_limit: Number of seconds
-            :type time_limit: float
+        Sets the amount of time that a robot will run. When time is
+        incremented past this time, a TestRanTooLong is thrown.
+
+        The default time limit is 500 seconds
+
+        :param time_limit: Number of seconds
+        :type time_limit: float
         """
         self.time_limit = time_limit
 
@@ -271,8 +271,8 @@ class FakeTime:
 
 class _DSCondition(threading.Condition):
     """
-        Condition variable replacement to allow fake time to be used to hook
-        into the DriverStation packets.
+    Condition variable replacement to allow fake time to be used to hook
+    into the DriverStation packets.
     """
 
     def __init__(self, fake_time_inst, lock=None):

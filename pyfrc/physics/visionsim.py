@@ -16,21 +16,21 @@ def _in_angle_interval(x, a, b):
 
 class VisionSimTarget:
     """
-        Target object that you pass the to the constructor of :class:`.VisionSim`
+    Target object that you pass the to the constructor of :class:`.VisionSim`
     """
 
     def __init__(self, x, y, view_angle_start, view_angle_end):
         """
-            :param x: Target x position
-            :param y: Target y position
-        
-            :param view_angle_start:
-            :param view_angle_end: clockwise from start angle
-            
-            View angle is defined in degrees from 0 to 360, with 0 = east,
-            increasing clockwise. So, if the robot could only see
-            the target from the south east side, you would use a view angle
-            of start=0, end=90.
+        :param x: Target x position
+        :param y: Target y position
+
+        :param view_angle_start:
+        :param view_angle_end: clockwise from start angle
+
+        View angle is defined in degrees from 0 to 360, with 0 = east,
+        increasing clockwise. So, if the robot could only see
+        the target from the south east side, you would use a view angle
+        of start=0, end=90.
         """
         self.x = x
         self.y = y
@@ -78,44 +78,44 @@ class VisionSimTarget:
 
 class VisionSim:
     """
-        This helper object is designed to help you simulate input from a
-        vision system. The algorithm is a very simple approximation and
-        has some weaknesses, but it should be a good start and general
-        enough to work for many different usages.
-        
-        There are a few assumptions that this makes:
-        
-        - Your camera code sends new data at a constant frequency
-        - The data from the camera lags behind at a fixed latency
-        - If the camera is too close, the target cannot be seen
-        - If the camera is too far, the target cannot be seen
-        - You can only 'see' the target when the 'front' of the robot is
-          around particular angles to the target
-        - The camera is in the center of your robot (this simplifies some
-          things, maybe fix this in the future...)
-        
-        To use this, create an instance in your physics simulator::
-        
-            targets = [
-                VisionSim.Target(...)
-            ]
-        
-        
-        Then call the :meth:`compute` method from your ``update_sim`` method
-        whenever your camera processing is enabled::
-        
-            # in physics engine update_sim()
-            x, y, angle = self.physics_controller.get_position()
-            
-            if self.camera_enabled:
-                data = self.vision_sim.compute(now, x, y, angle)
-                if data is not None:
-                    self.nt.putNumberArray('/camera/target', data[0])
-            else:
-                self.vision_sim.dont_compute()
-                
-        .. note:: There is a working example in the examples repository
-                  you can use to try this functionality out
+    This helper object is designed to help you simulate input from a
+    vision system. The algorithm is a very simple approximation and
+    has some weaknesses, but it should be a good start and general
+    enough to work for many different usages.
+
+    There are a few assumptions that this makes:
+
+    - Your camera code sends new data at a constant frequency
+    - The data from the camera lags behind at a fixed latency
+    - If the camera is too close, the target cannot be seen
+    - If the camera is too far, the target cannot be seen
+    - You can only 'see' the target when the 'front' of the robot is
+      around particular angles to the target
+    - The camera is in the center of your robot (this simplifies some
+      things, maybe fix this in the future...)
+
+    To use this, create an instance in your physics simulator::
+
+        targets = [
+            VisionSim.Target(...)
+        ]
+
+
+    Then call the :meth:`compute` method from your ``update_sim`` method
+    whenever your camera processing is enabled::
+
+        # in physics engine update_sim()
+        x, y, angle = self.physics_controller.get_position()
+
+        if self.camera_enabled:
+            data = self.vision_sim.compute(now, x, y, angle)
+            if data is not None:
+                self.nt.putNumberArray('/camera/target', data[0])
+        else:
+            self.vision_sim.dont_compute()
+
+    .. note:: There is a working example in the examples repository
+              you can use to try this functionality out
     """
 
     Target = VisionSimTarget
@@ -131,17 +131,17 @@ class VisionSim:
         physics_controller=None,
     ):
         """
-            There are a lot of constructor parameters:
-            
-            :param targets:          List of target positions (x, y) on field in feet
-            :param view_angle_start: Center angle that the robot can 'see' the target from (in degrees)
-            :param camera_fov:       Field of view of camera (in degrees)
-            :param view_dst_start:   If the robot is closer than this, the target cannot be seen
-            :param view_dst_end:     If the robot is farther than this, the target cannot be seen
-            :param data_frequency:   How often the camera transmits new coordinates
-            :param data_lag:         How long it takes for the camera data to be processed
-                                     and make it to the robot
-            :param physics_controller: If set, will draw target information in UI
+        There are a lot of constructor parameters:
+
+        :param targets:          List of target positions (x, y) on field in feet
+        :param view_angle_start: Center angle that the robot can 'see' the target from (in degrees)
+        :param camera_fov:       Field of view of camera (in degrees)
+        :param view_dst_start:   If the robot is closer than this, the target cannot be seen
+        :param view_dst_end:     If the robot is farther than this, the target cannot be seen
+        :param data_frequency:   How often the camera transmits new coordinates
+        :param data_lag:         How long it takes for the camera data to be processed
+                                 and make it to the robot
+        :param physics_controller: If set, will draw target information in UI
         """
 
         fov2 = math.radians(camera_fov / 2.0)
@@ -174,36 +174,36 @@ class VisionSim:
 
     def dont_compute(self):
         """
-            Call this when vision processing should be disabled
+        Call this when vision processing should be disabled
         """
         self.send_queue.clear()
 
     def get_immediate_distance(self):
         """
-            Use this data to feed to a sensor that is mostly instantaneous
-            (such as an ultrasonic sensor).
-            
-            .. note:: You must call :meth:`compute` first.
+        Use this data to feed to a sensor that is mostly instantaneous
+        (such as an ultrasonic sensor).
+
+        .. note:: You must call :meth:`compute` first.
         """
         return self.distance
 
     def compute(self, now, x, y, angle):
         """
-            Call this when vision processing should be enabled
-        
-            :param now:   The value passed to ``update_sim``
-            :param x:     Returned from physics_controller.get_position
-            :param y:     Returned from physics_controller.get_position
-            :param angle: Returned from physics_controller.get_position
-            
-            :returns: None or list of tuples of (found=0 or 1, capture_time, offset_degrees, distance).
-                      The tuples are ordered by absolute offset from the
-                      target. If a list is returned, it is guaranteed to have at
-                      least one element in it.
-                      
-                      Note: If your vision targeting doesn't have the ability
-                      to focus on multiple targets, then you should ignore
-                      the other elements.
+        Call this when vision processing should be enabled
+
+        :param now:   The value passed to ``update_sim``
+        :param x:     Returned from physics_controller.get_position
+        :param y:     Returned from physics_controller.get_position
+        :param angle: Returned from physics_controller.get_position
+
+        :returns: None or list of tuples of (found=0 or 1, capture_time, offset_degrees, distance).
+                  The tuples are ordered by absolute offset from the
+                  target. If a list is returned, it is guaranteed to have at
+                  least one element in it.
+
+                  Note: If your vision targeting doesn't have the ability
+                  to focus on multiple targets, then you should ignore
+                  the other elements.
         """
 
         # Normalize angle to [-180,180]

@@ -7,9 +7,9 @@ import sys
 
 class PyFrcProfiler:
     """
-        Wraps other commands by running them via the built in cProfile module.
-        Use this to profile your program and figure out where you're spending
-        a lot of time (note that cProfile only profiles the main thread)
+    Wraps other commands by running them via the built in cProfile module.
+    Use this to profile your program and figure out where you're spending
+    a lot of time (note that cProfile only profiles the main thread)
     """
 
     def __init__(self, parser):

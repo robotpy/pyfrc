@@ -4,29 +4,29 @@ import typing
 
 class LinearMotion:
     """
-        Helper for simulating motion involving a encoder directly coupled to
-        a motor.
-        
-        Here's an example that shows a linear motion of 6ft at 2 ft/s with a
-        360-count-per-ft encoder, coupled to a PWM motor on port 0 and the
-        first encoder object::
-        
-            import hal.simulation
-            from pyfrc.physics import motion
-        
-            class PhysicsEngine:
-                
-                def __init__(self, physics_controller):
-                    self.motion = pyfrc.physics.motion.LinearMotion('Motion', 2, 360, 6)
-                    self.motor = hal.simulation.PWMSim(0)
-                    self.encoder = hal.simulation
-                
-                def update_sim(self, now, tm_diff):
-                    motor_value = self.motor.getValue()
-                    count = self.motion.compute(motor_value, tm_diff)
-                    self.encoder.setCount(count)
-        
-        .. versionadded:: 2018.3.0
+    Helper for simulating motion involving a encoder directly coupled to
+    a motor.
+
+    Here's an example that shows a linear motion of 6ft at 2 ft/s with a
+    360-count-per-ft encoder, coupled to a PWM motor on port 0 and the
+    first encoder object::
+
+        import hal.simulation
+        from pyfrc.physics import motion
+
+        class PhysicsEngine:
+
+            def __init__(self, physics_controller):
+                self.motion = pyfrc.physics.motion.LinearMotion('Motion', 2, 360, 6)
+                self.motor = hal.simulation.PWMSim(0)
+                self.encoder = hal.simulation
+
+            def update_sim(self, now, tm_diff):
+                motor_value = self.motor.getValue()
+                count = self.motion.compute(motor_value, tm_diff)
+                self.encoder.setCount(count)
+
+    .. versionadded:: 2018.3.0
     """
 
     #: Current computed position of motion, in feet
@@ -44,11 +44,11 @@ class LinearMotion:
         min_position: typing.Optional[float] = 0,
     ):
         """
-            :param name: Name of motion, shown in simulation UI
-            :param motor_ft_per_sec: Motor travel in feet per second (or whatever units you want)
-            :param ticks_per_feet: Number of encoder ticks per feet
-            :param max_position: Maximum position that this motion travels to
-            :param min_position: Minimum position that this motion travels to
+        :param name: Name of motion, shown in simulation UI
+        :param motor_ft_per_sec: Motor travel in feet per second (or whatever units you want)
+        :param ticks_per_feet: Number of encoder ticks per feet
+        :param max_position: Maximum position that this motion travels to
+        :param min_position: Minimum position that this motion travels to
         """
         self.name = name
         self.motor_ft_per_sec = motor_ft_per_sec

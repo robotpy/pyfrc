@@ -143,7 +143,7 @@ import docutils.nodes
 
 def process_child(node):
     """This function changes class references to not have the
-       intermediate module name by hacking at the doctree"""
+    intermediate module name by hacking at the doctree"""
 
     # Edit descriptions to be nicer
     if isinstance(node, sphinx.addnodes.desc_addname):

@@ -17,7 +17,7 @@ class _PracticeMatch:
 
     def on_step(self, tm):
         """
-            Called when a driver station packet would be delivered
+        Called when a driver station packet would be delivered
         """
 
         if tm < 5:
@@ -45,13 +45,13 @@ class _PracticeMatch:
 
 class TestController:
     """
-        This object is used to control the robot during unit tests. You
-        do not need to create an instance of this, instead use the
-        ``controller`` fixture.
-        
-        To set a game specific message for autonomous mode, just
-        set the 'game_specific_message' property of this object, and it will
-        be setup correctly upon transition into autonomous mode.
+    This object is used to control the robot during unit tests. You
+    do not need to create an instance of this, instead use the
+    ``controller`` fixture.
+
+    To set a game specific message for autonomous mode, just
+    set the 'game_specific_message' property of this object, and it will
+    be setup correctly upon transition into autonomous mode.
     """
 
     def __init__(self, fake_time_inst):
@@ -62,7 +62,7 @@ class TestController:
 
     def get_mode(self):
         """Returns the current mode that the robot is in
-        
+
         :returns: 'autonomous', 'teleop', 'test', or 'disabled'
         """
 
@@ -100,19 +100,19 @@ class TestController:
 
     def run_test(self, controller=None):
         """
-            Call this to execute the robot code. Cannot be called more than once
-            in a single test.
-            
-            If the controller argument is a class, it will be constructed and the
-            instance will be returned.
-        
-            :param controller: This can either be a function that takes a single
-                               argument, or a class that has an 'on_step' function.
-                               If it is a class, an instance will be created. Either
-                               the function or the on_step function will be called
-                               with a single parameter, which is the the current
-                               robot time. If None, an error will be signaled unless
-                               :meth:`set_practice_match` has been called.
+        Call this to execute the robot code. Cannot be called more than once
+        in a single test.
+
+        If the controller argument is a class, it will be constructed and the
+        instance will be returned.
+
+        :param controller: This can either be a function that takes a single
+                           argument, or a class that has an 'on_step' function.
+                           If it is a class, an instance will be created. Either
+                           the function or the on_step function will be called
+                           with a single parameter, which is the the current
+                           robot time. If None, an error will be signaled unless
+                           :meth:`set_practice_match` has been called.
         """
 
         # Can't call this twice!

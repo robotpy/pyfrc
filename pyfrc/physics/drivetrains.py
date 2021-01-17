@@ -68,24 +68,24 @@ DeadzoneCallable = typing.Callable[[float], float]
 
 def linear_deadzone(deadzone: float) -> DeadzoneCallable:
     """
-        Real motors won't actually move unless you give them some minimum amount
-        of input. This computes an output speed for a motor and causes it to
-        'not move' if the input isn't high enough. Additionally, the output is
-        adjusted linearly to compensate.
-        
-        Example: For a deadzone of 0.2:
-        
-        * Input of 0.0 will result in 0.0
-        * Input of 0.2 will result in 0.0
-        * Input of 0.3 will result in ~0.12
-        * Input of 1.0 will result in 1.0
-        
-        This returns a function that computes the deadzone. You should pass the
-        returned function to one of the drivetrain simulation functions as the
-        ``deadzone`` parameter.
-        
-        :param motor_input: The motor input (between -1 and 1)
-        :param deadzone: Minimum input required for the motor to move (between 0 and 1)
+    Real motors won't actually move unless you give them some minimum amount
+    of input. This computes an output speed for a motor and causes it to
+    'not move' if the input isn't high enough. Additionally, the output is
+    adjusted linearly to compensate.
+
+    Example: For a deadzone of 0.2:
+
+    * Input of 0.0 will result in 0.0
+    * Input of 0.2 will result in 0.0
+    * Input of 0.3 will result in ~0.12
+    * Input of 1.0 will result in 1.0
+
+    This returns a function that computes the deadzone. You should pass the
+    returned function to one of the drivetrain simulation functions as the
+    ``deadzone`` parameter.
+
+    :param motor_input: The motor input (between -1 and 1)
+    :param deadzone: Minimum input required for the motor to move (between 0 and 1)
     """
     assert 0.0 < deadzone < 1.0
     scale_param = 1.0 - deadzone
@@ -104,21 +104,21 @@ def linear_deadzone(deadzone: float) -> DeadzoneCallable:
 
 class TwoMotorDrivetrain:
     """
-        Two center-mounted motors with a simple drivetrain. The
-        motion equations are as follows::
-    
-            FWD = (L+R)/2
-            RCCW = (R-L)/W
-        
-        * L is forward speed of the left wheel(s), all in sync
-        * R is forward speed of the right wheel(s), all in sync
-        * W is wheelbase in feet
-        
-        .. note:: :class:`wpilib.drive.DifferentialDrive` assumes that to make
-                  the robot go forward, the left motor output is 1, and the
-                  right motor output is -1
-        
-        .. versionadded:: 2018.2.0
+    Two center-mounted motors with a simple drivetrain. The
+    motion equations are as follows::
+
+        FWD = (L+R)/2
+        RCCW = (R-L)/W
+
+    * L is forward speed of the left wheel(s), all in sync
+    * R is forward speed of the right wheel(s), all in sync
+    * W is wheelbase in feet
+
+    .. note:: :class:`wpilib.drive.DifferentialDrive` assumes that to make
+              the robot go forward, the left motor output is 1, and the
+              right motor output is -1
+
+    .. versionadded:: 2018.2.0
     """
 
     #: Wheel speeds you can use for encoder calculations (updated by calculate)
@@ -131,9 +131,9 @@ class TwoMotorDrivetrain:
         deadzone: typing.Optional[DeadzoneCallable] = None,
     ):
         """
-            :param x_wheelbase: The distance between right and left wheels.
-            :param speed:       Speed of robot (see above)
-            :param deadzone:    A function that adjusts the output of the motor (see :func:`linear_deadzone`)
+        :param x_wheelbase: The distance between right and left wheels.
+        :param speed:       Speed of robot (see above)
+        :param deadzone:    A function that adjusts the output of the motor (see :func:`linear_deadzone`)
         """
         trackwidth = units.meters.m_from(x_wheelbase, name="x_wheelbase")
         self.kinematics = DifferentialDriveKinematics(trackwidth)
@@ -143,14 +143,14 @@ class TwoMotorDrivetrain:
 
     def calculate(self, l_motor: float, r_motor: float) -> ChassisSpeeds:
         """
-            Given motor values, computes resulting chassis speeds of robot
-        
-            :param l_motor:    Left motor value (-1 to 1); 1 is forward
-            :param r_motor:    Right motor value (-1 to 1); -1 is forward
+        Given motor values, computes resulting chassis speeds of robot
 
-            :returns: ChassisSpeeds that can be passed to 'drive'
+        :param l_motor:    Left motor value (-1 to 1); 1 is forward
+        :param r_motor:    Right motor value (-1 to 1); -1 is forward
 
-            .. versionadded:: 2020.1.0
+        :returns: ChassisSpeeds that can be passed to 'drive'
+
+        .. versionadded:: 2020.1.0
         """
         if self.deadzone:
             l_motor = self.deadzone(l_motor)
@@ -167,21 +167,21 @@ class TwoMotorDrivetrain:
 
 class FourMotorDrivetrain:
     """
-        Four motors, each side chained together. The motion equations are
-        as follows::
-    
-            FWD = (L+R)/2
-            RCCW = (R-L)/W
-        
-        * L is forward speed of the left wheel(s), all in sync
-        * R is forward speed of the right wheel(s), all in sync
-        * W is wheelbase in feet
-        
-        .. note:: :class:`wpilib.drive.DifferentialDrive` assumes that to make
-                  the robot go forward, the left motors must be set to 1, and
-                  the right to -1
-        
-        .. versionadded:: 2018.2.0
+    Four motors, each side chained together. The motion equations are
+    as follows::
+
+        FWD = (L+R)/2
+        RCCW = (R-L)/W
+
+    * L is forward speed of the left wheel(s), all in sync
+    * R is forward speed of the right wheel(s), all in sync
+    * W is wheelbase in feet
+
+    .. note:: :class:`wpilib.drive.DifferentialDrive` assumes that to make
+              the robot go forward, the left motors must be set to 1, and
+              the right to -1
+
+    .. versionadded:: 2018.2.0
     """
 
     #: Wheel speeds you can use for encoder calculations (updated by calculate)
@@ -194,9 +194,9 @@ class FourMotorDrivetrain:
         deadzone: typing.Optional[DeadzoneCallable] = None,
     ):
         """
-            :param x_wheelbase: The distance between right and left wheels.
-            :param speed:       Speed of robot (see above)
-            :param deadzone:    A function that adjusts the output of the motor (see :func:`linear_deadzone`)
+        :param x_wheelbase: The distance between right and left wheels.
+        :param speed:       Speed of robot (see above)
+        :param deadzone:    A function that adjusts the output of the motor (see :func:`linear_deadzone`)
         """
         trackwidth = units.meters.m_from(x_wheelbase, name="x_wheelbase")
         self.kinematics = DifferentialDriveKinematics(trackwidth)
@@ -208,16 +208,16 @@ class FourMotorDrivetrain:
         self, lf_motor: float, lr_motor: float, rf_motor: float, rr_motor: float
     ) -> ChassisSpeeds:
         """
-            Given motor values, computes resulting chassis speeds of robot
-        
-            :param lf_motor:   Left front motor value (-1 to 1); 1 is forward
-            :param lr_motor:   Left rear motor value (-1 to 1); 1 is forward
-            :param rf_motor:   Right front motor value (-1 to 1); -1 is forward
-            :param rr_motor:   Right rear motor value (-1 to 1); -1 is forward
-            
-            :returns: ChassisSpeeds that can be passed to 'drive'
+        Given motor values, computes resulting chassis speeds of robot
 
-            .. versionadded:: 2020.1.0
+        :param lf_motor:   Left front motor value (-1 to 1); 1 is forward
+        :param lr_motor:   Left rear motor value (-1 to 1); 1 is forward
+        :param rf_motor:   Right front motor value (-1 to 1); -1 is forward
+        :param rr_motor:   Right rear motor value (-1 to 1); -1 is forward
+
+        :returns: ChassisSpeeds that can be passed to 'drive'
+
+        .. versionadded:: 2020.1.0
         """
 
         if self.deadzone:
@@ -237,13 +237,13 @@ class FourMotorDrivetrain:
 
 class MecanumDrivetrain:
     """
-        Four motors, each with a mecanum wheel attached to it.
-        
-        .. note:: :class:`wpilib.drive.MecanumDrive` assumes that to make
-                  the robot go forward, the left motor outputs are 1, and the
-                  right motor outputs are -1
-        
-        .. versionadded:: 2018.2.0
+    Four motors, each with a mecanum wheel attached to it.
+
+    .. note:: :class:`wpilib.drive.MecanumDrive` assumes that to make
+              the robot go forward, the left motor outputs are 1, and the
+              right motor outputs are -1
+
+    .. versionadded:: 2018.2.0
     """
 
     #: Use this to compute encoder data after calculate is called
@@ -257,10 +257,10 @@ class MecanumDrivetrain:
         deadzone: typing.Optional[DeadzoneCallable] = None,
     ):
         """
-            :param x_wheelbase: The distance between right and left wheels.
-            :param y_wheelbase: The distance between forward and rear wheels.
-            :param speed:       Speed of robot (see above)
-            :param deadzone:    A function that adjusts the output of the motor (see :func:`linear_deadzone`)
+        :param x_wheelbase: The distance between right and left wheels.
+        :param y_wheelbase: The distance between forward and rear wheels.
+        :param speed:       Speed of robot (see above)
+        :param deadzone:    A function that adjusts the output of the motor (see :func:`linear_deadzone`)
         """
         x2 = units.meters.m_from(x_wheelbase, name="x_wheelbase") / 2.0
         y2 = units.meters.m_from(y_wheelbase, name="y_wheelbase") / 2.0
@@ -278,17 +278,21 @@ class MecanumDrivetrain:
         self.wheelSpeeds = MecanumDriveWheelSpeeds()
 
     def calculate(
-        self, lf_motor: float, lr_motor: float, rf_motor: float, rr_motor: float,
+        self,
+        lf_motor: float,
+        lr_motor: float,
+        rf_motor: float,
+        rr_motor: float,
     ) -> ChassisSpeeds:
         """
-            :param lf_motor:   Left front motor value (-1 to 1); 1 is forward
-            :param lr_motor:   Left rear motor value (-1 to 1); 1 is forward
-            :param rf_motor:   Right front motor value (-1 to 1); -1 is forward
-            :param rr_motor:   Right rear motor value (-1 to 1); -1 is forward
-            
-            :returns: ChassisSpeeds that can be passed to 'drive'
+        :param lf_motor:   Left front motor value (-1 to 1); 1 is forward
+        :param lr_motor:   Left rear motor value (-1 to 1); 1 is forward
+        :param rf_motor:   Right front motor value (-1 to 1); -1 is forward
+        :param rr_motor:   Right rear motor value (-1 to 1); -1 is forward
 
-            .. versionadded:: 2020.1.0
+        :returns: ChassisSpeeds that can be passed to 'drive'
+
+        .. versionadded:: 2020.1.0
         """
 
         if self.deadzone:
@@ -326,32 +330,32 @@ def four_motor_swerve_drivetrain(
     deadzone=None,
 ) -> ChassisSpeeds:
     """
-        Four motors that can be rotated in any direction
-        
-        If any motors are inverted, then you will need to multiply that motor's
-        value by -1.
-        
-        :param lr_motor:   Left rear motor value (-1 to 1); 1 is forward
-        :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
-        :param lf_motor:   Left front motor value (-1 to 1); 1 is forward
-        :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
-        
-        :param lr_angle:   Left rear motor angle in degrees (0 to 360 measured clockwise from forward position)
-        :param rr_angle:   Right rear motor angle in degrees (0 to 360 measured clockwise from forward position)
-        :param lf_angle:   Left front motor angle in degrees (0 to 360 measured clockwise from forward position)
-        :param rf_angle:   Right front motor angle in degrees (0 to 360 measured clockwise from forward position)
-        
-        :param x_wheelbase: The distance in feet between right and left wheels.
-        :param y_wheelbase: The distance in feet between forward and rear wheels.
-        :param speed:       Speed of robot in feet per second (see above)
-        :param deadzone:    A function that adjusts the output of the motor (see :func:`linear_deadzone`)
-        
-        :returns: ChassisSpeeds that can be passed to 'drive'
-        
-        .. versionchanged:: 2020.1.0
+    Four motors that can be rotated in any direction
 
-           The output rotation angle was changed from CW to CCW to reflect the
-           current WPILib drivetrain/field objects
+    If any motors are inverted, then you will need to multiply that motor's
+    value by -1.
+
+    :param lr_motor:   Left rear motor value (-1 to 1); 1 is forward
+    :param rr_motor:   Right rear motor value (-1 to 1); 1 is forward
+    :param lf_motor:   Left front motor value (-1 to 1); 1 is forward
+    :param rf_motor:   Right front motor value (-1 to 1); 1 is forward
+
+    :param lr_angle:   Left rear motor angle in degrees (0 to 360 measured clockwise from forward position)
+    :param rr_angle:   Right rear motor angle in degrees (0 to 360 measured clockwise from forward position)
+    :param lf_angle:   Left front motor angle in degrees (0 to 360 measured clockwise from forward position)
+    :param rf_angle:   Right front motor angle in degrees (0 to 360 measured clockwise from forward position)
+
+    :param x_wheelbase: The distance in feet between right and left wheels.
+    :param y_wheelbase: The distance in feet between forward and rear wheels.
+    :param speed:       Speed of robot in feet per second (see above)
+    :param deadzone:    A function that adjusts the output of the motor (see :func:`linear_deadzone`)
+
+    :returns: ChassisSpeeds that can be passed to 'drive'
+
+    .. versionchanged:: 2020.1.0
+
+       The output rotation angle was changed from CW to CCW to reflect the
+       current WPILib drivetrain/field objects
     """
 
     if deadzone:
