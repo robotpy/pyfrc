@@ -2,7 +2,8 @@ from os.path import abspath, dirname
 import argparse
 import inspect
 import logging
-import importlib
+from pkg_resources import iter_entry_points
+from importlib.metadata import metadata
 
 logger = logging.getLogger("pyfrc.sim")
 
@@ -20,6 +21,26 @@ class PyFrcSim:
             help="Don't use the WPIlib simulation gui",
         )
 
+        self.simexts = {}
+
+        for entry_point in iter_entry_points(group="robotpysimext", name=None):
+            if entry_point.module_name == "halsim_gui":
+                continue
+            try:
+                sim_ext_module = entry_point.load()
+            except ImportError:
+                print(f"WARNING: Error detected in {entry_point}")
+                continue
+
+            self.simexts[entry_point.name] = sim_ext_module
+
+            parser.add_argument(
+                f"--{entry_point.name}",
+                default=False,
+                action="store_true",
+                help=metadata(entry_point.dist.project_name)["summary"],
+            )
+
     def run(self, options, robot_class, **static_options):
 
         if not options.nogui:
@@ -30,6 +51,14 @@ class PyFrcSim:
                 exit(1)
             else:
                 halsim_gui.loadExtension()
+
+        for name, module in self.simexts.items():
+            if getattr(options, name.replace("-", "_"), False):
+                try:
+                    module.loadExtension()
+                except:
+                    print(f"Error loading {name}!")
+                    raise
 
         # initialize physics, attach to the user robot class
         from ..physics.core import PhysicsInterface, PhysicsInitException
