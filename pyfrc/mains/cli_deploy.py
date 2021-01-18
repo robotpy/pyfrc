@@ -1,4 +1,5 @@
 import argparse
+import contextlib
 import inspect
 import os
 import sys
@@ -27,6 +28,14 @@ def relpath(path):
     return os.path.normpath(
         os.path.join(os.path.abspath(os.path.dirname(__file__)), path)
     )
+
+
+@contextlib.contextmanager
+def wrap_ssh_error(msg: str):
+    try:
+        yield
+    except sshcontroller.SshExecError as e:
+        raise sshcontroller.SshExecError(f"{msg}: {str(e)}") from e
 
 
 class PyFrcDeploy:
@@ -160,6 +169,113 @@ class PyFrcDeploy:
             )
             return 1
 
+        hostname_or_team = options.robot
+        if not hostname_or_team and options.team:
+            hostname_or_team = options.team
+
+        try:
+            with sshcontroller.ssh_from_cfg(
+                cfg_filename,
+                username="lvuser",
+                password="",
+                hostname=hostname_or_team,
+                no_resolve=options.no_resolve,
+            ) as ssh:
+
+                if not self._check_requirements(ssh, options.no_version_check):
+                    return 1
+
+                if not self._do_deploy(ssh, options, robot_filename, robot_path):
+                    return 1
+
+        except sshcontroller.SshExecError as e:
+            print_err("ERROR:", str(e))
+            return 1
+
+        print("\nSUCCESS: Deploy was successful!")
+        return 0
+
+    def _check_requirements(
+        self, ssh: sshcontroller.SshController, no_wpilib_version_check: bool
+    ) -> bool:
+
+        # does python exist
+        with wrap_ssh_error("checking if python exists"):
+            if ssh.exec_cmd("[ -x /usr/local/bin/python3 ]").returncode != 0:
+                print_err(
+                    "ERROR: python3 was not found on the roboRIO: have you installed robotpy?"
+                )
+                print_err()
+                print_err(
+                    f"See {sys.executable} -m robotpy-installer install-python --help"
+                )
+                return False
+
+        # does wpilib exist and does the version match
+        with wrap_ssh_error("checking for wpilib version"):
+            py = ";".join(
+                [
+                    "import os.path, site",
+                    "version = 'unknown'",
+                    "v = site.getsitepackages()[0] + '/wpilib/version.py'",
+                    "exec(open(v).read(), globals()) if os.path.exists(v) else False",
+                    "print(version)",
+                ]
+            )
+
+            result = ssh.exec_cmd(
+                f'/usr/local/bin/python3 -c "{py}"', check=True, get_output=True
+            )
+
+            wpilib_version = result.stdout.strip()
+            if wpilib_version == "unknown":
+                print_err(
+                    "WPILib was not found on the roboRIO: have you installed it on the RoboRIO?"
+                )
+                return False
+
+            print("RoboRIO has WPILib version", wpilib_version)
+
+            if not no_wpilib_version_check and wpilib_version != wpilib.__version__:
+                print_err("ERROR: expected WPILib version %s" % wpilib.__version__)
+                print_err()
+                print_err("You should either:")
+                print_err(
+                    "- If the robot version is older, upgrade the RobotPy on your robot"
+                )
+                print_err("- Otherwise, upgrade pyfrc on your computer")
+                print_err()
+                print_err(
+                    "Alternatively, you can specify --no-version-check to skip this check"
+                )
+                return False
+
+        # does startup dlls need to be fixed
+        with wrap_ssh_error("checking StartupDLLs"):
+            result = ssh.exec_cmd(
+                "grep ^StartupDLLs /etc/natinst/share/ni-rt.ini",
+                get_output=True,
+            )
+            if result.stdout.strip() != "":
+                self._fix_startupdlls(ssh)
+
+        return True
+
+    def _fix_startupdlls(self, lvuser_ssh: sshcontroller.SshController):
+        # requires admin-level access to fix, so create a new ssh controller
+        ssh = sshcontroller.SshController(lvuser_ssh.hostname, "admin", "")
+        with ssh:
+            ssh.exec_cmd(
+                'sed -i -e "s/^StartupDLLs/;StartupDLLs/" /etc/natinst/share/ni-rt.ini'
+            )
+
+    def _do_deploy(
+        self,
+        ssh: sshcontroller.SshController,
+        options,
+        robot_filename: str,
+        robot_path: str,
+    ) -> bool:
         # This probably should be configurable... oh well
 
         deploy_dir = PurePosixPath("/home/lvuser")
@@ -169,7 +285,7 @@ class PyFrcDeploy:
 
         # note below: deployed_cmd appears that it only can be a single line
 
-        # In 2015, there were stdout/stderr issues. In 2016, they seem to
+        # In 2015, there were stdout/stderr issues. In 2016+, they seem to
         # have been fixed, but need to use -u for it to really work properly
 
         if options.debug:
@@ -179,7 +295,6 @@ class PyFrcDeploy:
                 % (py_deploy_dir, robot_filename)
             )
             deployed_cmd_fname = "robotDebugCommand"
-            extra_cmd = "touch /tmp/frcdebug; chown lvuser:ni /tmp/frcdebug"
             bash_cmd = "/bin/bash -cex"
         else:
             compileall_flags = "-O"
@@ -188,7 +303,6 @@ class PyFrcDeploy:
                 % (py_deploy_dir, robot_filename)
             )
             deployed_cmd_fname = "robotCommand"
-            extra_cmd = ""
             bash_cmd = "/bin/bash -ce"
 
         if options.in_place:
@@ -205,161 +319,78 @@ class PyFrcDeploy:
             "py_new_deploy_dir": py_new_deploy_dir,
         }
 
-        check_version = (
-            '/usr/local/bin/python3 -c "exec(open(\\"$SITEPACKAGES/wpilib/version.py\\", \\"r\\").read(), globals()); print(\\"WPILib version on robot is \\" + version);exit(0) if version == \\"%s\\" else exit(89)"'
-            % wpilib.__version__
-        )
-        if options.no_version_check:
-            check_version = ""
-
-        check_startup_dlls = '(if [ "$(grep ^StartupDLLs /etc/natinst/share/ni-rt.ini)" != "" ]; then exit 91; fi)'
-
-        # This is a nasty bit of code now...
-        sshcmd = inspect.cleandoc(
-            """
-            %(bash_cmd)s '[ -x /usr/local/bin/python3 ] || exit 87
-            SITEPACKAGES=$(/usr/local/bin/python3 -c "import site; print(site.getsitepackages()[0])")
-            [ -f $SITEPACKAGES/wpilib/version.py ] || exit 88
-            %(check_version)s
-            echo "%(deployed_cmd)s" > %(deploy_dir)s/%(deployed_cmd_fname)s
-            %(extra_cmd)s
-            %(check_startup_dlls)s
-            rm -rf %(py_new_deploy_dir)s
-            '
-        """
-        )
-
-        sshcmd %= locals()
-
-        sshcmd = re.sub("\n+", ";", sshcmd)
-
-        nc_thread = None
-
-        hostname_or_team = options.robot
-        if not hostname_or_team and options.team:
-            hostname_or_team = options.team
-
-        controller = None
-
-        try:
-            controller = sshcontroller.ssh_from_cfg(
-                cfg_filename,
-                username="lvuser",
-                password="",
-                hostname=hostname_or_team,
-                no_resolve=options.no_resolve,
+        with wrap_ssh_error("configuring command"):
+            ssh.exec_cmd(
+                f'echo "{deployed_cmd}" > {deploy_dir}/{deployed_cmd_fname}', check=True
             )
 
-            controller.ssh_connect()
+        if options.debug:
+            with wrap_ssh_error("touching frcDebug"):
+                ssh.exec_cmd("touch /tmp/frcdebug", check=True)
 
-            try:
-                # Housekeeping first
-                logger.debug("SSH: %s", sshcmd)
-                controller.ssh_exec_commands(sshcmd, True)
-            except sshcontroller.SshExecError as e:
-                doret = True
-                if e.retval == 87:
-                    print_err(
-                        "ERROR: python3 was not found on the roboRIO: have you installed robotpy?"
-                    )
-                elif e.retval == 88:
-                    print_err(
-                        "ERROR: WPILib was not found on the roboRIO: have you installed robotpy?"
-                    )
-                elif e.retval == 89:
-                    print_err("ERROR: expected WPILib version %s" % wpilib.__version__)
-                    print_err()
-                    print_err("You should either:")
-                    print_err(
-                        "- If the robot version is older, upgrade the RobotPy on your robot"
-                    )
-                    print_err("- Otherwise, upgrade pyfrc on your computer")
-                    print_err()
-                    print_err(
-                        "Alternatively, you can specify --no-version-check to skip this check"
-                    )
-                elif e.retval == 90:
-                    print_err("ERROR: error running compileall")
-                elif e.retval == 91:
-                    # Not an error; ssh in as admin and fix the startup dlls (Saves 24M of RAM)
-                    # -> https://github.com/wpilibsuite/EclipsePlugins/pull/154
-                    logger.info("Fixing StartupDLLs to save RAM...")
-                    controller.username = "admin"
-                    controller.ssh_exec_commands(
-                        'sed -i -e "s/^StartupDLLs/;StartupDLLs/" /etc/natinst/share/ni-rt.ini',
-                        True,
-                    )
+        with wrap_ssh_error("removing stale deploy directory"):
+            ssh.exec_cmd(f"rm -rf {py_new_deploy_dir}", check=True)
 
-                    controller.username = "lvuser"
-                    doret = False
-                else:
-                    print_err("ERROR: %s" % e)
-
-                if doret:
-                    return 1
-
-            # Copy the files over, copy to a temporary directory first
-            # -> this is inefficient, but it's easier in sftp
-            tmp_dir = tempfile.mkdtemp()
-            try:
-                py_tmp_dir = join(tmp_dir, py_new_deploy_subdir)
-                self._copy_to_tmpdir(py_tmp_dir, robot_path)
-                controller.sftp(py_tmp_dir, deploy_dir, mkdir=not options.in_place)
-            finally:
-                shutil.rmtree(tmp_dir)
-
-            # start the netconsole listener now if requested, *before* we
-            # actually start the robot code, so we can see all messages
-            if options.nc or options.nc_ds:
-                from netconsole import run
-
-                nc_event = threading.Event()
-                nc_thread = threading.Thread(
-                    target=run,
-                    args=(controller.hostname,),
-                    kwargs=dict(connect_event=nc_event, fakeds=options.nc_ds),
-                    daemon=True,
-                )
-                nc_thread.start()
-                nc_event.wait(5)
-                logger.info("Netconsole is listening...")
-
-            if not options.in_place:
-                # Restart the robot code and we're done!
-                sshcmd = (
-                    "%(bash_cmd)s '"
-                    + "%(replace_cmd)s;"
-                    + "/usr/local/bin/python3 %(compileall_flags)s -m compileall -q -r 5 /home/lvuser/py;"
-                    + ". /etc/profile.d/natinst-path.sh; "
-                    + "chown -R lvuser:ni %(py_deploy_dir)s; "
-                    + "sync; "
-                    + "/usr/local/frc/bin/frcKillRobot.sh -t -r || true"
-                    + "'"
-                )
-
-                sshcmd %= {
-                    "bash_cmd": bash_cmd,
-                    "compileall_flags": compileall_flags,
-                    "py_deploy_dir": py_deploy_dir,
-                    "replace_cmd": replace_cmd,
-                }
-
-                logger.debug("SSH: %s", sshcmd)
-                controller.ssh_exec_commands(sshcmd, True)
-
-        except sshcontroller.Error as e:
-            print_err("ERROR: %s" % e)
-            return 1
-        else:
-            print("\nSUCCESS: Deploy was successful!")
+        # Copy the files over, copy to a temporary directory first
+        # -> this is inefficient, but it's easier in sftp
+        tmp_dir = tempfile.mkdtemp()
+        try:
+            py_tmp_dir = join(tmp_dir, py_new_deploy_subdir)
+            self._copy_to_tmpdir(py_tmp_dir, robot_path)
+            ssh.sftp(py_tmp_dir, deploy_dir, mkdir=not options.in_place)
         finally:
-            if controller is not None:
-                controller.ssh_close_connection()
+            shutil.rmtree(tmp_dir)
+
+        # start the netconsole listener now if requested, *before* we
+        # actually start the robot code, so we can see all messages
+        nc_thread = None
+        if options.nc or options.nc_ds:
+            nc_thread = self._start_nc(ssh, options)
+
+        if not options.in_place:
+            # Restart the robot code and we're done!
+            sshcmd = (
+                "%(bash_cmd)s '"
+                + "%(replace_cmd)s;"
+                + "/usr/local/bin/python3 %(compileall_flags)s -m compileall -q -r 5 /home/lvuser/py;"
+                + ". /etc/profile.d/natinst-path.sh; "
+                + "chown -R lvuser:ni %(py_deploy_dir)s; "
+                + "sync; "
+                + "/usr/local/frc/bin/frcKillRobot.sh -t -r || true"
+                + "'"
+            )
+
+            sshcmd %= {
+                "bash_cmd": bash_cmd,
+                "compileall_flags": compileall_flags,
+                "py_deploy_dir": py_deploy_dir,
+                "replace_cmd": replace_cmd,
+            }
+
+            logger.debug("SSH: %s", sshcmd)
+
+            with wrap_ssh_error("starting robot code"):
+                ssh.exec_cmd(sshcmd, check=True, print_output=True)
 
         if nc_thread is not None:
             nc_thread.join()
 
-        return 0
+        return True
+
+    def _start_nc(self, ssh, options):
+        from netconsole import run
+
+        nc_event = threading.Event()
+        nc_thread = threading.Thread(
+            target=run,
+            args=(ssh.hostname,),
+            kwargs=dict(connect_event=nc_event, fakeds=options.nc_ds),
+            daemon=True,
+        )
+        nc_thread.start()
+        nc_event.wait(5)
+        logger.info("Netconsole is listening...")
+        return nc_thread
 
     def _copy_to_tmpdir(self, tmp_dir, robot_path):
 
