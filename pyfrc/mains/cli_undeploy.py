@@ -20,14 +20,15 @@ import wpilib
 
 import logging
 
-logger = logging.getLogger('wipe')
+logger = logging.getLogger("wipe")
+
 
 class PyFrcUndeploy:
     def run(self, options, robot_class, **static_options):
         from .. import config
-        
-        config.mode = 'undeploy'
-        
+
+        config.mode = "undeploy"
+
         robot_file = abspath(inspect.getfile(robot_class))
         robot_path = dirname(robot_file)
         robot_filename = basename(robot_file)
@@ -59,26 +60,29 @@ class PyFrcUndeploy:
 
                 if not self._delete_dir(ssh):
                     return 1
-                
+
         except sshcontroller.SshExecError as e:
             print_err("ERROR:", str(e))
             return 1
-        
-        print('SUCCESS: Files have been successfully wiped!')
+
+        print("SUCCESS: Files have been successfully wiped!")
         return 0
-        
-    def _delete_dir(self, ssh: sshcontroller.SshController, robot_path: str, robot_filename: str):
+
+    def _delete_dir(
+        self, ssh: sshcontroller.SshController, robot_path: str, robot_filename: str
+    ):
         wipe_dir = PurePosixPath("/home/lvuser")
         py_wipe_subdir = "py"
         py_wipe_dir = wipe_dir / py_wipe_subdir
-        
+
         sshcmd = "rm -rf %(py_wipe_dir)s"
-        
+
         logger.debug("SSH: %s", sshcmd)
 
         with wrap_ssh_error("erasing robot code"):
             ssh.exec_cmd(sshcmd, check=True, print_output=True)
-            
+
+
 @contextlib.contextmanager
 def wrap_ssh_error(msg: str):
     try:
