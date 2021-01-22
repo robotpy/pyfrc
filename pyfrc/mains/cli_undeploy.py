@@ -58,8 +58,7 @@ class PyFrcUndeploy:
                 no_resolve=options.no_resolve,
             ) as ssh:
 
-                if not self._delete_dir(ssh):
-                    return 1
+                self._delete_dir(ssh)
 
         except sshcontroller.SshExecError as e:
             print_err("ERROR:", str(e))
