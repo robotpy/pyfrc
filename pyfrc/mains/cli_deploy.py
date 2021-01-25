@@ -103,6 +103,13 @@ class PyFrcDeploy:
             help="If specified, don't verify that your local wpilib install matches the version on the robot (not recommended)",
         )
 
+        parser.add_argument(
+            "--large",
+            action="store_true",
+            default=False,
+            help="If specified, allow uploading large files (> 250k) to the RoboRIO",
+        )
+
         robot_args = parser.add_mutually_exclusive_group()
 
         robot_args.add_argument(
@@ -169,6 +176,9 @@ class PyFrcDeploy:
             )
             return 1
 
+        if not options.large and not self._check_large_files(robot_path):
+            return 1
+
         hostname_or_team = options.robot
         if not hostname_or_team and options.team:
             hostname_or_team = options.team
@@ -194,6 +204,26 @@ class PyFrcDeploy:
 
         print("\nSUCCESS: Deploy was successful!")
         return 0
+
+    def _check_large_files(self, robot_path):
+
+        large_sz = 250000
+
+        large_files = []
+        for fname in self._copy_to_tmpdir(None, robot_path, dry_run=True):
+            st = os.stat(fname)
+            if st.st_size > large_sz:
+                large_files.append((fname, st.st_size))
+
+        if large_files:
+            print_err(f"ERROR: large files found (larger than {large_sz} bytes)")
+            for fname, sz in sorted(large_files):
+                print_err(f"- {fname} ({sz} bytes)")
+
+            if not yesno("Upload anyways?"):
+                return False
+
+        return True
 
     def _check_requirements(
         self, ssh: sshcontroller.SshController, no_wpilib_version_check: bool
@@ -392,14 +422,15 @@ class PyFrcDeploy:
         logger.info("Netconsole is listening...")
         return nc_thread
 
-    def _copy_to_tmpdir(self, tmp_dir, robot_path):
+    def _copy_to_tmpdir(self, tmp_dir, robot_path, dry_run=False):
 
         upload_files = []
         ignore_exts = {"pyc", "whl", "ipk", "zip", "gz"}
 
         for root, dirs, files in os.walk(robot_path):
             prefix = root[len(robot_path) + 1 :]
-            os.mkdir(join(tmp_dir, prefix))
+            if not dry_run:
+                os.mkdir(join(tmp_dir, prefix))
 
             # skip .svn, .git, .hg, etc directories
             for d in dirs[:]:
@@ -413,6 +444,10 @@ class PyFrcDeploy:
                 if ext in ignore_exts or r.startswith("."):
                     continue
 
-                shutil.copy(join(root, filename), join(tmp_dir, prefix, filename))
+                fname = join(root, filename)
+                upload_files.append(fname)
+
+                if not dry_run:
+                    shutil.copy(fname, join(tmp_dir, prefix, filename))
 
         return upload_files
