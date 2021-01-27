@@ -117,7 +117,8 @@ class PhysicsInterface:
         self.module = physics_module
         self.engine = None
         self.device_gyro_channels = []
-        self.field = wpilib.simulation.Field2d()
+        self.field = wpilib.Field2d()
+        wpilib.SmartDashboard.putData("Field", self.field)
 
     def __repr__(self):
         return "Physics"
