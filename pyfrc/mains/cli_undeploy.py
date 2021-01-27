@@ -74,7 +74,7 @@ class PyFrcUndeploy:
         py_wipe_subdir = "py"
         py_wipe_dir = wipe_dir / py_wipe_subdir
 
-        sshcmd = "rm -rf %(py_wipe_dir)s"
+        sshcmd = f"rm -rf {py_wipe_dir}"
 
         logger.debug("SSH: %s", sshcmd)
 
