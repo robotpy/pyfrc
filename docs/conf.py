@@ -63,10 +63,8 @@ intersphinx_mapping = {
 # built documents.
 #
 
-import pyfrc.version
-
 # The short X.Y version.
-version = pyfrc.version.__version__
+from pyfrc.version import version
 
 # The full version, including alpha/beta/rc tags.
 release = version
