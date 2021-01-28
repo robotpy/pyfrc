@@ -1,29 +1,37 @@
 import argparse
-import contextlib
 import inspect
-import os
-import sys
-import re
 
-import shutil
-import tempfile
-import threading
-
-from os.path import abspath, basename, dirname, exists, join, splitext
-from pathlib import PurePosixPath
+from os.path import abspath, dirname, join
 
 from robotpy_installer import sshcontroller
 
 from ..util import print_err, yesno
 
-import wpilib
-
-import logging
-
-logger = logging.getLogger("wipe")
-
 
 class PyFrcUndeploy:
+    """
+    Removes current robot code from a RoboRIO
+    """
+
+    def __init__(self, parser: argparse.ArgumentParser):
+
+        robot_args = parser.add_mutually_exclusive_group()
+
+        robot_args.add_argument(
+            "--robot", default=None, help="Set hostname or IP address of robot"
+        )
+
+        robot_args.add_argument(
+            "--team", default=None, type=int, help="Set team number to deploy robot for"
+        )
+
+        parser.add_argument(
+            "--no-resolve",
+            action="store_true",
+            default=False,
+            help="If specified, don't do a DNS lookup, allow ssh et al to do it instead",
+        )
+
     def run(self, options, robot_class, **static_options):
         from .. import config
 
@@ -31,18 +39,8 @@ class PyFrcUndeploy:
 
         robot_file = abspath(inspect.getfile(robot_class))
         robot_path = dirname(robot_file)
-        robot_filename = basename(robot_file)
         cfg_filename = join(robot_path, ".deploy_cfg")
 
-        if not options.nonstandard and robot_filename != "robot.py":
-            print_err(
-                "ERROR: Your robot code must be in a file called robot.py (launched from %s)!"
-                % robot_filename
-            )
-            print_err()
-            print_err(
-                "If you really want to do this, then specify the --nonstandard argument"
-            )
             return 1
 
         hostname_or_team = options.robot
@@ -58,7 +56,8 @@ class PyFrcUndeploy:
                 no_resolve=options.no_resolve,
             ) as ssh:
 
-                self._delete_dir(ssh)
+                # delete the code
+                ssh.exec_cmd("rm -rf /home/lvuser/py")
 
         except sshcontroller.SshExecError as e:
             print_err("ERROR:", str(e))
@@ -66,25 +65,3 @@ class PyFrcUndeploy:
 
         print("SUCCESS: Files have been successfully wiped!")
         return 0
-
-    def _delete_dir(
-        self, ssh: sshcontroller.SshController, robot_path: str, robot_filename: str
-    ):
-        wipe_dir = PurePosixPath("/home/lvuser")
-        py_wipe_subdir = "py"
-        py_wipe_dir = wipe_dir / py_wipe_subdir
-
-        sshcmd = f"rm -rf {py_wipe_dir}"
-
-        logger.debug("SSH: %s", sshcmd)
-
-        with wrap_ssh_error("erasing robot code"):
-            ssh.exec_cmd(sshcmd, check=True, print_output=True)
-
-
-@contextlib.contextmanager
-def wrap_ssh_error(msg: str):
-    try:
-        yield
-    except sshcontroller.SshExecError as e:
-        raise sshcontroller.SshExecError(f"{msg}: {str(e)}") from e
