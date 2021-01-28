@@ -41,6 +41,9 @@ class PyFrcUndeploy:
         robot_path = dirname(robot_file)
         cfg_filename = join(robot_path, ".deploy_cfg")
 
+        if not yesno(
+            "This will stop your robot code and delete it from the RoboRIO. Continue?"
+        ):
             return 1
 
         hostname_or_team = options.robot
@@ -56,8 +59,16 @@ class PyFrcUndeploy:
                 no_resolve=options.no_resolve,
             ) as ssh:
 
+                # first, turn off the running program
+                ssh.exec_cmd("/usr/local/frc/bin/frcKillRobot.sh -t")
+
                 # delete the code
                 ssh.exec_cmd("rm -rf /home/lvuser/py")
+
+                # for good measure, delete the start command too
+                ssh.exec_cmd(
+                    "rm -f /home/lvuser/robotDebugCommand /home/lvuser/robotCommand"
+                )
 
         except sshcontroller.SshExecError as e:
             print_err("ERROR:", str(e))
