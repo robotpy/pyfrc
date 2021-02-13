@@ -35,8 +35,8 @@ import threading
 import wpilib
 import wpilib.simulation
 
-from wpilib.kinematics import ChassisSpeeds
-from wpilib.geometry import Pose2d, Rotation2d, Transform2d, Translation2d, Twist2d
+from wpimath.kinematics import ChassisSpeeds
+from wpimath.geometry import Pose2d, Rotation2d, Transform2d, Translation2d, Twist2d
 
 import logging
 

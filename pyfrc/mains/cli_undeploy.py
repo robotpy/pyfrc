@@ -75,4 +75,5 @@ class PyFrcUndeploy:
             return 1
 
         print("SUCCESS: Files have been successfully wiped!")
+
         return 0
