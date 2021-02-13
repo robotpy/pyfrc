@@ -9,7 +9,7 @@ import shutil
 import tempfile
 import threading
 
-from os.path import abspath, basename, dirname, exists, join, splitext
+from os.path import abspath, basename, dirname, join, splitext
 from pathlib import PurePosixPath
 
 from robotpy_installer import sshcontroller
@@ -35,7 +35,7 @@ def wrap_ssh_error(msg: str):
     try:
         yield
     except sshcontroller.SshExecError as e:
-        raise sshcontroller.SshExecError(f"{msg}: {str(e)}") from e
+        raise sshcontroller.SshExecError(f"{msg}: {str(e)}", e.retval) from e
 
 
 class PyFrcDeploy:
@@ -256,6 +256,7 @@ class PyFrcDeploy:
             result = ssh.exec_cmd(
                 f'/usr/local/bin/python3 -c "{py}"', check=True, get_output=True
             )
+            assert result.stdout is not None
 
             wpilib_version = result.stdout.strip()
             if wpilib_version == "unknown":
@@ -286,6 +287,7 @@ class PyFrcDeploy:
                 "grep ^StartupDLLs /etc/natinst/share/ni-rt.ini",
                 get_output=True,
             )
+            assert result.stdout is not None
             if result.stdout.strip() != "":
                 self._fix_startupdlls(ssh)
 

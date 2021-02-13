@@ -158,9 +158,9 @@ class VisionSim:
         assert view_dst_start < view_dst_end
         assert self.data_lag > 0.001
 
-        objects = []
-        if physics_controller:
-            objects = physics_controller.config_obj["pyfrc"]["field"]["objects"]
+        # objects = []
+        # if physics_controller:
+        #     objects = physics_controller.config_obj["pyfrc"]["field"]["objects"]
 
         for target in targets:
             target.camera_fov = camera_fov
@@ -168,9 +168,9 @@ class VisionSim:
             target.view_dst_end = view_dst_end
             target.fov2 = fov2
 
-            objects.append(
-                {"color": "red", "rect": [target.x - 0.1, target.y - 0.1, 0.4, 0.4]}
-            )
+            # objects.append(
+            #     {"color": "red", "rect": [target.x - 0.1, target.y - 0.1, 0.4, 0.4]}
+            # )
 
     def dont_compute(self):
         """
