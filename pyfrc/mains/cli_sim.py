@@ -3,7 +3,11 @@ import argparse
 import inspect
 import logging
 from pkg_resources import iter_entry_points
-from importlib.metadata import metadata
+
+try:
+    from importlib.metadata import metadata
+except ImportError:
+    from importlib_metadata import metadata
 
 logger = logging.getLogger("pyfrc.sim")
 
