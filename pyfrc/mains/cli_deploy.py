@@ -440,7 +440,7 @@ class PyFrcDeploy:
 
             # skip .svn, .git, .hg, etc directories
             for d in dirs[:]:
-                if d.startswith(".") or d == "__pycache__":
+                if d.startswith(".") or d in ("__pycache__", "venv"):
                     dirs.remove(d)
 
             # skip .pyc files
