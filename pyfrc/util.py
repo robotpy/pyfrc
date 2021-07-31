@@ -6,7 +6,7 @@ def print_err(*args):
 
 
 def yesno(prompt):
-    """Returns True if user answers 'y' """
+    """Returns True if user answers 'y'"""
     prompt += " [y/n]"
     a = ""
     while a not in ["y", "n"]:
