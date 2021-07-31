@@ -165,11 +165,7 @@ class PyFrcDeploy:
         robot_filename = basename(robot_file)
         cfg_filename = join(robot_path, ".deploy_cfg")
 
-        if (
-            not options.nonstandard
-            and robot_filename != "robot.py"
-            or "robot.py" not in os.listdir(robot_path)
-        ):
+        if not options.nonstandard and robot_filename != "robot.py":
             print_err(
                 "ERROR: Your robot code must be in a file called robot.py (launched from %s)!"
                 % robot_filename
@@ -179,6 +175,11 @@ class PyFrcDeploy:
                 "If you really want to do this, then specify the --nonstandard argument"
             )
             return 1
+
+        if "robot.py" not in os.listdir(robot_path):
+            print(
+                "ERROR: Your robot code must be in a file called robot.py, please ensure the 'r' is not capitalized!"
+            )
 
         if not options.large and not self._check_large_files(robot_path):
             return 1
