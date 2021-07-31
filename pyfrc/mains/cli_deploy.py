@@ -178,7 +178,7 @@ class PyFrcDeploy:
 
         if "robot.py" not in os.listdir(robot_path):
             print(
-                "ERROR: Your robot code must be in a file called robot.py, please ensure the 'r' is not capitalized!"
+                "ERROR: Your robot code must be in a file called robot.py. Please ensure the 'r' is not capitalized!"
             )
 
         if not options.large and not self._check_large_files(robot_path):
