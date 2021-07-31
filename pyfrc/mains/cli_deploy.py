@@ -165,7 +165,11 @@ class PyFrcDeploy:
         robot_filename = basename(robot_file)
         cfg_filename = join(robot_path, ".deploy_cfg")
 
-        if not options.nonstandard and robot_filename != "robot.py":
+        if (
+            not options.nonstandard
+            and robot_filename != "robot.py"
+            or "robot.py" not in os.listdir(robot_path)
+        ):
             print_err(
                 "ERROR: Your robot code must be in a file called robot.py (launched from %s)!"
                 % robot_filename
