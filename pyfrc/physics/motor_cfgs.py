@@ -42,9 +42,9 @@ MOTOR_CFG_CIM = MotorModelConfig(
     "CIM",
     NOMINAL_VOLTAGE,
     5310 * units.cpm,
-    2.7 * units.amps,
+    2.7 * units.amp,
     2.42 * units.N_m,
-    133 * units.amps,
+    133 * units.amp,
 )
 
 #: Motor configuration for Mini CIM
@@ -52,9 +52,9 @@ MOTOR_CFG_MINI_CIM = MotorModelConfig(
     "MiniCIM",
     NOMINAL_VOLTAGE,
     5840 * units.cpm,
-    3.0 * units.amps,
+    3.0 * units.amp,
     1.41 * units.N_m,
-    89.0 * units.amps,
+    89.0 * units.amp,
 )
 
 #: Motor configuration for Bag Motor
@@ -62,9 +62,9 @@ MOTOR_CFG_BAG = MotorModelConfig(
     "Bag",
     NOMINAL_VOLTAGE,
     13180 * units.cpm,
-    1.8 * units.amps,
+    1.8 * units.amp,
     0.43 * units.N_m,
-    53.0 * units.amps,
+    53.0 * units.amp,
 )
 
 #: Motor configuration for 775 Pro
@@ -72,9 +72,9 @@ MOTOR_CFG_775PRO = MotorModelConfig(
     "775Pro",
     NOMINAL_VOLTAGE,
     18730 * units.cpm,
-    0.7 * units.amps,
+    0.7 * units.amp,
     0.71 * units.N_m,
-    134 * units.amps,
+    134 * units.amp,
 )
 
 #: Motor configuration for Andymark RS 775-125
@@ -82,9 +82,9 @@ MOTOR_CFG_775_125 = MotorModelConfig(
     "RS775-125",
     NOMINAL_VOLTAGE,
     5800 * units.cpm,
-    1.6 * units.amps,
+    1.6 * units.amp,
     0.28 * units.N_m,
-    18.0 * units.amps,
+    18.0 * units.amp,
 )
 
 #: Motor configuration for Banebots RS 775
@@ -92,9 +92,9 @@ MOTOR_CFG_BB_RS775 = MotorModelConfig(
     "RS775",
     NOMINAL_VOLTAGE,
     13050 * units.cpm,
-    2.7 * units.amps,
+    2.7 * units.amp,
     0.72 * units.N_m,
-    97.0 * units.amps,
+    97.0 * units.amp,
 )
 
 #: Motor configuration for Andymark 9015
@@ -102,9 +102,9 @@ MOTOR_CFG_AM_9015 = MotorModelConfig(
     "AM-9015",
     NOMINAL_VOLTAGE,
     14270 * units.cpm,
-    3.7 * units.amps,
+    3.7 * units.amp,
     0.36 * units.N_m,
-    71.0 * units.amps,
+    71.0 * units.amp,
 )
 
 #: Motor configuration for Banebots RS 550
@@ -112,9 +112,9 @@ MOTOR_CFG_BB_RS550 = MotorModelConfig(
     "RS550",
     NOMINAL_VOLTAGE,
     19000 * units.cpm,
-    0.4 * units.amps,
+    0.4 * units.amp,
     0.38 * units.N_m,
-    84.0 * units.amps,
+    84.0 * units.amp,
 )
 
 #: Motor configuration for NEO 550 Brushless Motor
@@ -122,9 +122,9 @@ MOTOR_CFG_NEO_550 = MotorModelConfig(
     "NEO 550",
     NOMINAL_VOLTAGE,
     11000 * units.cpm,
-    1.4 * units.amps,
+    1.4 * units.amp,
     0.97 * units.N_m,
-    100 * units.amps,
+    100 * units.amp,
 )
 
 #: Motor configuration for Falcon 500 Brushless Motor
@@ -132,9 +132,9 @@ MOTOR_CFG_FALCON_500 = MotorModelConfig(
     "Falcon 500",
     NOMINAL_VOLTAGE,
     6380 * units.cpm,
-    1.5 * units.amps,
+    1.5 * units.amp,
     4.69 * units.N_m,
-    257 * units.amps,
+    257 * units.amp,
 )
 
 del units
