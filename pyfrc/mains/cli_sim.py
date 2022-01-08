@@ -3,6 +3,7 @@ from os.path import abspath, dirname
 import argparse
 import inspect
 import logging
+import pathlib
 from pkg_resources import iter_entry_points
 
 try:
@@ -73,14 +74,10 @@ class PyFrcSim:
         # initialize physics, attach to the user robot class
         from ..physics.core import PhysicsInterface, PhysicsInitException
 
-        robot_file = abspath(inspect.getfile(robot_class))
-        robot_path = dirname(robot_file)
+        robot_file = pathlib.Path(inspect.getfile(robot_class)).absolute()
 
         try:
-            physics = PhysicsInterface._create(robot_path)
-            if physics:
-                robot_class._simulationInit = physics._simulationInit
-                robot_class._simulationPeriodic = physics._simulationPeriodic
+            PhysicsInterface._create_and_attach(robot_class, robot_file.parent)
 
             # run the robot
             return robot_class.main(robot_class)
