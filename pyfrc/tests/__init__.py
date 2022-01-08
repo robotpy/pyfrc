@@ -5,6 +5,3 @@
 
 # import basic tests
 from .basic import test_autonomous, test_disabled, test_operator_control, test_practice
-
-# Other test types
-from .fuzz_test import test_fuzz

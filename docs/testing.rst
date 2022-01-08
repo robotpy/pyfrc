@@ -4,9 +4,6 @@
 Tests that come with pyfrc
 ==========================
 
-.. note:: pyfrc's testing functionality has not yet been updated
-          to work with RobotPy 2020
-
 pyfrc comes with testing functions that can be used to test basic
 functionality of just about any robot, including running through a 
 simulated practice match.
@@ -15,12 +12,6 @@ simulated practice match.
    :members:
 
 .. automodule:: pyfrc.tests.basic
-   :members:
-
-Fuzz tests
-----------
-
-.. automodule:: pyfrc.tests.fuzz_test
    :members:
 
 Docstring tests

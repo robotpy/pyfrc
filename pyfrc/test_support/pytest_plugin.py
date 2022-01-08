@@ -1,13 +1,18 @@
-import pytest
+import gc
+import pathlib
+import typing
 
-import hal_impl
-from . import fake_time, pyfrc_fake_hooks
+import pytest
+import weakref
+
+
+import hal.simulation
+import networktables
+import wpilib
+from wpilib.simulation import DriverStationSim, pauseTiming, restartTiming
 
 from .controller import TestController
-
-
-class ThreadStillRunningError(Exception):
-    pass
+from ..physics.core import PhysicsInterface
 
 
 class PyFrcPlugin:
@@ -17,68 +22,39 @@ class PyFrcPlugin:
     be passed to your test function.
     """
 
-    def __init__(self, robot_class, robot_file, robot_path):
-        self.robot_class = robot_class
+    def __init__(self, robot_class: type[wpilib.RobotBase], robot_file: pathlib.Path):
 
         self._robot_file = robot_file
-        self._robot_path = robot_path
-
-        # Setup fake time
-        self._fake_time = fake_time.FakeTime()
-
-        # Setup control instance
-        self._control = None
+        self._robot_class = robot_class
+        self._robot: typing.Optional[wpilib.RobotBase] = None
 
         self._started = False
 
-        # Setup the hal hooks so we can control time
-        # -> The hook doesn't have any state, so we initialize it only once
-        hal_impl.functions.hooks = pyfrc_fake_hooks.PyFrcFakeHooks(self._fake_time)
+        # attach physics
+        physics = PhysicsInterface._create_and_attach(
+            self._robot_class,
+            self._robot_file.parent,
+        )
+        if physics:
+            physics.log_init_errors = False
+        else:
+            self._robot_class._simulationInit = lambda *a: None
+            self._robot_class._simulationPeriodic = lambda *a: None
 
     def pytest_runtest_setup(self):
-        # This function needs to do the same things that RobotBase.main does,
+        # This function needs to do the same things that RobotBase.main does
         # plus some extra things needed for testing
 
-        #
-        # Initialization order is important, because there are a bunch
-        # of inter-related things happening here.
-        #
-        # - Initialize networktables first since it has no dependencies
-        # - Initialize the fake time, because the HAL uses it
-        #   - This initializes the driver station, but it doesn't need HAL yet
-        # - Reset HAL data
-        # - Initialize RobotBase
-        #
+        networktables.NetworkTables.startLocal()
 
-        import networktables
+        pauseTiming()
+        restartTiming()
 
-        if hasattr(networktables, "NetworkTables"):
-            if hasattr(networktables.NetworkTables, "setTestMode"):
-                networktables.NetworkTables.setTestMode()
-            else:
-                networktables.NetworkTables.startTestMode()
-        else:
-            networktables.NetworkTable.setTestMode()
+        DriverStationSim.setAutonomous(False)
+        DriverStationSim.setEnabled(False)
+        DriverStationSim.notifyNewData()
 
-        self._fake_time.initialize()
-        self._test_controller = TestController(self._fake_time)
-
-        hal_impl.functions.reset_hal()
-
-        import wpilib
-
-        hwcfg = getattr(wpilib.RobotBase, "initializeHardwareConfiguration", None)
-        if hwcfg:
-            hwcfg()
-
-        self._test_controller._robot = self.robot_class()
-
-        # TODO: Remove after 2016
-        getattr(self._test_controller._robot, "prestart", lambda: True)()
-
-        assert hasattr(
-            self._test_controller._robot, "_RobotBase__initialized"
-        ), "If your robot class has an __init__ function, it must call super().__init__()!"
+        self._robot = self._robot_class()
 
         self._started = True
 
@@ -87,34 +63,28 @@ class PyFrcPlugin:
         started = self._started
         self._started = False
 
-        # Let any child threads run in realtime to allow cancelling if it
-        # has been implemented.
-        self._fake_time.teardown()
-        self._test_controller = None
+        del self._robot
+
+        # Ensure all objects are destroyed so that HAL handles are released
+        gc.collect()
 
         # If the unit test never started, then the rest may hang. Bail
         # out now instead, and choose to have more errors later.
         if not started:
             return
 
-        import wpilib._impl.utils
+        # Reset the HAL state
+        hal.simulation.resetGlobalHandles()
 
-        wpilib._impl.utils.reset_wpilib()
+        # goal: all robot state should be reset via hal.shutdown, which can be
+        # called multiple times (even though it's not documented)
+        # hal.shutdown()
+        # .. in practice, hal.shutdown doesn't do anything
 
-        import networktables
+        # shutdown networktables
+        networktables.NetworkTables.stopLocal()
 
-        if hasattr(networktables, "NetworkTables"):
-            networktables.NetworkTables.shutdown()
-        else:
-            networktables.NetworkTable._staticProvider.close()
-            networktables.NetworkTable._staticProvider = None
-
-        if not self._fake_time.children_stopped():
-            raise ThreadStillRunningError(
-                "Make sure spawning class has free() "
-                "method to stop thread and is registered with "
-                "Resource.add_global_resource()."
-            )
+        # TODO: reset simulation objects
 
     #
     # Fixtures
@@ -123,66 +93,26 @@ class PyFrcPlugin:
     # corresponding function will be passed to your test as that argument.
     #
 
-    @pytest.fixture()
-    def control(self):
+    @pytest.fixture(scope="function")
+    def control(self, reraise) -> TestController:
         """
-        A fixture that provides control over the robot
+        A pytest fixture that provides control over the robot
+        """
+        return TestController(reraise, self._robot)
 
-        :rtype: :class:`.TestController`
+    @pytest.fixture(scope="function")
+    def robot(self) -> wpilib.RobotBase:
         """
-        return self._test_controller
-
-    @pytest.fixture()
-    def fake_time(self):
+        Your robot instance
         """
-        A fixture that gives you control over the time your robot is using
-
-        :rtype:   :class:`.FakeTime`
-        """
-        return self._fake_time
+        return weakref.proxy(self._robot)
 
     @pytest.fixture()
-    def hal_data(self):
-        """
-        Provides access to a dict with all the device data about the robot
-
-        .. seealso:: For a listing of what the dict contains and some documentation, see
-                     https://github.com/robotpy/robotpy-wpilib/blob/master/hal-sim/hal_impl/data.py
-        """
-        return hal_impl.data.hal_data
-
-    @pytest.fixture()
-    def robot(self):
-        """Your robot instance"""
-        return self._test_controller._robot
-
-    @pytest.fixture()
-    def robot_file(self):
+    def robot_file(self) -> pathlib.Path:
         """The absolute filename your robot code is started from"""
         return self._robot_file
 
     @pytest.fixture()
-    def robot_path(self):
+    def robot_path(self) -> pathlib.Path:
         """The absolute directory that your robot code is located at"""
-        return self._robot_path
-
-    @pytest.fixture()
-    def wpilib(self):
-        """The :mod:`wpilib` module. Provided for backwards compatibility"""
-        import wpilib
-
-        return wpilib
-
-    #
-    # Internal use only because newer versions of pytest
-    # don't allow calling fixtures directly
-    #
-
-    def get_control(self):
-        return self._test_controller
-
-    def get_fake_time(self):
-        return self._fake_time
-
-    def get_robot(self):
-        return self._test_controller._robot
+        return self._robot_file.parent

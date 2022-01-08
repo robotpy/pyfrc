@@ -3,7 +3,7 @@ import os
 import re
 import sys
 
-# if you want to be really pedantic, enforce sphinx docstrings. Ha.
+#: If you want to be really pedantic, enforce sphinx docstrings. Ha.
 pedantic_docstrings = True
 
 # regex to use to detect the sphinx docstrings
