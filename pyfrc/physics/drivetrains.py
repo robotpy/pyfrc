@@ -53,9 +53,9 @@ import typing
 
 from .units import units, Helpers
 
-from wpilib.geometry import Translation2d
+from wpimath.geometry import Translation2d
 
-from wpilib.kinematics import (
+from wpimath.kinematics import (
     ChassisSpeeds,
     DifferentialDriveKinematics,
     DifferentialDriveWheelSpeeds,
