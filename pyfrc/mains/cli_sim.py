@@ -1,3 +1,4 @@
+import os
 from os.path import abspath, dirname
 import argparse
 import inspect
@@ -56,6 +57,9 @@ class PyFrcSim:
             else:
                 halsim_gui.loadExtension()
 
+        # Some extensions (gui) changes the current directory
+        cwd = os.getcwd()
+
         for name, module in self.simexts.items():
             if getattr(options, name.replace("-", "_"), False):
                 try:
@@ -63,6 +67,8 @@ class PyFrcSim:
                 except:
                     print(f"Error loading {name}!")
                     raise
+
+        os.chdir(cwd)
 
         # initialize physics, attach to the user robot class
         from ..physics.core import PhysicsInterface, PhysicsInitException

@@ -15,7 +15,7 @@
 import math
 import typing
 
-from wpilib.geometry import Transform2d
+from wpimath.geometry import Transform2d
 
 from .motor_cfgs import MotorModelConfig
 from .units import units, Helpers

@@ -281,25 +281,47 @@ class PyFrcDeploy:
                 )
                 return False
 
-        # does startup dlls need to be fixed
-        with wrap_ssh_error("checking StartupDLLs"):
+        # See if there's any roboRIO settings we need to adjust
+        with wrap_ssh_error("checking on-robot settings"):
             result = ssh.exec_cmd(
                 "grep ^StartupDLLs /etc/natinst/share/ni-rt.ini",
                 get_output=True,
             )
             assert result.stdout is not None
-            if result.stdout.strip() != "":
-                self._fix_startupdlls(ssh)
+            fix_startupdlls = result.stdout.strip() != ""
+
+            result = ssh.exec_cmd(
+                'grep \\"exec /usr/local/frc/bin/frcRunRobot.sh',
+                get_output=True,
+            )
+            assert result.stdout is not None
+            fix_runrobot = result.stdout.strip() != ""
+
+        if fix_runrobot or fix_startupdlls:
+            with wrap_ssh_error("Applying patches to roborio"):
+                self._apply_admin_fixes(ssh, fix_startupdlls, fix_runrobot)
 
         return True
 
-    def _fix_startupdlls(self, lvuser_ssh: sshcontroller.SshController):
+    def _apply_admin_fixes(
+        self,
+        lvuser_ssh: sshcontroller.SshController,
+        fix_startupdlls: bool,
+        fix_runrobot: bool,
+    ):
         # requires admin-level access to fix, so create a new ssh controller
         ssh = sshcontroller.SshController(lvuser_ssh.hostname, "admin", "")
         with ssh:
-            ssh.exec_cmd(
-                'sed -i -e "s/^StartupDLLs/;StartupDLLs/" /etc/natinst/share/ni-rt.ini'
-            )
+            if fix_startupdlls:
+                # Frees up memory on the RIO
+                ssh.exec_cmd(
+                    'sed -i -e "s/^StartupDLLs/;StartupDLLs/" /etc/natinst/share/ni-rt.ini'
+                )
+            if fix_runrobot:
+                # GradleRIO does this, so we do too
+                ssh.exec_cmd(
+                    "sed -i -e 's/\\\"exec /\\\"/' /usr/local/frc/bin/frcRunRobot.sh"
+                )
 
     def _do_deploy(
         self,
