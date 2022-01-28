@@ -29,6 +29,7 @@
 
 import imp
 import math
+import inspect
 from os.path import exists, join
 import threading
 
@@ -62,6 +63,9 @@ class PhysicsEngine:
 
         :param physics_controller: The physics controller interface
         :type  physics_controller: :class:`.PhysicsInterface`
+
+        Optionally, it may take a second argument, which is an instance of your
+        robot class.
         """
         self.physics_controller = physics_controller
 
@@ -126,7 +130,25 @@ class PhysicsInterface:
     def _simulationInit(self):
         # look for a class called PhysicsEngine
         try:
-            self.engine = self.module.PhysicsEngine(self)
+            PhysicsEngine = self.module.PhysicsEngine
+        except Exception as e:
+            raise PhysicsInitException(
+                "physics module does not have a 'PhysicsEngine' object"
+            )
+
+        try:
+            # if it has two arguments, the second argument is their robot...
+            sig = inspect.signature(PhysicsEngine)
+            if len(sig.parameters) == 2:
+                # which we don't have. So... we can't really change that at the moment,
+                # so let's do things that should never be done
+                robot = inspect.stack()[1].frame.f_locals["self"].robot
+
+                self.engine = PhysicsEngine(self, robot)
+
+            else:
+                self.engine = PhysicsEngine(self)
+
         except Exception:
             logger.exception("Error creating user's PhysicsEngine object")
             raise PhysicsInitException()
