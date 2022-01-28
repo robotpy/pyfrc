@@ -18,22 +18,41 @@ physics_starter = '''
 #
 # Examples can be found at https://github.com/robotpy/examples
 
+import wpilib.simulation
+
+from pyfrc.physics.core import PhysicsInterface
+from pyfrc.physics import motor_cfgs, tankmodel
+from pyfrc.physics.units import units
+
+import typing
+
+if typing.TYPE_CHECKING:
+    from robot import MyRobot
+
 
 class PhysicsEngine:
     """
-       Simulates a 4-wheel robot using Tank Drive joystick control
+    Simulates a 4-wheel robot using Tank Drive joystick control
     """
 
-    def __init__(self, physics_controller):
+    def __init__(self, physics_controller: PhysicsInterface, robot: "MyRobot"):
         """
         :param physics_controller: `pyfrc.physics.core.Physics` object
                                    to communicate simulation effects to
+        :param robot: your robot objet
         """
 
         self.physics_controller = physics_controller
 
+        print("TODO: modify simulation for my robot")
+
         """
         # Change these parameters to fit your robot!
+
+        # Motors
+        self.l_motor = wpilib.simulation.PWMSim(1)
+        self.r_motor = wpilib.simulation.PWMSim(2)
+
         bumper_width = 3.25 * units.inch
 
         self.drivetrain = tankmodel.TankModel.theory(
@@ -48,7 +67,7 @@ class PhysicsEngine:
         )
         """
 
-    def update_sim(self, hal_data, now, tm_diff):
+    def update_sim(self, now, tm_diff):
         """
         Called when the simulation parameters for the program need to be
         updated.
@@ -58,37 +77,16 @@ class PhysicsEngine:
                         time that this function was called
         """
 
+        """
         # Simulate the drivetrain
-        """
-        lr_motor = hal_data["pwm"][1]["value"]
-        rr_motor = hal_data["pwm"][2]["value"]
+        l_motor = self.l_motor.getSpeed()
+        r_motor = self.r_motor.getSpeed()
 
-        # Not needed because front and rear should be in sync
-        # lf_motor = hal_data['pwm'][3]['value']
-        # rf_motor = hal_data['pwm'][4]['value']
-
-        x, y, angle = self.drivetrain.get_distance(lr_motor, rr_motor, tm_diff)
-        self.physics_controller.distance_drive(x, y, angle)
+        transform = self.drivetrain.calculate(l_motor, r_motor, tm_diff)
+        pose = self.physics_controller.move_robot(transform)
         """
+
 '''
-
-sim_starter = {
-    "pyfrc": {
-        "robot": {
-            "w": 3,
-            "h": 2,
-            "starting_x": 10,
-            "starting_y": 10,
-            "starting_angle": 0,
-        },
-        "pwm": {},
-        "can": {},
-        "joysticks": {
-            "0": {"axes": {}, "buttons": {}},
-            "1": {"axes": {}, "buttons": {}},
-        },
-    }
-}
 
 
 class PyFrcCreatePhysics:
@@ -97,15 +95,11 @@ class PyFrcCreatePhysics:
 
     def run(self, options, robot_class, **static_options):
 
-        print("Robot physics are not yet implemented for RobotPy 2020")
-        return 1
-
         robot_file = abspath(inspect.getfile(robot_class))
         robot_path = dirname(robot_file)
         sim_path = join(robot_path, "sim")
 
         physics_file = join(robot_path, "physics.py")
-        sim_file = join(sim_path, "config.json")
         if exists(physics_file):
             print("- physics.py already exists")
         else:
@@ -113,17 +107,5 @@ class PyFrcCreatePhysics:
                 fp.write(physics_starter)
             print("- physics file created at", physics_file)
 
-        if exists(sim_path):
-            if exists(sim_file):
-                print("- config.json already exists")
-            else:
-                with open(sim_file, "w") as f:
-                    f.write(json.dumps(sim_starter, indent=4) + "\n")
-                print("- sim file created at", sim_file)
-        else:
-            mkdir(sim_path)
-            with open(sim_file, "w") as f:
-                f.write(json.dumps(sim_starter, indent=4) + "\n")
-            print("- sim file created at", sim_file)
         print()
         print("Robot simulation can be run via 'python3 robot.py sim'")
