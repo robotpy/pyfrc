@@ -31,7 +31,7 @@ _kitbot_wheelbase = 21.0 * units.inch
 _kitbot_width = _kitbot_wheelbase + _bumper_length * 2
 _kitbot_length = 30.0 * units.inch + _bumper_length * 2
 
-_inertia_units = (units.foot ** 2) * units.pound
+_inertia_units = (units.foot**2) * units.pound
 _bm_units = units.foot * units.pound
 
 
@@ -256,7 +256,7 @@ class TankModel:
         logger.info(
             "- Theoretical: vmax=%.3f ft/s, amax=%.3f ft/s^2, kv=%.3f, ka=%.3f",
             max_velocity.m_as(units.foot / units.second),
-            max_acceleration.m_as(units.foot / units.second ** 2),
+            max_acceleration.m_as(units.foot / units.second**2),
             kv.m,
             ka.m,
         )
@@ -335,7 +335,7 @@ class TankModel:
         self._lmotor = MotorModel(motor_config, l_kv, l_ka, l_vi)
         self._rmotor = MotorModel(motor_config, r_kv, r_ka, r_vi)
 
-        self.inertia = (1 / 12.0) * robot_mass * (robot_length ** 2 + robot_width ** 2)
+        self.inertia = (1 / 12.0) * robot_mass * (robot_length**2 + robot_width**2)
 
         # This is used to compute the rotational velocity
         self._bm = _bm_units.m_from((x_wheelbase / 2.0) * robot_mass)
