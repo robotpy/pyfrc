@@ -142,7 +142,9 @@ class PhysicsInterface:
             if len(sig.parameters) == 2:
                 # which we don't have. So... we can't really change that at the moment,
                 # so let's do things that should never be done
-                robot = inspect.stack()[1].frame.f_locals["self"].robot
+                context = inspect.stack()[1].frame.f_locals["self"]
+                # If the user calls simulationInit then they're likely calling it from the robot
+                robot = getattr(context, "robot", context)
 
                 self.engine = PhysicsEngine(self, robot)
 
