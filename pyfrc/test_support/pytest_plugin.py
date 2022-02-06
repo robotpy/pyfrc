@@ -50,6 +50,7 @@ class PyFrcPlugin:
         pauseTiming()
         restartTiming()
 
+        wpilib.DriverStation.silenceJoystickConnectionWarning(True)
         DriverStationSim.setAutonomous(False)
         DriverStationSim.setEnabled(False)
         DriverStationSim.notifyNewData()
@@ -73,8 +74,11 @@ class PyFrcPlugin:
         if not started:
             return
 
-        # Reset the HAL state
+        # Reset the HAL handles
         hal.simulation.resetGlobalHandles()
+
+        # Reset the HAL data
+        hal.simulation.resetAllData()
 
         # goal: all robot state should be reset via hal.shutdown, which can be
         # called multiple times (even though it's not documented)
