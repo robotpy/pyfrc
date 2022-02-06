@@ -5,11 +5,17 @@ import typing
 import pytest
 import weakref
 
-
+import hal
 import hal.simulation
 import networktables
 import wpilib
 from wpilib.simulation import DriverStationSim, pauseTiming, restartTiming
+
+# TODO: get rid of special-casing.. maybe should register a HAL shutdown hook or something
+try:
+    import commands2
+except ImportError:
+    commands2 = None
 
 from .controller import TestController
 from ..physics.core import PhysicsInterface
@@ -74,21 +80,20 @@ class PyFrcPlugin:
         if not started:
             return
 
+        if commands2 is not None:
+            commands2.CommandScheduler.resetInstance()
+
+        # shutdown networktables
+        networktables.NetworkTables.stopLocal()
+
         # Reset the HAL handles
         hal.simulation.resetGlobalHandles()
 
         # Reset the HAL data
         hal.simulation.resetAllData()
 
-        # goal: all robot state should be reset via hal.shutdown, which can be
-        # called multiple times (even though it's not documented)
-        # hal.shutdown()
-        # .. in practice, hal.shutdown doesn't do anything
-
-        # shutdown networktables
-        networktables.NetworkTables.stopLocal()
-
-        # TODO: reset simulation objects
+        # Shutdown HAL (this can be called multiple times)
+        hal.shutdown()
 
     #
     # Fixtures
