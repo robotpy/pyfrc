@@ -15,8 +15,5 @@ jobs:
     with:
       enable_sphinx_check: false
     secrets:
-      SSH_USER: ${{ secrets.SSH_USER }}
-      SSH_KEY: ${{ secrets.SSH_KEY }}
-      SSH_PASSPHRASE: ${{ secrets.SSH_PASSPHRASE }}
       META_REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
       PYPI_API_TOKEN: ${{ secrets.PYPI_PASSWORD }}
