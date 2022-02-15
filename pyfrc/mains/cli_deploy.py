@@ -1,6 +1,7 @@
 import argparse
 import contextlib
 import inspect
+import pathlib
 import os
 import sys
 import re
@@ -175,6 +176,13 @@ class PyFrcDeploy:
                 "If you really want to do this, then specify the --nonstandard argument"
             )
             return 1
+
+        if (pathlib.Path(robot_path) / "hooks.py").exists():
+            """
+            Code to do things like, run the hooks should go here?
+            """
+        else:
+            logging.info("Not enabling custom deploy hooks, hooks.py not found")
 
         if not options.large and not self._check_large_files(robot_path):
             return 1
