@@ -1,6 +1,10 @@
 import argparse
 import contextlib
+import subprocess
+import datetime
+import socket
 import inspect
+import json
 import os
 import sys
 import re
@@ -205,6 +209,42 @@ class PyFrcDeploy:
         print("\nSUCCESS: Deploy was successful!")
         return 0
 
+    def _generate_build_data(self, robot_path) -> dict:
+        """
+        Generate a deploy.json
+        """
+
+        deploy_data = {
+            "build-host": socket.gethostname(),  # os.uname doesn't work on systems that use non-unix os
+            "builder": os.getlogin(),
+            "path": robot_path,
+            "build-date": datetime.datetime.now().replace(microsecond=0).isoformat(),
+        }
+
+        # Test if we're in a git repo or not
+        revParseProcess = subprocess.run(
+            args=["git", "rev-parse", "--is-inside-work-tree"],
+            capture_output=True,
+        )
+
+        # If we're in a git repo
+        if revParseProcess.stdout.decode().strip() == "true":
+            try:
+                # Describe this repo
+                repoProcess = subprocess.run(
+                    args=["git", "describe", "--dirty=-dirty", "--always"],
+                    capture_output=True,
+                )
+
+                # Insert this data into our deploy.json dict
+                deploy_data["git"] = repoProcess.stdout.decode().strip()
+            except subprocess.CalledProcessError as e:
+                logging.exception(e)
+        else:
+            logging.info("Not including git hash in deploy.json: Not a git repo.")
+
+        return deploy_data
+
     def _check_large_files(self, robot_path):
 
         large_sz = 250000
@@ -390,7 +430,14 @@ class PyFrcDeploy:
         tmp_dir = tempfile.mkdtemp()
         try:
             py_tmp_dir = join(tmp_dir, py_new_deploy_subdir)
+            # Copy robot path contents to new deploy subdir
             self._copy_to_tmpdir(py_tmp_dir, robot_path)
+
+            # Copy 'build' artifacts to new deploy subdir
+            with open(join(py_tmp_dir, "deploy.json"), "w") as outf:
+                json.dump(self._generate_build_data(robot_path), outf)
+
+            # sftp new deploy subdir to robot
             ssh.sftp(py_tmp_dir, deploy_dir, mkdir=not options.in_place)
         finally:
             shutil.rmtree(tmp_dir)
