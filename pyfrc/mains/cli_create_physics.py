@@ -50,8 +50,8 @@ class PhysicsEngine:
         # Change these parameters to fit your robot!
 
         # Motors
-        self.l_motor = wpilib.simulation.PWMSim(1)
-        self.r_motor = wpilib.simulation.PWMSim(2)
+        self.l_motor = wpilib.simulation.PWMSim(robot.l_motor)
+        self.r_motor = wpilib.simulation.PWMSim(robot.r_motor)
 
         bumper_width = 3.25 * units.inch
 
@@ -67,7 +67,7 @@ class PhysicsEngine:
         )
         """
 
-    def update_sim(self, now, tm_diff):
+    def update_sim(self, now: float, tm_diff: float) -> None:
         """
         Called when the simulation parameters for the program need to be
         updated.
