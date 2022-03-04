@@ -127,7 +127,7 @@ class PhysicsInterface:
     def __repr__(self):
         return "Physics"
 
-    def _simulationInit(self):
+    def _simulationInit(self, robot):
         # look for a class called PhysicsEngine
         try:
             PhysicsEngine = self.module.PhysicsEngine
@@ -138,16 +138,10 @@ class PhysicsInterface:
 
         try:
             # if it has two arguments, the second argument is their robot...
+            # - TODO: always pass robot in 2023
             sig = inspect.signature(PhysicsEngine)
             if len(sig.parameters) == 2:
-                # which we don't have. So... we can't really change that at the moment,
-                # so let's do things that should never be done
-                context = inspect.stack()[1].frame.f_locals["self"]
-                # If the user calls simulationInit then they're likely calling it from the robot
-                robot = getattr(context, "robot", context)
-
                 self.engine = PhysicsEngine(self, robot)
-
             else:
                 self.engine = PhysicsEngine(self)
 
