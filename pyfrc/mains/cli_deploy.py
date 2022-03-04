@@ -215,10 +215,10 @@ class PyFrcDeploy:
         """
 
         deploy_data = {
-            "build-host": socket.gethostname(),  # os.uname doesn't work on systems that use non-unix os
-            "builder": os.getlogin(),
-            "path": robot_path,
-            "build-date": datetime.datetime.now().replace(microsecond=0).isoformat(),
+            "deploy-host": socket.gethostname(),  # os.uname doesn't work on systems that use non-unix os
+            "deploy-user": os.getlogin(),
+            "deploy-date": datetime.datetime.now().replace(microsecond=0).isoformat(),
+            "code-path": robot_path,
         }
 
         # Test if we're in a git repo or not
@@ -231,13 +231,20 @@ class PyFrcDeploy:
         if revParseProcess.stdout.decode().strip() == "true":
             try:
                 # Describe this repo
-                repoProcess = subprocess.run(
+                descProc = subprocess.run(
                     args=["git", "describe", "--dirty=-dirty", "--always"],
                     capture_output=True,
                 )
 
+                # Get the branch name
+                nameProc = subprocess.run(
+                    args=["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                    capture_output=True,
+                )
+
                 # Insert this data into our deploy.json dict
-                deploy_data["git"] = repoProcess.stdout.decode().strip()
+                deploy_data["git-hash"] = descProc.stdout.decode().strip()
+                deploy_data["git-branch"] = nameProc.stdout.decode().strip()
             except subprocess.CalledProcessError as e:
                 logging.exception(e)
         else:
