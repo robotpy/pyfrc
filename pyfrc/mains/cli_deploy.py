@@ -222,13 +222,17 @@ class PyFrcDeploy:
         }
 
         # Test if we're in a git repo or not
-        revParseProcess = subprocess.run(
-            args=["git", "rev-parse", "--is-inside-work-tree"],
-            capture_output=True,
-        )
+        try:
+            revParseProcess = subprocess.run(
+                args=["git", "rev-parse", "--is-inside-work-tree"],
+                capture_output=True,
+            )
+            in_git_repo = revParseProcess.stdout.decode().strip() == "true"
+        except FileNotFoundError:
+            in_git_repo = False
 
         # If we're in a git repo
-        if revParseProcess.stdout.decode().strip() == "true":
+        if in_git_repo:
             try:
                 # Describe this repo
                 descProc = subprocess.run(
