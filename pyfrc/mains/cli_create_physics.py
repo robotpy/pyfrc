@@ -39,7 +39,7 @@ class PhysicsEngine:
         """
         :param physics_controller: `pyfrc.physics.core.Physics` object
                                    to communicate simulation effects to
-        :param robot: your robot objet
+        :param robot: your robot object
         """
 
         self.physics_controller = physics_controller
