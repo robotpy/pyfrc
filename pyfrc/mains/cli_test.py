@@ -1,14 +1,15 @@
 import os
+from os.path import abspath
 import inspect
+import pathlib
 import sys
 
-from os.path import abspath, dirname, exists, join
 
 import pytest
 
 from ..util import yesno
 
-# from ..test_support import pytest_plugin
+from ..test_support import pytest_plugin
 
 # TODO: setting the plugins so that the end user can invoke py.test directly
 # could be a useful thing. Will have to consider that later.
@@ -49,9 +50,6 @@ class PyFrcTest:
     def run(self, options, robot_class, **static_options):
         # wrapper around run_test that sets the appropriate mode
 
-        print("tests are not yet implemented for RobotPy 2020")
-        return 1
-
         from .. import config
 
         config.mode = "test"
@@ -72,31 +70,29 @@ class PyFrcTest:
         # find test directory, change current directory so py.test can find the tests
         # -> assume that tests reside in tests or ../tests
 
-        curdir = abspath(os.getcwd())
+        curdir = pathlib.Path.cwd().absolute()
 
         self.robot_class = robot_class
-        robot_file = abspath(inspect.getfile(robot_class))
-        robot_path = dirname(robot_file)
+        robot_file = pathlib.Path(inspect.getfile(robot_class)).absolute()
 
-        if robot_file.endswith("cProfile.py"):
+        if robot_file.name == "cProfile.py":
             # so, the module for the robot class is __main__, and __main__ is
             # cProfile so try to find it
-            robot_file = join(curdir, "robot.py")
-            robot_path = curdir
+            robot_file = curdir / "robot.py"
 
-            if not exists(robot_file):
+            if not robot_file.exists():
                 print(
                     "ERROR: Cannot run profiling from a directory that does not contain robot.py"
                 )
                 return 1
 
         self.try_dirs = [
-            abspath(join(robot_path, "tests")),
-            abspath(join(robot_path, "..", "tests")),
+            (robot_file.parent / "tests").absolute(),
+            (robot_file.parent / ".." / "tests").absolute(),
         ]
 
         for d in self.try_dirs:
-            if exists(d):
+            if d.exists():
                 test_directory = d
                 os.chdir(test_directory)
                 break
@@ -113,9 +109,7 @@ class PyFrcTest:
         try:
             retv = pytest.main(
                 pytest_args,
-                plugins=[
-                    pytest_plugin.PyFrcPlugin(robot_class, robot_file, robot_path)
-                ],
+                plugins=[pytest_plugin.PyFrcPlugin(robot_class, robot_file)],
             )
         finally:
             os.chdir(curdir)
@@ -132,7 +126,7 @@ class PyFrcTest:
         print()
         print("Looked for tests at:")
         for d in self.try_dirs:
-            print("- %s" % d)
+            print("-", d)
         print()
         print(
             "If you don't want to write your own tests, pyfrc comes with generic tests"

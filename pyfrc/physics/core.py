@@ -28,10 +28,10 @@
 """
 
 import imp
-import math
 import inspect
-from os.path import exists, join
-import threading
+import logging
+import pathlib
+import typing
 
 import wpilib
 import wpilib.simulation
@@ -39,7 +39,6 @@ import wpilib.simulation
 from wpimath.kinematics import ChassisSpeeds
 from wpimath.geometry import Pose2d, Rotation2d, Transform2d, Translation2d, Twist2d
 
-import logging
 
 logger = logging.getLogger("pyfrc.physics")
 
@@ -92,14 +91,20 @@ class PhysicsInterface:
     """
 
     @classmethod
-    def _create(cls, robot_path):
-
-        physics_module_path = join(robot_path, "physics.py")
-        if exists(physics_module_path):
+    def _create_and_attach(
+        cls: typing.Type["PhysicsInterface"],
+        robot_class: typing.Type[wpilib.RobotBase],
+        robot_path: pathlib.Path,
+    ) -> typing.Tuple[
+        typing.Optional["PhysicsInterface"], typing.Type[wpilib.RobotBase]
+    ]:
+        interface: typing.Optional["PhysicsInterface"] = None
+        physics_module_path = robot_path / "physics.py"
+        if physics_module_path.exists():
 
             # Load the user's physics module if it exists
             try:
-                physics_module = imp.load_source("physics", physics_module_path)
+                physics_module = imp.load_source("physics", str(physics_module_path))
             except:
                 logger.exception("Error loading user physics module")
                 raise PhysicsInitException()
@@ -109,23 +114,38 @@ class PhysicsInterface:
                 raise PhysicsInitException()
 
             logger.info("Physics support successfully enabled")
-            return PhysicsInterface(physics_module)
+            interface = PhysicsInterface(physics_module)
+
+            # We create a robot class so we can pass the robot object to
+            # interface._simulationInit
+            class PhysicsRobot(robot_class):
+                def _simulationInit(self):
+                    interface._simulationInit(self)
+
+                _simulationPeriodic = interface._simulationPeriodic
+
+            # The user doesn't need to know that we didn't create their class directly..
+            PhysicsRobot.__name__ = robot_class.__name__
+            PhysicsRobot.__module__ = robot_class.__module__
+            PhysicsRobot.__qualname__ = robot_class.__qualname__
+
+            robot_class = PhysicsRobot
 
         else:
             logger.warning(
                 "Cannot enable physics support, %s not found", physics_module_path
             )
 
+        return interface, robot_class
+
     def __init__(self, physics_module):
+
         self.last_tm = None
         self.module = physics_module
         self.engine = None
-        self.device_gyro_channels = []
-        self.field = wpilib.Field2d()
-        wpilib.SmartDashboard.putData("Field", self.field)
+        self.field = None
 
-    def __repr__(self):
-        return "Physics"
+        self.log_init_errors = True
 
     def _simulationInit(self, robot):
         # look for a class called PhysicsEngine
@@ -146,8 +166,16 @@ class PhysicsInterface:
                 self.engine = PhysicsEngine(self)
 
         except Exception:
+            if not self.log_init_errors:
+                raise
             logger.exception("Error creating user's PhysicsEngine object")
             raise PhysicsInitException()
+
+        # reset state
+        self.field = wpilib.Field2d()
+        wpilib.SmartDashboard.putData("Field", self.field)
+
+        self.last_tm = None
 
     def _simulationPeriodic(self):
         now = wpilib.Timer.getFPGATimestamp()
