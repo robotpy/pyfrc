@@ -234,6 +234,10 @@ class PyFrcDeploy:
         # If we're in a git repo
         if in_git_repo:
             try:
+                hashProc = subprocess.run(
+                    args=["git", "rev-parse", "HEAD"], capture_output=True
+                )
+
                 # Describe this repo
                 descProc = subprocess.run(
                     args=["git", "describe", "--dirty=-dirty", "--always"],
@@ -247,7 +251,8 @@ class PyFrcDeploy:
                 )
 
                 # Insert this data into our deploy.json dict
-                deploy_data["git-hash"] = descProc.stdout.decode().strip()
+                deploy_data["git-hash"] = hashProc.stdout.decode().strip()
+                deploy_data["git-desc"] = descProc.stdout.decode().strip()
                 deploy_data["git-branch"] = nameProc.stdout.decode().strip()
             except subprocess.CalledProcessError as e:
                 logging.exception(e)
