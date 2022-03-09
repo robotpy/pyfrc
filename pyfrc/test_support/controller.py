@@ -4,7 +4,7 @@ import wpilib
 import threading
 import pytest
 
-from wpilib.simulation import DriverStationSim, stepTiming
+from wpilib.simulation import DriverStationSim, stepTiming, stepTimingAsync
 
 
 class TestController:
@@ -78,6 +78,9 @@ class TestController:
             self._robot_finished = True
             robot.endCompetition()
 
+        # Increment time by 1 second to ensure that any notifiers fire
+        stepTimingAsync(1.0)
+
         # the robot thread should exit quickly
         th.join(timeout=1)
         if th.is_alive():
@@ -97,7 +100,14 @@ class TestController:
 
         return th.is_alive()
 
-    def step_timing(self, *, seconds: float, autonomous: bool, enabled: bool) -> float:
+    def step_timing(
+        self,
+        *,
+        seconds: float,
+        autonomous: bool,
+        enabled: bool,
+        assert_alive: bool = True
+    ) -> float:
         """
         This utility will increment simulated time, while pretending that
         there's a driver station connected and delivering new packets
@@ -123,7 +133,8 @@ class TestController:
         while tm < seconds + 0.01:
             DriverStationSim.notifyNewData()
             stepTiming(0.2)
-            assert self.robot_is_alive
+            if assert_alive:
+                assert self.robot_is_alive
             tm += 0.2
 
         return tm
