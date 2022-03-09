@@ -26,7 +26,7 @@ def test_autonomous(control: "TestController"):
         control.step_timing(seconds=0.5, autonomous=True, enabled=False)
 
         # Run enabled for 15 seconds
-        control.step_timing(seconds=15, autonomous=True, enabled=False)
+        control.step_timing(seconds=15, autonomous=True, enabled=True)
 
         # Disabled for another short period
         control.step_timing(seconds=0.5, autonomous=True, enabled=False)
