@@ -1,6 +1,7 @@
 import gc
 import pathlib
-import typing
+
+from typing import Type
 
 import pytest
 import weakref
@@ -29,7 +30,7 @@ class PyFrcPlugin:
     be passed to your test function.
     """
 
-    def __init__(self, robot_class: type[wpilib.RobotBase], robot_file: pathlib.Path):
+    def __init__(self, robot_class: Type[wpilib.RobotBase], robot_file: pathlib.Path):
 
         # attach physics
         physics, robot_class = PhysicsInterface._create_and_attach(
