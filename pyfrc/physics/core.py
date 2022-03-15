@@ -148,6 +148,13 @@ class PhysicsInterface:
         self.log_init_errors = True
 
     def _simulationInit(self, robot):
+
+        # reset state first so that the PhysicsEngine constructor can use it
+        self.field = wpilib.Field2d()
+        wpilib.SmartDashboard.putData("Field", self.field)
+
+        self.last_tm = None
+
         # look for a class called PhysicsEngine
         try:
             PhysicsEngine = self.module.PhysicsEngine
@@ -170,12 +177,6 @@ class PhysicsInterface:
                 raise
             logger.exception("Error creating user's PhysicsEngine object")
             raise PhysicsInitException()
-
-        # reset state
-        self.field = wpilib.Field2d()
-        wpilib.SmartDashboard.putData("Field", self.field)
-
-        self.last_tm = None
 
     def _simulationPeriodic(self):
         now = wpilib.Timer.getFPGATimestamp()
