@@ -16,10 +16,6 @@ class PyFrcAddTests:
         pass
 
     def run(self, options, robot_class, **static_options):
-
-        print("tests are not yet implemented for RobotPy 2020")
-        return 1
-
         robot_file = abspath(inspect.getfile(robot_class))
         robot_path = dirname(robot_file)
 
