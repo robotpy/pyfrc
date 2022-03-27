@@ -512,7 +512,7 @@ class PyFrcDeploy:
     def _copy_to_tmpdir(self, tmp_dir, robot_path, dry_run=False):
 
         upload_files = []
-        ignore_exts = {"pyc", "whl", "ipk", "zip", "gz"}
+        ignore_exts = frozenset({"pyc", "whl", "ipk", "zip", "gz", "wpilog"})
 
         for root, dirs, files in os.walk(robot_path):
             prefix = root[len(robot_path) + 1 :]
