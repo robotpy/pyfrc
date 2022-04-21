@@ -54,6 +54,8 @@ class PyFrcPlugin:
         self._robot_file = robot_file
         self._robot_class = TestRobot
 
+        self._physics = physics
+
         if physics:
             physics.log_init_errors = False
 
@@ -99,6 +101,11 @@ class PyFrcPlugin:
 
         # Tests only get a proxy to ensure cleanup is more reliable
         yield weakref.proxy(robot)
+
+        # reset engine to ensure it gets cleaned up too
+        # -> might be holding wpilib objects, or the robot
+        if self._physics:
+            self._physics.engine = None
 
         del robot
 
