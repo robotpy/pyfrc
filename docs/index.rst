@@ -8,7 +8,7 @@ FIRST Robotics Competition easier.
 This library contains a few primary parts:
 
 * A built-in uploader that will upload your robot code to the robot
-* Integration with the py.test testing tool to allow you to easily write unit
+* Integration with the pytest testing tool to allow you to easily write unit
   tests for your robot code.
 * Simulation and 'robot physics' support
   
