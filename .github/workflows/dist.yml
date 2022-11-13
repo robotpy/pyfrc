@@ -11,7 +11,7 @@ on:
 
 jobs:
   ci:
-    uses: robotpy/build-actions/.github/workflows/package-pure.yml@v2022
+    uses: robotpy/build-actions/.github/workflows/package-pure.yml@v2023
     with:
       enable_sphinx_check: false
     secrets:
