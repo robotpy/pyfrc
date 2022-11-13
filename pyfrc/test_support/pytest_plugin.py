@@ -8,7 +8,7 @@ import weakref
 
 import hal
 import hal.simulation
-import networktables
+import ntcore
 import wpilib
 from wpilib.simulation import DriverStationSim, pauseTiming, restartTiming
 import wpilib.simulation
@@ -87,7 +87,8 @@ class PyFrcPlugin:
         # bubble up to the user
         #
 
-        networktables.NetworkTables.startLocal()
+        nt_inst = ntcore.NetworkTableInstance.getDefault()
+        nt_inst.startLocal()
 
         pauseTiming()
         restartTiming()
@@ -107,6 +108,9 @@ class PyFrcPlugin:
         if self._physics:
             self._physics.engine = None
 
+        # HACK: avoid motor safety deadlock
+        wpilib.simulation._simulation._resetMotorSafety()
+
         del robot
 
         # Double-check all objects are destroyed so that HAL handles are released
@@ -119,7 +123,7 @@ class PyFrcPlugin:
         # -> some reset functions will re-register listeners, so it's important
         #    to do this before so that the listeners are active on the current
         #    NetworkTables instance
-        networktables.NetworkTables.stopLocal()
+        nt_inst.stopLocal()
 
         # Cleanup WPILib globals
         # -> preferences, SmartDashboard, LiveWindow, MotorSafety
@@ -133,7 +137,7 @@ class PyFrcPlugin:
         hal.simulation.resetGlobalHandles()
 
         # Reset the HAL data
-        hal.simulation.resetAllData()
+        hal.simulation.resetAllSimData()
 
         # Don't call HAL shutdown! This is only used to cleanup HAL extensions,
         # and functions will only be called the first time (unless re-registered)

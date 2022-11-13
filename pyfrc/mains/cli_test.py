@@ -11,7 +11,7 @@ from ..util import yesno
 
 from ..test_support import pytest_plugin
 
-# TODO: setting the plugins so that the end user can invoke py.test directly
+# TODO: setting the plugins so that the end user can invoke pytest directly
 # could be a useful thing. Will have to consider that later.
 
 
@@ -24,7 +24,7 @@ class _TryAgain(Exception):
 #
 class PyFrcTest:
     """
-    Executes unit tests on the robot code using a special py.test plugin
+    Executes unit tests on the robot code using a special pytest plugin
     """
 
     def __init__(self, parser=None):
@@ -67,7 +67,7 @@ class PyFrcTest:
 
     def _run_test(self, pytest_args, robot_class, use_builtin, **static_options):
 
-        # find test directory, change current directory so py.test can find the tests
+        # find test directory, change current directory so pytest can find the tests
         # -> assume that tests reside in tests or ../tests
 
         curdir = pathlib.Path.cwd().absolute()
