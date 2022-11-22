@@ -124,6 +124,7 @@ class PyFrcPlugin:
         #    to do this before so that the listeners are active on the current
         #    NetworkTables instance
         nt_inst.stopLocal()
+        nt_inst._reset()
 
         # Cleanup WPILib globals
         # -> preferences, SmartDashboard, LiveWindow, MotorSafety
