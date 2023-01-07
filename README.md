@@ -1,8 +1,6 @@
 pyfrc - RobotPy development library helper
 ==========================================
 
-[![Build Status](https://travis-ci.org/robotpy/pyfrc.svg)](https://travis-ci.org/robotpy/pyfrc)
-
 pyfrc is a python 3 library designed to make developing python code using WPILib for
 FIRST Robotics Competition easier.
 
