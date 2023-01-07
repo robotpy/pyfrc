@@ -78,6 +78,22 @@ class TestController:
             self._robot_finished = True
             robot.endCompetition()
 
+            if isinstance(self._reraise.exception, RuntimeError):
+                if str(self._reraise.exception).startswith(
+                    "HAL: A handle parameter was passed incorrectly"
+                ):
+                    msg = (
+                        "Do not reuse HAL objects in tests! This error may occur if you"
+                        " stored a motor/sensor as a global or as a class variable"
+                        " outside of a method."
+                    )
+                    if hasattr(Exception, "add_note"):
+                        self._reraise.exception.add_note(f"*** {msg}")
+                    else:
+                        e = self._reraise.exception
+                        self._reraise.reset()
+                        raise RuntimeError(msg) from e
+
         # Increment time by 1 second to ensure that any notifiers fire
         stepTimingAsync(1.0)
 
@@ -106,7 +122,7 @@ class TestController:
         seconds: float,
         autonomous: bool,
         enabled: bool,
-        assert_alive: bool = True
+        assert_alive: bool = True,
     ) -> float:
         """
         This utility will increment simulated time, while pretending that
