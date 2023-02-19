@@ -43,6 +43,7 @@ units.define("counts_per_minute = count / minute = cpm")
 units.define("tm_kv = volt / (foot / second)")
 units.define("tm_ka = volt / (foot / second ** 2)")
 
+
 # Helper functions
 class Helpers:
     ensure_mass = units.check("[mass]")(lambda u: u)

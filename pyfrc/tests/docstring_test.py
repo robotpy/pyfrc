@@ -71,7 +71,6 @@ def check_function(parent, fn, errors):
             # :param arg: stuff
             match = param_re.match(line)
             if match:
-
                 arg = match.group(1)
                 if arg not in args:
                     print_fn_err(
@@ -135,7 +134,6 @@ def check_function(parent, fn, errors):
                 params.insert(args.index(param), param)
 
         if len(params) != len(args):
-
             diff = set(args).difference(params)
 
             if len(diff) == 1:
@@ -177,7 +175,6 @@ def check_object(o, robot_path, errors):
         errors.append(err)
 
     for name, value in inspect.getmembers(o):
-
         if ignore_object(value, robot_path):
             continue
 
@@ -205,7 +202,6 @@ def test_docstrings(robot, robot_path):
     errors = []
 
     for module in sys.modules.values():
-
         if ignore_object(module, robot_path):
             continue
 

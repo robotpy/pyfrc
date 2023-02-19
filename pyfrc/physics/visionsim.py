@@ -39,7 +39,6 @@ class VisionSimTarget:
         self.view_angle_end = math.radians(view_angle_end)
 
     def compute(self, now, x, y, angle):
-
         # incoming angle must be normalized to -180,180 (done in VisionSim)
 
         # note: the position tracking of the robot has Y incrementing
@@ -225,7 +224,6 @@ class VisionSim:
 
         # Only store stuff every once in awhile
         if now - self.last_compute_time > self.update_period:
-
             self.last_compute_time = now
             self.send_queue.appendleft(output)
 

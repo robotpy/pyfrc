@@ -15,7 +15,6 @@ class PyFrcDeployInfo:
     """
 
     def __init__(self, parser: argparse.ArgumentParser):
-
         robot_args = parser.add_mutually_exclusive_group()
 
         robot_args.add_argument(
@@ -53,7 +52,6 @@ class PyFrcDeployInfo:
                 hostname=hostname_or_team,
                 no_resolve=options.no_resolve,
             ) as ssh:
-
                 result = ssh.exec_cmd(
                     "cat /home/lvuser/py/deploy.json", get_output=True
                 )

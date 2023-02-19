@@ -21,7 +21,6 @@ class PyFrcProfiler:
         )
 
     def run(self, options, robot_class, **static_options):
-
         print("profiling is not yet implemented for RobotPy 2020")
         return 1
 

@@ -130,7 +130,6 @@ class PyFrcDeploy:
         )
 
     def run(self, options, robot_class, **static_options):
-
         from .. import config
 
         config.mode = "upload"
@@ -193,7 +192,6 @@ class PyFrcDeploy:
                 hostname=hostname_or_team,
                 no_resolve=options.no_resolve,
             ) as ssh:
-
                 if not self._check_requirements(ssh, options.no_version_check):
                     return 1
 
@@ -260,7 +258,6 @@ class PyFrcDeploy:
         return deploy_data
 
     def _check_large_files(self, robot_path):
-
         large_sz = 250000
 
         large_files = []
@@ -282,7 +279,6 @@ class PyFrcDeploy:
     def _check_requirements(
         self, ssh: sshcontroller.SshController, no_wpilib_version_check: bool
     ) -> bool:
-
         # does python exist
         with wrap_ssh_error("checking if python exists"):
             if ssh.exec_cmd("[ -x /usr/local/bin/python3 ]").returncode != 0:
@@ -508,7 +504,6 @@ class PyFrcDeploy:
         return nc_thread
 
     def _copy_to_tmpdir(self, tmp_dir, robot_path, dry_run=False):
-
         upload_files = []
         ignore_exts = frozenset({".pyc", ".whl", ".ipk", ".zip", ".gz", ".wpilog"})
 
@@ -524,7 +519,6 @@ class PyFrcDeploy:
 
             # skip .pyc files
             for filename in files:
-
                 r, ext = splitext(filename)
                 if ext in ignore_exts or r.startswith("."):
                     continue

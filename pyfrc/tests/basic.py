@@ -21,7 +21,6 @@ def test_autonomous(control: "TestController"):
     """Runs autonomous mode by itself"""
 
     with control.run_robot():
-
         # Run disabled for a short period
         control.step_timing(seconds=0.5, autonomous=True, enabled=False)
 
@@ -37,7 +36,6 @@ def test_disabled(control: "TestController", robot):
     """Runs disabled mode by itself"""
 
     with control.run_robot():
-
         # Run disabled + autonomous for a short period
         control.step_timing(seconds=5, autonomous=True, enabled=False)
 
@@ -50,7 +48,6 @@ def test_operator_control(control: "TestController"):
     """Runs operator control mode by itself"""
 
     with control.run_robot():
-
         # Run disabled for a short period
         control.step_timing(seconds=0.5, autonomous=False, enabled=False)
 
@@ -66,7 +63,6 @@ def test_practice(control: "TestController"):
     """Runs through the entire span of a practice match"""
 
     with control.run_robot():
-
         # Run disabled for a short period
         control.step_timing(seconds=0.5, autonomous=True, enabled=False)
 

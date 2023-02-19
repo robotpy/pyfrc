@@ -66,7 +66,6 @@ class PyFrcTest:
             return self._run_test(*a, **k)
 
     def _run_test(self, pytest_args, robot_class, use_builtin, **static_options):
-
         # find test directory, change current directory so pytest can find the tests
         # -> assume that tests reside in tests or ../tests
 

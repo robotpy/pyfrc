@@ -11,7 +11,6 @@ from pyfrc.tests.basic import test_practice as _test_practice
 
 @contextlib.contextmanager
 def get_plugin(cls):
-
     wpilib.DriverStation._reset()
 
     plugin = PyFrcPlugin(cls, None, None)

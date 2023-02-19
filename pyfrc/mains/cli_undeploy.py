@@ -14,7 +14,6 @@ class PyFrcUndeploy:
     """
 
     def __init__(self, parser: argparse.ArgumentParser):
-
         robot_args = parser.add_mutually_exclusive_group()
 
         robot_args.add_argument(
@@ -58,7 +57,6 @@ class PyFrcUndeploy:
                 hostname=hostname_or_team,
                 no_resolve=options.no_resolve,
             ) as ssh:
-
                 # first, turn off the running program
                 ssh.exec_cmd("/usr/local/frc/bin/frcKillRobot.sh -t")
 

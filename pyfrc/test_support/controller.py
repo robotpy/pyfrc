@@ -25,7 +25,6 @@ class TestController:
             self._cond.notify_all()
 
     def _robot_thread(self, robot):
-
         with self._cond:
             self._robot_started = True
             self._cond.notify_all()

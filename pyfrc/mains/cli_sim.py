@@ -48,7 +48,6 @@ class PyFrcSim:
             )
 
     def run(self, options, robot_class, **static_options):
-
         if not options.nogui:
             try:
                 import halsim_gui

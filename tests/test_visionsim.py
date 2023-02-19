@@ -4,7 +4,6 @@ from pyfrc.physics.visionsim import VisionSimTarget
 
 
 def test_visionsim_target1():
-
     # target is facing east, 90 degree viewing angle
     target = VisionSimTarget(0, 0, 315, 45)
     target.view_dst_start = 2
@@ -54,7 +53,6 @@ def test_visionsim_target1():
 
 
 def test_visionsim_target2():
-
     # normalization function used by vision sim
     def _norm(angle):
         return ((rad(angle) + pi) % (pi * 2)) - pi

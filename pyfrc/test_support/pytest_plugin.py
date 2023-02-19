@@ -32,7 +32,6 @@ class PyFrcPlugin:
     """
 
     def __init__(self, robot_class: Type[wpilib.RobotBase], robot_file: pathlib.Path):
-
         # attach physics
         physics, robot_class = PhysicsInterface._create_and_attach(
             robot_class,

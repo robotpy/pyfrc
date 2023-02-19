@@ -101,7 +101,6 @@ class PhysicsInterface:
         interface: typing.Optional["PhysicsInterface"] = None
         physics_module_path = robot_path / "physics.py"
         if physics_module_path.exists():
-
             # Load the user's physics module if it exists
             try:
                 physics_module = imp.load_source("physics", str(physics_module_path))
@@ -139,7 +138,6 @@ class PhysicsInterface:
         return interface, robot_class
 
     def __init__(self, physics_module):
-
         self.last_tm = None
         self.module = physics_module
         self.engine = None
@@ -148,7 +146,6 @@ class PhysicsInterface:
         self.log_init_errors = True
 
     def _simulationInit(self, robot):
-
         # reset state first so that the PhysicsEngine constructor can use it
         self.field = wpilib.Field2d()
         wpilib.SmartDashboard.putData("Field", self.field)
@@ -185,7 +182,6 @@ class PhysicsInterface:
         if last_tm is None:
             self.last_tm = now
         else:
-
             # When using time, always do it based on a differential! You may
             # not always be called at a constant rate
             tm_diff = now - last_tm
