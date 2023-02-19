@@ -135,8 +135,7 @@ class PyFrcDeploy:
         config.mode = "upload"
 
         # run the test suite before uploading
-        # TODO: disabled for 2020
-        if False and not options.skip_tests:
+        if not options.skip_tests:
             from .cli_test import PyFrcTest
 
             tester = PyFrcTest()
