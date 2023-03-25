@@ -11,7 +11,10 @@ class PyFrcCoverage:
     the coverage module to be installed.
     """
 
-    def __init__(self, parser):
+    def __init__(self, parser: argparse.ArgumentParser):
+        parser.add_argument(
+            "--parallel-mode", action="store_true", help="Run coverage in parallel mode"
+        )
         parser.add_argument(
             "args", nargs=argparse.REMAINDER, help="Arguments to pass to robot.py"
         )
@@ -45,12 +48,19 @@ class PyFrcCoverage:
             "run",
             "--source",
             dirname(file_location),
-            file_location,
-        ] + list(options.args)
+        ]
+        if options.parallel_mode:
+            args.append("--parallel-mode")
+
+        args.append(file_location)
+        args += option_args
 
         retval = subprocess.call(args)
         if retval != 0:
             return retval
+
+        if options.parallel_mode:
+            subprocess.call([sys.executable, "-m", "coverage", "combine"])
 
         args = [sys.executable, "-m", "coverage", "report", "-m"]
 
