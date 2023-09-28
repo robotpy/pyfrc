@@ -10,6 +10,7 @@ import sys
 import shutil
 import tempfile
 import threading
+import getpass
 
 from os.path import abspath, basename, dirname, join, splitext
 from pathlib import PurePosixPath
@@ -211,7 +212,7 @@ class PyFrcDeploy:
 
         deploy_data = {
             "deploy-host": socket.gethostname(),  # os.uname doesn't work on systems that use non-unix os
-            "deploy-user": os.getlogin(),
+            "deploy-user": getpass.getuser(),
             "deploy-date": datetime.datetime.now().replace(microsecond=0).isoformat(),
             "code-path": robot_path,
         }
