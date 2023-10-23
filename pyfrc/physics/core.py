@@ -27,10 +27,11 @@
     When initialized, it will be passed an instance of this object.
 """
 
-import imp
+from importlib.machinery import SourceFileLoader
 import inspect
 import logging
 import pathlib
+import types
 import typing
 
 import wpilib
@@ -103,7 +104,9 @@ class PhysicsInterface:
         if physics_module_path.exists():
             # Load the user's physics module if it exists
             try:
-                physics_module = imp.load_source("physics", str(physics_module_path))
+                loader = SourceFileLoader("physics", str(physics_module_path))
+                physics_module = types.ModuleType(loader.name)
+                loader.exec_module(physics_module)
             except:
                 logger.exception("Error loading user physics module")
                 raise PhysicsInitException()
