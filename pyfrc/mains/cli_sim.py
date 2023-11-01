@@ -4,12 +4,8 @@ import argparse
 import inspect
 import logging
 import pathlib
-from pkg_resources import iter_entry_points
 
-try:
-    from importlib.metadata import metadata
-except ImportError:
-    from importlib_metadata import metadata
+from importlib.metadata import metadata, entry_points
 
 logger = logging.getLogger("pyfrc.sim")
 
@@ -29,8 +25,8 @@ class PyFrcSim:
 
         self.simexts = {}
 
-        for entry_point in iter_entry_points(group="robotpysimext", name=None):
-            if entry_point.module_name == "halsim_gui":
+        for entry_point in entry_points(group="robotpysimext"):
+            if entry_point.module == "halsim_gui":
                 continue
             try:
                 sim_ext_module = entry_point.load()
@@ -44,7 +40,7 @@ class PyFrcSim:
                 f"--{entry_point.name}",
                 default=False,
                 action="store_true",
-                help=metadata(entry_point.dist.project_name)["summary"],
+                help=metadata(entry_point.dist.name)["summary"],
             )
 
     def run(self, options, robot_class, **static_options):
