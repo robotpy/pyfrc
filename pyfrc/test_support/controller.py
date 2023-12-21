@@ -8,6 +8,10 @@ from wpilib.simulation import DriverStationSim, stepTiming, stepTimingAsync
 
 
 class TestController:
+    """
+    Use this object to control the robot's state during tests
+    """
+
     def __init__(self, reraise, robot: wpilib.RobotBase):
         self._reraise = reraise
 
