@@ -74,6 +74,11 @@ class PyFrcTest:
         self.robot_class = robot_class
         robot_file = pathlib.Path(inspect.getfile(robot_class)).absolute()
 
+        # In some cases __main__.__file__ is not an absolute path, and some
+        # internals depend on that being correct. Set it up before we change
+        # directories
+        sys.modules["__main__"].__file__ = abspath(sys.modules["__main__"].__file__)
+
         if robot_file.name == "cProfile.py":
             # so, the module for the robot class is __main__, and __main__ is
             # cProfile so try to find it
