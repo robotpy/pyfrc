@@ -1,12 +1,10 @@
-pyfrc - RobotPy development library helper
-==========================================
+pyfrc - RobotPy simulation and testing support
+==============================================
 
-pyfrc is a python 3 library designed to make developing python code using WPILib for
-FIRST Robotics Competition easier.
+pyfrc provides simulation and testing support for RobotPy projects.
 
 This library contains a few primary parts:
 
-* A built-in uploader that will upload your robot code to the robot
 * Integration with the pytest testing tool to allow you to easily write unit
   tests for your robot code.
 * Various support for robot simulation
