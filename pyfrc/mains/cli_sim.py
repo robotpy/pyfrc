@@ -1,13 +1,24 @@
 import os
 from os.path import abspath, dirname
 import argparse
+import importlib.metadata
 import inspect
 import logging
 import pathlib
+import sys
 
-from importlib.metadata import metadata, entry_points
 
 logger = logging.getLogger("pyfrc.sim")
+
+
+if sys.version_info < (3, 10):
+
+    def entry_points(group):
+        eps = importlib.metadata.entry_points()
+        return eps.get(group)
+
+else:
+    entry_points = importlib.metadata.entry_points
 
 
 class PyFrcSim:
@@ -26,8 +37,6 @@ class PyFrcSim:
         self.simexts = {}
 
         for entry_point in entry_points(group="robotpysimext"):
-            if entry_point.module == "halsim_gui":
-                continue
             try:
                 sim_ext_module = entry_point.load()
             except ImportError:
@@ -36,11 +45,15 @@ class PyFrcSim:
 
             self.simexts[entry_point.name] = sim_ext_module
 
+            try:
+                cmd_help = importlib.metadata.metadata(entry_point.dist.name)["summary"]
+            except AttributeError:
+                cmd_help = "Load specified simulation extension"
             parser.add_argument(
                 f"--{entry_point.name}",
                 default=False,
                 action="store_true",
-                help=metadata(entry_point.dist.name)["summary"],
+                help=cmd_help,
             )
 
     def run(self, options, robot_class, **static_options):
