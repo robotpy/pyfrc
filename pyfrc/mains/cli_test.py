@@ -50,11 +50,6 @@ class PyFrcTest:
     def run(self, options, robot_class, **static_options):
         # wrapper around run_test that sets the appropriate mode
 
-        from .. import config
-
-        config.mode = "test"
-        config.coverage_mode = options.coverage_mode
-
         return self.run_test(
             options.pytest_args, robot_class, options.builtin, **static_options
         )

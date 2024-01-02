@@ -24,10 +24,6 @@ class PyFrcProfiler:
         print("profiling is not yet implemented for RobotPy 2020")
         return 1
 
-        from .. import config
-
-        config.mode = "profiler"
-
         try:
             import cProfile
         except ImportError:
