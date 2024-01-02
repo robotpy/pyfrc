@@ -1,14 +1,16 @@
 import argparse
-import inspect
 from os.path import dirname
+import pathlib
 import subprocess
 import sys
+import typing
 
 
 class PyFrcCoverage:
     """
-    Wraps other commands by running them via the coverage module. Requires
-    the coverage module to be installed.
+    Wraps other commands by running them via the coverage module.
+
+    Requires the coverage module to be installed.
     """
 
     def __init__(self, parser: argparse.ArgumentParser):
@@ -19,7 +21,13 @@ class PyFrcCoverage:
             "args", nargs=argparse.REMAINDER, help="Arguments to pass to robot.py"
         )
 
-    def run(self, options, robot_class, **static_options):
+    def run(
+        self,
+        main_file: pathlib.Path,
+        project_path: pathlib.Path,
+        parallel_mode: bool,
+        args: typing.List[str],
+    ):
         try:
             import coverage
         except ImportError:
@@ -30,13 +38,11 @@ class PyFrcCoverage:
             )
             return 1
 
-        if len(options.args) == 0:
+        if len(args) == 0:
             print("ERROR: Coverage command requires arguments to run other commands")
             return 1
 
-        file_location = inspect.getfile(robot_class)
-
-        option_args = list(options.args)
+        option_args = args
         if option_args[0] == "test":
             option_args.insert(1, "--coverage-mode")
 
@@ -47,19 +53,20 @@ class PyFrcCoverage:
             "coverage",
             "run",
             "--source",
-            dirname(file_location),
+            str(project_path),
         ]
-        if options.parallel_mode:
+        if parallel_mode:
             args.append("--parallel-mode")
 
-        args.append(file_location)
+        args += ["-m", "robotpy", "--main", main_file]
         args += option_args
 
+        print("+", *args, file=sys.stderr)
         retval = subprocess.call(args)
         if retval != 0:
             return retval
 
-        if options.parallel_mode:
+        if parallel_mode:
             subprocess.call([sys.executable, "-m", "coverage", "combine"])
 
         args = [sys.executable, "-m", "coverage", "report", "-m"]

@@ -1,6 +1,6 @@
-import inspect
 import os
-from os.path import abspath, dirname, exists, join
+import pathlib
+import sys
 
 builtin_tests = """'''
     This test module imports tests that come with pyfrc, and can be used
@@ -12,31 +12,36 @@ from pyfrc.tests import *
 
 
 class PyFrcAddTests:
+    """
+    Adds default pyfrc tests to your robot project directory
+    """
+
     def __init__(self, parser=None):
         pass
 
-    def run(self, options, robot_class, **static_options):
-        robot_file = abspath(inspect.getfile(robot_class))
-        robot_path = dirname(robot_file)
+    def run(self, main_file: pathlib.Path, project_path: pathlib.Path):
+        if not main_file.exists():
+            print(
+                f"ERROR: is this a robot project? {main_file} does not exist",
+                file=sys.stderr,
+            )
+            return 1
 
-        try_dirs = [
-            abspath(join(robot_path, "tests")),
-            abspath(join(robot_path, "..", "tests")),
-        ]
+        try_dirs = [project_path / "tests", project_path / ".." / "tests"]
 
         test_directory = try_dirs[0]
 
         for d in try_dirs:
-            if exists(d):
+            if d.exists():
                 test_directory = d
                 break
         else:
-            os.makedirs(test_directory)
+            test_directory.mkdir(parents=True)
 
-        print("Tests directory is %s" % test_directory)
+        print(f"Tests directory is {test_directory}")
         print()
-        builtin_tests_file = join(test_directory, "pyfrc_test.py")
-        if exists(builtin_tests_file):
+        builtin_tests_file = test_directory / "pyfrc_test.py"
+        if builtin_tests_file.exists():
             print("- pyfrc_test.py already exists")
         else:
             with open(builtin_tests_file, "w") as fp:
@@ -44,4 +49,4 @@ class PyFrcAddTests:
             print("- builtin tests created at", builtin_tests_file)
 
         print()
-        print("Robot tests can be ran via 'python3 robot.py test'")
+        print("Robot tests can be ran via 'python3 -m robotpy test'")
