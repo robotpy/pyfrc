@@ -11,9 +11,6 @@ from os.path import abspath, dirname
 
 # Project must be built+installed to generate docs
 import pyfrc
-import pyfrc.config
-
-pyfrc.config.config_obj["pyfrc"] = dict(game_specific_messages=[])
 
 # -- RTD configuration ------------------------------------------------
 

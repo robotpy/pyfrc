@@ -1,7 +1,6 @@
-import inspect
-import json
-from os import mkdir
-from os.path import abspath, dirname, exists, join
+import pathlib
+import sys
+
 
 physics_starter = '''
 #
@@ -90,16 +89,27 @@ class PhysicsEngine:
 
 
 class PyFrcCreatePhysics:
+    """
+    Create physics
+    """
+
     def __init__(self, parser=None):
         pass
 
-    def run(self, options, robot_class, **static_options):
-        robot_file = abspath(inspect.getfile(robot_class))
-        robot_path = dirname(robot_file)
-        sim_path = join(robot_path, "sim")
+    def run(
+        self,
+        main_file: pathlib.Path,
+        project_path: pathlib.Path,
+    ):
+        if not main_file.exists():
+            print(
+                f"ERROR: is this a robot project? {main_file} does not exist",
+                file=sys.stderr,
+            )
+            return 1
 
-        physics_file = join(robot_path, "physics.py")
-        if exists(physics_file):
+        physics_file = project_path / "physics.py"
+        if physics_file.exists():
             print("- physics.py already exists")
         else:
             with open(physics_file, "w") as fp:
@@ -107,4 +117,4 @@ class PyFrcCreatePhysics:
             print("- physics file created at", physics_file)
 
         print()
-        print("Robot simulation can be run via 'python3 robot.py sim'")
+        print("Robot simulation can be run via 'python3 -m robotpy sim'")

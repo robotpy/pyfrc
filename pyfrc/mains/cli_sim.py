@@ -1,11 +1,12 @@
 import os
-from os.path import abspath, dirname
 import argparse
 import importlib.metadata
-import inspect
 import logging
 import pathlib
 import sys
+import typing
+
+import wpilib
 
 
 logger = logging.getLogger("pyfrc.sim")
@@ -56,12 +57,18 @@ class PyFrcSim:
                 help=cmd_help,
             )
 
-    def run(self, options, robot_class, **static_options):
-        if not options.nogui:
+    def run(
+        self,
+        options: argparse.Namespace,
+        nogui: bool,
+        project_path: pathlib.Path,
+        robot_class: typing.Type[wpilib.RobotBase],
+    ):
+        if not nogui:
             try:
                 import halsim_gui
             except ImportError:
-                print("robotpy-halsim-gui is not installed!")
+                print("robotpy-halsim-gui is not installed!", file=sys.stderr)
                 exit(1)
             else:
                 halsim_gui.loadExtension()
@@ -74,7 +81,7 @@ class PyFrcSim:
                 try:
                     module.loadExtension()
                 except:
-                    print(f"Error loading {name}!")
+                    print(f"Error loading {name}!", file=sys.stderr)
                     raise
 
         os.chdir(cwd)
@@ -82,11 +89,9 @@ class PyFrcSim:
         # initialize physics, attach to the user robot class
         from ..physics.core import PhysicsInterface, PhysicsInitException
 
-        robot_file = pathlib.Path(inspect.getfile(robot_class)).absolute()
-
         try:
             _, robot_class = PhysicsInterface._create_and_attach(
-                robot_class, robot_file.parent
+                robot_class, project_path
             )
 
             # run the robot
