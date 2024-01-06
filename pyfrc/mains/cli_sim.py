@@ -16,7 +16,7 @@ if sys.version_info < (3, 10):
 
     def entry_points(group):
         eps = importlib.metadata.entry_points()
-        return eps.get(group)
+        return eps.get(group, [])
 
 else:
     entry_points = importlib.metadata.entry_points
