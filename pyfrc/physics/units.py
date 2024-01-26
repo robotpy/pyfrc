@@ -26,7 +26,6 @@
     information on how to use pint.
 """
 
-
 import pint
 
 #: All units that pyfrc uses are defined in this global object
