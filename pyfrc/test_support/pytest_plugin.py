@@ -113,11 +113,11 @@ class PyFrcPlugin:
 
         del robot
 
-        # Double-check all objects are destroyed so that HAL handles are released
-        gc.collect()
-
         if commands2 is not None:
             commands2.CommandScheduler.resetInstance()
+
+        # Double-check all objects are destroyed so that HAL handles are released
+        gc.collect()
 
         # shutdown networktables before other kinds of global cleanup
         # -> some reset functions will re-register listeners, so it's important
@@ -146,13 +146,11 @@ class PyFrcPlugin:
         # hal.shutdown()
 
     @pytest.fixture(scope="function")
-    def control(self, reraise, robot) -> TestController:
+    def control(self, reraise, robot: wpilib.RobotBase) -> TestController:
         """
         A pytest fixture that provides control over your robot
         """
-        controller = TestController(reraise, robot)
-        yield controller
-        del controller
+        return TestController(reraise, robot)
 
     @pytest.fixture()
     def robot_file(self) -> pathlib.Path:
