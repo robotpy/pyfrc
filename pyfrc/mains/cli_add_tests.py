@@ -10,6 +10,30 @@ builtin_tests = """'''
 from pyfrc.tests import *
 """
 
+conftest = """'''
+    This file registesr the PyFrcPlugin so it can be found during
+    distributed tests with pytest-xdist
+'''
+
+import sys
+import pathlib
+from pyfrc.test_support.pytest_plugin import PyFrcPlugin
+
+# Add the location of robot.py to our path
+parentdir = pathlib.Path(__file__).parent.parent
+sys.path.append(str(parentdir))
+import robot
+
+def pytest_configure(config):
+    if config.pluginmanager.has_plugin("pyfrc_plugin"):
+        # Avoid double registration
+        return
+    robot_class = robot.MyRobot
+    robot_file = parentdir/'robot.py'
+    plugin = PyFrcPlugin(robot_class, robot_file)
+    config.pluginmanager.register(plugin, "pyfrc_plugin")
+"""
+
 
 class PyFrcAddTests:
     """
@@ -48,5 +72,13 @@ class PyFrcAddTests:
                 fp.write(builtin_tests)
             print("- builtin tests created at", builtin_tests_file)
 
+        conftest_file = test_directory / "conftest.py"
+        if conftest_file.exists():
+            print("- conftest.py already exists")
+        else:
+            with open(conftest_file, "w") as fp:
+                fp.write(conftest)
+            print("- conftest created at", conftest_file)
+
         print()
-        print("Robot tests can be ran via 'python3 -m robotpy test'")
+        print("Robot tests can be ran via 'robotpy test'")

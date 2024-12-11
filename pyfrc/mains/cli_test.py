@@ -1,3 +1,5 @@
+import io
+import re
 import os
 from os.path import abspath
 import inspect
@@ -20,6 +22,23 @@ from ..test_support import pytest_plugin
 class _TryAgain(Exception):
     pass
 
+def count_tests(test_path='.'):
+    import subprocess
+        # Run pytest in collect-only mode to get test count
+    result = subprocess.run(
+        ['pytest', '--collect-only', '-v', test_path],
+        capture_output=True,
+        text=True
+    )
+    print('subprocess result: ')
+    print(result.stdout)
+
+    # Count lines that look like test collections
+    test_lines = [line for line in result.stdout.split('\n')
+                  if re.search(r'\s*test_\w+\[?', line) and 'cachedir' not in line]
+
+    test_count = len(test_lines)
+    return test_count
 
 #
 # main test class
@@ -112,8 +131,12 @@ class PyFrcTest:
             pytest_args.insert(0, abspath(inspect.getfile(basic)))
 
         try:
+            test_count = count_tests()
+            print(f'Running {test_count} parallel workers')
+
+            args = ['-v', '-n', str(test_count)] + pytest_args
             retv = pytest.main(
-                pytest_args,
+                args,
                 plugins=[pytest_plugin.PyFrcPlugin(robot_class, main_file)],
             )
         finally:
