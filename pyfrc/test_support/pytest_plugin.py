@@ -38,6 +38,8 @@ class PyFrcPlugin:
             robot_file.parent,
         )
 
+        print('robot file: ', robot_file)
+
         # Tests need to know when robotInit is called, so override the robot
         # to do that
         class TestRobot(robot_class):

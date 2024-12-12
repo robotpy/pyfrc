@@ -48,5 +48,4 @@ class PyFrcAddTests:
                 fp.write(builtin_tests)
             print("- builtin tests created at", builtin_tests_file)
 
-        print()
-        print("Robot tests can be ran via 'python3 -m robotpy test'")
+        print("Robot tests can be ran via 'robotpy test'")
