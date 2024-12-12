@@ -19,6 +19,24 @@ from ..test_support import pytest_plugin
 # could be a useful thing. Will have to consider that later.
 
 
+import sys
+import pathlib
+from pyfrc.test_support.pytest_plugin import PyFrcPlugin
+# Tests are always run from the top directory of the robot project
+# so the location of robot.py should be the current working directory
+sys.path.append('.')
+import robot
+
+def pytest_configure(config):
+    if config.pluginmanager.has_plugin("pyfrc_plugin"):
+        # Avoid double registration
+        return
+    robot_class = robot.MyRobot
+    robot_file = './robot.py'
+    plugin = PyFrcPlugin(robot_class, robot_file)
+    config.pluginmanager.register(plugin, "pyfrc_plugin")
+
+
 class _TryAgain(Exception):
     pass
 
