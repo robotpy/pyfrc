@@ -2,7 +2,7 @@ import pathlib
 import sys
 
 
-physics_starter = '''
+physics_starter = r'''
 #
 # See the documentation for more details on how this works
 #
