@@ -31,7 +31,14 @@ class PyFrcPlugin:
     be passed to your test function.
     """
 
-    def __init__(self, robot_class: Type[wpilib.RobotBase], robot_file: pathlib.Path):
+    def __init__(
+        self,
+        robot_class: Type[wpilib.RobotBase],
+        robot_file: pathlib.Path,
+        isolated: bool,
+    ):
+        self.isolated = isolated
+
         # attach physics
         physics, robot_class = PhysicsInterface._create_and_attach(
             robot_class,
@@ -102,6 +109,13 @@ class PyFrcPlugin:
 
         # Tests only get a proxy to ensure cleanup is more reliable
         yield weakref.proxy(robot)
+
+        # If running in separate processes, no need to do cleanup
+        if self.isolated:
+            # .. and funny enough, in isolated mode we *don't* want the
+            # robot to be cleaned up, as that can deadlock
+            self._saved_robot = robot
+            return
 
         # reset engine to ensure it gets cleaned up too
         # -> might be holding wpilib objects, or the robot
