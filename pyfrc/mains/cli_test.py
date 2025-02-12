@@ -1,3 +1,4 @@
+import logging
 import os
 from os.path import abspath
 import inspect
@@ -7,6 +8,7 @@ import typing
 
 import wpilib
 
+import tomli
 import pytest
 
 from ..util import yesno
@@ -15,6 +17,8 @@ from ..test_support import pytest_plugin
 
 # TODO: setting the plugins so that the end user can invoke pytest directly
 # could be a useful thing. Will have to consider that later.
+
+logger = logging.getLogger("test")
 
 
 class _TryAgain(Exception):
@@ -38,6 +42,12 @@ class PyFrcTest:
                 help="Use pyfrc's builtin tests if no tests are specified",
             )
             parser.add_argument(
+                "--isolated",
+                default=None,
+                action="store_true",
+                help="Run each test in a separate robot process. Set `tool.robotpy.pyfrc.isolated` to true in your pyproject.toml to enable by default",
+            )
+            parser.add_argument(
                 "--coverage-mode",
                 default=False,
                 action="store_true",
@@ -55,16 +65,47 @@ class PyFrcTest:
         project_path: pathlib.Path,
         robot_class: typing.Type[wpilib.RobotBase],
         builtin: bool,
+        isolated: typing.Optional[bool],
         coverage_mode: bool,
+        verbose: bool,
         pytest_args: typing.List[str],
     ):
+        if isolated is None:
+            pyproject_path = project_path / "pyproject.toml"
+            if pyproject_path.exists():
+                with open(pyproject_path, "rb") as fp:
+                    d = tomli.load(fp)
+
+                try:
+                    v = d["tool"]["robotpy"]["pyfrc"]["isolated"]
+                except KeyError:
+                    pass
+                else:
+                    if not isinstance(v, bool):
+                        raise ValueError(
+                            f"tool.robotpy.pyfrc.isolated must be a boolean value (got {v})"
+                        )
+
+                    isolated = v
+
+        if isolated is None:
+            isolated = False
+
+        if not isolated:
+            logger.info(
+                "Isolated test mode not enabled, consider using it if your tests hang"
+            )
+            logger.info("- See 'robotpy test --help' for details")
+
         try:
             return self._run_test(
                 main_file,
                 project_path,
                 robot_class,
                 builtin,
+                isolated,
                 coverage_mode,
+                verbose,
                 pytest_args,
             )
         except _TryAgain:
@@ -73,7 +114,9 @@ class PyFrcTest:
                 project_path,
                 robot_class,
                 builtin,
+                isolated,
                 coverage_mode,
+                verbose,
                 pytest_args,
             )
 
@@ -83,7 +126,9 @@ class PyFrcTest:
         project_path: pathlib.Path,
         robot_class: typing.Type[wpilib.RobotBase],
         builtin: bool,
+        isolated: bool,
         coverage_mode: bool,
+        verbose: bool,
         pytest_args: typing.List[str],
     ):
         # find test directory, change current directory so pytest can find the tests
@@ -92,14 +137,15 @@ class PyFrcTest:
         curdir = pathlib.Path.cwd().absolute()
 
         self.try_dirs = [
-            (project_path / "tests").absolute(),
-            (project_path / ".." / "tests").absolute(),
+            ((project_path / "tests").absolute(), False),
+            ((project_path / ".." / "tests").absolute(), True),
         ]
 
-        for d in self.try_dirs:
+        for d, chdir in self.try_dirs:
             if d.exists():
-                test_directory = d
-                os.chdir(test_directory)
+                builtin = False
+                if chdir:
+                    os.chdir(d)
                 break
         else:
             if not builtin:
@@ -112,10 +158,22 @@ class PyFrcTest:
             pytest_args.insert(0, abspath(inspect.getfile(basic)))
 
         try:
-            retv = pytest.main(
-                pytest_args,
-                plugins=[pytest_plugin.PyFrcPlugin(robot_class, main_file)],
-            )
+            if isolated:
+                from ..test_support import pytest_dist_plugin
+
+                retv = pytest.main(
+                    pytest_args,
+                    plugins=[
+                        pytest_dist_plugin.DistPlugin(
+                            robot_class, main_file, builtin, verbose
+                        )
+                    ],
+                )
+            else:
+                retv = pytest.main(
+                    pytest_args,
+                    plugins=[pytest_plugin.PyFrcPlugin(robot_class, main_file, False)],
+                )
         finally:
             os.chdir(curdir)
 
@@ -132,7 +190,7 @@ class PyFrcTest:
     ):
         print()
         print("Looked for tests at:")
-        for d in self.try_dirs:
+        for d, _ in self.try_dirs:
             print("-", d)
         print()
         print(
