@@ -1,29 +1,29 @@
 """
-    pyfrc uses the pint library in some places for representing physical
-    quantities to allow users to specify the physical parameters of their robot
-    in a natural and non-ambiguous way. For example, to represent 5 feet::
-    
-        from pyfrc.physics.units import units
-        
-        five_feet = 5 * units.feet
-        
-    Unfortunately, actually using the quantities is a huge performance hit, so
-    we don't use them to perform actual physics computations. Instead, pyfrc uses
-    them to convert to known units, then performs computations using
-    the magnitude of the quantity.
-    
-    pyfrc defines the following custom units:
-    
-    * ``counts_per_minute`` or ``cpm``: Counts per minute, which should be used
-      instead of pint's predefined ``rpm`` (because it is rad/s). Used to
-      represent motor free speed
-    * ``N_m``: Shorthand for N-m or newton-meter. Used for motor torque.
-    
-    * ``tm_ka``: The kA value used in the tankmodel (uses imperial units)
-    * ``tm_kv``: The kV value used in the tankmodel (uses imperial units)
-    
-    Refer to the `pint documentation <https://pint.readthedocs.io>`_ for more
-    information on how to use pint.
+pyfrc uses the pint library in some places for representing physical
+quantities to allow users to specify the physical parameters of their robot
+in a natural and non-ambiguous way. For example, to represent 5 feet::
+
+    from pyfrc.physics.units import units
+
+    five_feet = 5 * units.feet
+
+Unfortunately, actually using the quantities is a huge performance hit, so
+we don't use them to perform actual physics computations. Instead, pyfrc uses
+them to convert to known units, then performs computations using
+the magnitude of the quantity.
+
+pyfrc defines the following custom units:
+
+* ``counts_per_minute`` or ``cpm``: Counts per minute, which should be used
+  instead of pint's predefined ``rpm`` (because it is rad/s). Used to
+  represent motor free speed
+* ``N_m``: Shorthand for N-m or newton-meter. Used for motor torque.
+
+* ``tm_ka``: The kA value used in the tankmodel (uses imperial units)
+* ``tm_kv``: The kV value used in the tankmodel (uses imperial units)
+
+Refer to the `pint documentation <https://pint.readthedocs.io>`_ for more
+information on how to use pint.
 """
 
 import pint

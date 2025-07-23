@@ -1,13 +1,13 @@
 """
-    The primary purpose of these tests is to run through your code
-    and make sure that it doesn't crash. If you actually want to test
-    your code, you need to write your own custom tests to tease out
-    the edge cases.
-    
-    To use these, add the following to a python file in your tests directory::
-    
-        from pyfrc.tests import *
-    
+The primary purpose of these tests is to run through your code
+and make sure that it doesn't crash. If you actually want to test
+your code, you need to write your own custom tests to tease out
+the edge cases.
+
+To use these, add the following to a python file in your tests directory::
+
+    from pyfrc.tests import *
+
 """
 
 import pytest
