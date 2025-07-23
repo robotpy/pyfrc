@@ -1,6 +1,6 @@
 """
-    These generic test modules can be applied to :class:`wpilib.iterativerobot.IterativeRobot`
-    and :class:`wpilib.samplerobot.SampleRobot` based robots.
+These generic test modules can be applied to :class:`wpilib.iterativerobot.IterativeRobot`
+and :class:`wpilib.samplerobot.SampleRobot` based robots.
 """
 
 # import basic tests

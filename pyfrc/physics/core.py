@@ -1,30 +1,30 @@
 """
-    pyfrc supports simplistic custom physics model implementations for
-    simulation and testing support. It can be as simple or complex as you want
-    to make it. We will continue to add helper functions (such as the
-    :mod:`pyfrc.physics.drivetrains` module) to make this a lot easier
-    to do. General purpose physics implementations are welcome also!
+pyfrc supports simplistic custom physics model implementations for
+simulation and testing support. It can be as simple or complex as you want
+to make it. We will continue to add helper functions (such as the
+:mod:`pyfrc.physics.drivetrains` module) to make this a lot easier
+to do. General purpose physics implementations are welcome also!
 
-    The idea is you provide a :class:`PhysicsEngine` object that interacts with
-    the simulated HAL, and modifies motors/sensors accordingly depending on the
-    state of the simulation. An example of this would be measuring a motor
-    moving for a set period of time, and then changing a limit switch to turn
-    on after that period of time. This can help you do more complex simulations
-    of your robot code without too much extra effort.
+The idea is you provide a :class:`PhysicsEngine` object that interacts with
+the simulated HAL, and modifies motors/sensors accordingly depending on the
+state of the simulation. An example of this would be measuring a motor
+moving for a set period of time, and then changing a limit switch to turn
+on after that period of time. This can help you do more complex simulations
+of your robot code without too much extra effort.
 
-    By default, pyfrc doesn't modify any of your inputs/outputs without being
-    told to do so by your code or the simulation GUI.
-    
-    See the `physics sample <https://github.com/robotpy/examples/tree/master/physics/src>`_
-    for more details.
+By default, pyfrc doesn't modify any of your inputs/outputs without being
+told to do so by your code or the simulation GUI.
 
-    Enabling physics support
-    ------------------------
+See the `physics sample <https://github.com/robotpy/examples/tree/master/physics/src>`_
+for more details.
 
-    You must create a python module called ``physics.py`` next to your
-    ``robot.py``. A physics module must have a class called
-    :class:`PhysicsEngine` which must have a function called ``update_sim``.
-    When initialized, it will be passed an instance of this object.
+Enabling physics support
+------------------------
+
+You must create a python module called ``physics.py`` next to your
+``robot.py``. A physics module must have a class called
+:class:`PhysicsEngine` which must have a function called ``update_sim``.
+When initialized, it will be passed an instance of this object.
 """
 
 from importlib.machinery import SourceFileLoader

@@ -1,6 +1,6 @@
 """
-    The 'vision simulator' provides objects that assist in modeling inputs
-    from a camera processing system.
+The 'vision simulator' provides objects that assist in modeling inputs
+from a camera processing system.
 """
 
 import collections
