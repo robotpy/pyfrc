@@ -10,7 +10,6 @@ import hal
 import hal.simulation
 import ntcore
 import wpilib
-import wpilib.shuffleboard
 from wpilib.simulation import DriverStationSim, pauseTiming, restartTiming
 import wpilib.simulation
 
@@ -141,10 +140,9 @@ class PyFrcPlugin:
         nt_inst._reset()
 
         # Cleanup WPILib globals
-        # -> preferences, SmartDashboard, Shuffleboard, LiveWindow, MotorSafety
+        # -> preferences, SmartDashboard, MotorSafety
         wpilib.simulation._simulation._resetWpilibSimulationData()
         wpilib._wpilib._clearSmartDashboardData()
-        wpilib.shuffleboard._shuffleboard._clearShuffleboardData()
 
         # Cancel all periodic callbacks
         hal.simulation.cancelAllSimPeriodicCallbacks()

@@ -6,12 +6,13 @@ on:
   push:
     branches:
     - main
+    - '2027'
     tags:
     - '*'
 
 jobs:
   ci:
-    uses: robotpy/build-actions/.github/workflows/package-pure.yml@v2025
+    uses: robotpy/build-actions/.github/workflows/package-pure.yml@v2027
     with:
       enable_sphinx_check: false
     secrets:
