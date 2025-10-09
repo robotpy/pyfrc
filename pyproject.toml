@@ -33,7 +33,7 @@ email = "robotpy@googlegroups.com"
 [project.urls]
 "Source code" = "https://github.com/robotpy/pyfrc"
 
-[project.entry-points."robotpy"]
+[project.entry-points."robotpy_cli.2026"]
 add-tests = "pyfrc.mains.cli_add_tests:PyFrcAddTests"
 coverage = "pyfrc.mains.cli_coverage:PyFrcCoverage"
 create-physics = "pyfrc.mains.cli_create_physics:PyFrcCreatePhysics"

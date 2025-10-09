@@ -37,7 +37,7 @@ class PyFrcSim:
 
         self.simexts = {}
 
-        for entry_point in entry_points(group="robotpysimext"):
+        for entry_point in entry_points(group="robotpy_sim.2026"):
             try:
                 sim_ext_module = entry_point.load()
             except ImportError:
