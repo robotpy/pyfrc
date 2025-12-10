@@ -7,7 +7,7 @@ name = "pyfrc"
 dynamic = ["version"]
 description = "Development tools library for python interpreter used for the FIRST Robotics Competition"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {file = "LICENSE"}
 classifiers = [
   "Development Status :: 5 - Production/Stable",
@@ -21,8 +21,8 @@ dependencies = [
   "pytest>=3.9",
   "pytest-reraise",
   "pint>=0.24.4",
-  "wpilib>=2025.1.1,<2026",
-  "robotpy-cli~=2024.0",
+  "wpilib>=2026.1.1b1,<2027",
+  "robotpy-cli~=2026.0.1b1",
   "tomli"
 ]
 
