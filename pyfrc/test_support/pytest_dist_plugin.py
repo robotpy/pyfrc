@@ -49,13 +49,17 @@ def _enable_faulthandler():
         return
 
 
-def _run_test(item_nodeid, config_args, robot_class, robot_file, verbose, pipe):
+def _run_test(
+    item_nodeid, config_args, robot_class, robot_file, verbose, pipe, root_path
+):
     """This function runs in a subprocess"""
     robotpy.logconfig.configure_logging(verbose)
     _enable_faulthandler()
 
     # This is used by getDeployDirectory, so make sure it gets fixed
     robotpy.main.robot_py_path = robot_file
+
+    os.chdir(root_path)
 
     # keep the plugin around because it has a reference to the robot
     # and we don't want it to die and deadlock
@@ -96,7 +100,15 @@ def _run_test_in_new_process(
 
     process = multiprocessing.Process(
         target=_run_test,
-        args=(item_nodeid, config_args, robot_class, robot_file, verbose, child),
+        args=(
+            item_nodeid,
+            config_args,
+            robot_class,
+            robot_file,
+            verbose,
+            child,
+            config.rootpath,
+        ),
     )
     process.start()
     try:
