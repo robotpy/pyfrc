@@ -158,7 +158,10 @@ class DistPlugin:
         multiprocessing.set_start_method("spawn")
 
         for item in items:
-            # Overwrite the runtest protocol for each item
+            if "robot" not in item.fixturenames:
+                continue
+
+            # Overwrite the runtest protocol for each item that needs the robot
             item.runtest = _make_runtest(
                 item,
                 config,
@@ -172,7 +175,7 @@ class DistPlugin:
     # These fixtures match the ones in PyFrcPlugin but these have no effect
     #
 
-    @pytest.fixture(scope="function", autouse=True)
+    @pytest.fixture(scope="function")
     def robot(self):
         pass
 
