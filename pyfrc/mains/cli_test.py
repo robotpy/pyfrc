@@ -28,6 +28,8 @@ class _TryAgain(Exception):
 #
 # main test class
 #
+
+
 class PyFrcTest:
     """
     Executes unit tests on the robot code using a special pytest plugin
@@ -58,6 +60,13 @@ class PyFrcTest:
                 nargs="*",
                 help="To pass args to pytest, specify --<space>, then the args",
             )
+            parser.add_argument(
+                "-j",
+                "--jobs",
+                type=int,
+                default=-1,
+                help="Maximum isolated robot processes (default: max CPUs - 1)",
+            )
 
     def run(
         self,
@@ -69,6 +78,7 @@ class PyFrcTest:
         coverage_mode: bool,
         verbose: bool,
         pytest_args: typing.List[str],
+        jobs: int,
     ):
         if isolated is None:
             pyproject_path = project_path / "pyproject.toml"
@@ -107,6 +117,7 @@ class PyFrcTest:
                 coverage_mode,
                 verbose,
                 pytest_args,
+                jobs,
             )
         except _TryAgain:
             return self._run_test(
@@ -118,6 +129,7 @@ class PyFrcTest:
                 coverage_mode,
                 verbose,
                 pytest_args,
+                jobs,
             )
 
     def _run_test(
@@ -130,6 +142,7 @@ class PyFrcTest:
         coverage_mode: bool,
         verbose: bool,
         pytest_args: typing.List[str],
+        jobs: int,
     ):
         # find test directory, change current directory so pytest can find the tests
         # -> assume that tests reside in tests or ../tests
@@ -159,13 +172,13 @@ class PyFrcTest:
 
         try:
             if isolated:
-                from ..test_support import pytest_dist_plugin
+                from ..test_support import pytest_isolated_tests_plugin
 
                 retv = pytest.main(
                     pytest_args,
                     plugins=[
-                        pytest_dist_plugin.DistPlugin(
-                            robot_class, main_file, builtin, verbose
+                        pytest_isolated_tests_plugin.IsolatedTestsPlugin(
+                            robot_class, main_file, builtin, verbose, jobs
                         )
                     ],
                 )
