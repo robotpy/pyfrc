@@ -8,3 +8,4 @@
 #         networktables.NetworkTables.startTestMode()
 
 #     wpilib.DriverStation._reset()
+pytest_plugins = "pytester"
