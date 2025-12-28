@@ -43,11 +43,19 @@ class PyFrcTest:
                 action="store_true",
                 help="Use pyfrc's builtin tests if no tests are specified",
             )
-            parser.add_argument(
+            isolation_group = parser.add_mutually_exclusive_group()
+            isolation_group.add_argument(
                 "--isolated",
                 default=None,
+                dest="isolated",
                 action="store_true",
-                help="Run each test in a separate robot process. Set `tool.robotpy.pyfrc.isolated` to true in your pyproject.toml to enable by default",
+                help="Run each test in a separate robot process (default). Set `tool.robotpy.pyfrc.isolated` in your pyproject.toml to control the default",
+            )
+            isolation_group.add_argument(
+                "--no-isolation",
+                dest="isolated",
+                action="store_false",
+                help="Disable isolated test mode and run tests in-process",
             )
             parser.add_argument(
                 "--coverage-mode",
@@ -99,13 +107,7 @@ class PyFrcTest:
                     isolated = v
 
         if isolated is None:
-            isolated = False
-
-        if not isolated:
-            logger.info(
-                "Isolated test mode not enabled, consider using it if your tests hang"
-            )
-            logger.info("- See 'robotpy test --help' for details")
+            isolated = True
 
         try:
             return self._run_test(
