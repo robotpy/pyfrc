@@ -72,7 +72,7 @@ class PyFrcPlugin:
     # corresponding function will be passed to your test as that argument.
     #
 
-    @pytest.fixture(scope="function", autouse=True)
+    @pytest.fixture(scope="function")
     def robot(self):
         """
         Your robot instance
