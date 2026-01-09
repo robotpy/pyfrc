@@ -22,7 +22,7 @@ dependencies = [
   "pytest-reraise",
   "pint>=0.24.4",
   "wpilib>=2026.1.1b1,<2027",
-  "robotpy-cli~=2026.0.1b1",
+  "robotpy-cli~=2026.0.1",
   "tomli"
 ]
 
