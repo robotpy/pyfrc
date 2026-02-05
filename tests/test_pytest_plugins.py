@@ -6,8 +6,7 @@ import pytest
 
 
 def _make_robot_module(pytester):
-    pytester.makepyfile(
-        robot_module="""
+    pytester.makepyfile(robot_module="""
 import wpilib
 
 
@@ -62,13 +61,11 @@ class IterativeStateRobot(wpilib.TimedRobot):
     def teleopPeriodic(self):
         self.did_teleop_periodic = True
 
-"""
-    )
+""")
 
 
 def _configure_pyfrc_plugin(pytester, robot_class="DummyRobot"):
-    pytester.makeconftest(
-        f"""
+    pytester.makeconftest(f"""
 import pathlib
 
 from pyfrc.test_support.pytest_plugin import PyFrcPlugin
@@ -79,13 +76,11 @@ from robot_module import {robot_class}
 def pytest_configure(config):
     robot_file = pathlib.Path(__file__).resolve()
     config.pluginmanager.register(PyFrcPlugin({robot_class}, robot_file, False))
-"""
-    )
+""")
 
 
 def _configure_isolated_plugin(pytester, parallelism=1, robot_class="DummyRobot"):
-    pytester.makeconftest(
-        f"""
+    pytester.makeconftest(f"""
 import pathlib
 
 from pyfrc.test_support.pytest_isolated_tests_plugin import IsolatedTestsPlugin
@@ -99,19 +94,16 @@ def pytest_configure(config):
     config.pluginmanager.register(
         IsolatedTestsPlugin({robot_class}, robot_file, False, False, {parallelism})
     )
-"""
-    )
+""")
 
 
 def test_pyfrc_plugin_success(pytester):
     _make_robot_module(pytester)
     _configure_pyfrc_plugin(pytester)
-    pytester.makepyfile(
-        test_success="""
+    pytester.makepyfile(test_success="""
 def test_robot_fixture(robot):
     assert robot.did_init
-"""
-    )
+""")
 
     result = pytester.runpytest("-vv")
 
@@ -121,13 +113,11 @@ def test_robot_fixture(robot):
 def test_pyfrc_plugin_failure_shows_output(pytester):
     _make_robot_module(pytester)
     _configure_pyfrc_plugin(pytester)
-    pytester.makepyfile(
-        test_failure="""
+    pytester.makepyfile(test_failure="""
 def test_robot_failure(robot):
     print("pyfrc failure output")
     assert False
-"""
-    )
+""")
 
     result = pytester.runpytest("-vv")
 
@@ -143,8 +133,7 @@ def test_robot_failure(robot):
 def test_isolated_plugin_process_and_output(pytester):
     _make_robot_module(pytester)
     _configure_isolated_plugin(pytester)
-    pytester.makepyfile(
-        test_isolated="""
+    pytester.makepyfile(test_isolated="""
 import os
 
 
@@ -166,8 +155,7 @@ def test_robot_pid_two(robot):
 def test_robot_failure_output(robot):
     print("isolated failure output")
     assert False
-"""
-    )
+""")
 
     result = pytester.runpytest_subprocess("-vv")
 
@@ -192,8 +180,7 @@ def test_robot_failure_output(robot):
 def test_isolated_plugin_no_duplicate_verbose_output(pytester):
     _make_robot_module(pytester)
     _configure_isolated_plugin(pytester)
-    pytester.makepyfile(
-        test_isolated="""
+    pytester.makepyfile(test_isolated="""
 def test_non_robot():
     assert True
 
@@ -204,8 +191,7 @@ def test_robot_one(robot):
 
 def test_robot_two(robot):
     assert robot is not None
-"""
-    )
+""")
 
     result = pytester.runpytest_subprocess("-v")
 
@@ -227,16 +213,14 @@ def test_robot_two(robot):
 def test_isolated_plugin_reports_signal_exit(pytester):
     _make_robot_module(pytester)
     _configure_isolated_plugin(pytester)
-    pytester.makepyfile(
-        test_isolated="""
+    pytester.makepyfile(test_isolated="""
 import os
 import signal
 
 
 def test_robot_signal_exit(robot):
     os.kill(os.getpid(), signal.SIGTERM)
-"""
-    )
+""")
 
     result = pytester.runpytest_subprocess("-vv")
 
@@ -252,8 +236,7 @@ def test_robot_signal_exit(robot):
 def test_isolated_plugin_shows_file_in_non_verbose_output(pytester):
     _make_robot_module(pytester)
     _configure_isolated_plugin(pytester)
-    pytester.makepyfile(
-        test_isolated="""
+    pytester.makepyfile(test_isolated="""
 def test_non_robot():
     assert True
 
@@ -264,8 +247,7 @@ def test_robot_one(robot):
 
 def test_robot_two(robot):
     assert robot is not None
-"""
-    )
+""")
 
     result = pytester.runpytest_subprocess()
 
@@ -278,16 +260,14 @@ def test_robot_two(robot):
 def test_isolated_plugin_maxfail_stops_early(pytester):
     _make_robot_module(pytester)
     _configure_isolated_plugin(pytester)
-    pytester.makepyfile(
-        test_isolated="""
+    pytester.makepyfile(test_isolated="""
 def test_robot_first(robot):
     assert False
 
 
 def test_robot_second(robot):
     assert False
-"""
-    )
+""")
 
     result = pytester.runpytest_subprocess("-v", "-x")
 

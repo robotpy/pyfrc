@@ -8,7 +8,6 @@ import typing
 
 import wpilib
 
-
 logger = logging.getLogger("pyfrc.sim")
 
 

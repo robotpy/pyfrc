@@ -40,7 +40,6 @@ import wpilib.simulation
 from wpimath.kinematics import ChassisSpeeds
 from wpimath.geometry import Pose2d, Rotation2d, Transform2d, Translation2d, Twist2d
 
-
 logger = logging.getLogger("pyfrc.physics")
 
 
