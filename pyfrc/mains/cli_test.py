@@ -75,6 +75,12 @@ class PyFrcTest:
                 default=-1,
                 help="Maximum isolated robot processes (default: max CPUs - 1)",
             )
+            parser.add_argument(
+                "--init-timeout",
+                type=float,
+                default=2.0,
+                help="Seconds to wait for robot to start (can be set in `tool.robotpy.pyfrc.init_timeout` also)",
+            )
 
     def run(
         self,
@@ -87,6 +93,7 @@ class PyFrcTest:
         verbose: bool,
         pytest_args: typing.List[str],
         jobs: int,
+        init_timeout: float,
     ):
         if isolated is None:
             pyproject_path = project_path / "pyproject.toml"
@@ -106,6 +113,22 @@ class PyFrcTest:
 
                     isolated = v
 
+                try:
+                    v = d["tool"]["robotpy"]["pyfrc"]["init_timeout"]
+                except KeyError:
+                    pass
+                else:
+                    if not isinstance(v, (int, float)):
+                        raise ValueError(
+                            f"tool.robotpy.pyfrc.init_timeout must be a number (got {v})"
+                        )
+                    elif not (v > 0):
+                        raise ValueError(
+                            f"tool.robotpy.pyfrc.init_timeout must be a positive number (got {v})"
+                        )
+
+                    init_timeout = float(v)
+
         if isolated is None:
             isolated = True
 
@@ -120,6 +143,7 @@ class PyFrcTest:
                 verbose,
                 pytest_args,
                 jobs,
+                init_timeout,
             )
         except _TryAgain:
             return self._run_test(
@@ -132,6 +156,7 @@ class PyFrcTest:
                 verbose,
                 pytest_args,
                 jobs,
+                init_timeout,
             )
 
     def _run_test(
@@ -145,6 +170,7 @@ class PyFrcTest:
         verbose: bool,
         pytest_args: typing.List[str],
         jobs: int,
+        init_timeout: float,
     ):
         # find test directory, change current directory so pytest can find the tests
         # -> assume that tests reside in tests or ../tests
@@ -180,14 +206,18 @@ class PyFrcTest:
                     pytest_args,
                     plugins=[
                         pytest_isolated_tests_plugin.IsolatedTestsPlugin(
-                            robot_class, main_file, builtin, verbose, jobs
+                            robot_class, main_file, builtin, verbose, jobs, init_timeout
                         )
                     ],
                 )
             else:
                 retv = pytest.main(
                     pytest_args,
-                    plugins=[pytest_plugin.PyFrcPlugin(robot_class, main_file, False)],
+                    plugins=[
+                        pytest_plugin.PyFrcPlugin(
+                            robot_class, main_file, False, init_timeout
+                        )
+                    ],
                 )
         finally:
             os.chdir(curdir)
