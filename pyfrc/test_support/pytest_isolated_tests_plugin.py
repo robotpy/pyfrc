@@ -101,7 +101,14 @@ class WorkerPlugin:
 
 
 def _run_test(
-    item_nodeid, config_args, robot_class, robot_file, verbose, pipe, root_path
+    item_nodeid,
+    config_args,
+    robot_class,
+    robot_file,
+    verbose,
+    pipe,
+    root_path,
+    init_timeout,
 ):
     """This function runs in a subprocess"""
     logging.root.addHandler(logging.NullHandler())
@@ -116,7 +123,7 @@ def _run_test(
 
     # keep the plugins around because it has a reference to the robot
     # and we don't want it to die and deadlock
-    plugin = PyFrcPlugin(robot_class, robot_file, True)
+    plugin = PyFrcPlugin(robot_class, robot_file, True, init_timeout)
     worker_plugin = WorkerPlugin(pipe)
 
     ec = pytest.main(
@@ -168,11 +175,13 @@ class IsolatedTestsPlugin:
         builtin_tests: bool,
         verbose: bool,
         parallelism: int,
+        init_timeout: float,
     ):
         self._robot_class = robot_class
         self._robot_file = robot_file
         self._builtin_tests = builtin_tests
         self._verbose = verbose
+        self._init_timeout = init_timeout
 
         if parallelism < 1:
             try:
@@ -260,6 +269,7 @@ class IsolatedTestsPlugin:
                 self._verbose,
                 cconn,
                 self._config.rootpath,
+                self._init_timeout,
             ),
         )
         process.start()

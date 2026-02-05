@@ -12,11 +12,12 @@ class TestController:
     Use this object to control the robot's state during tests
     """
 
-    def __init__(self, reraise, robot: wpilib.RobotBase):
+    def __init__(self, reraise, robot: wpilib.RobotBase, init_timeout: float = 2.0):
         self._reraise = reraise
 
         self._thread: typing.Optional[threading.Thread] = None
         self._robot = robot
+        self._init_timeout = init_timeout
 
         self._cond = threading.Condition()
         self._robot_started = False
@@ -72,7 +73,12 @@ class TestController:
 
             # If your robotInit is taking more than 2 seconds in simulation, you're
             # probably doing something wrong... but if not, please report a bug!
-            assert self._cond.wait_for(lambda: self._robot_initialized, timeout=2)
+            #
+            # To avoid this altogether, `--init-timeout` can be passed to `robotpy test`
+            # or you can add `tools.robotpy.pyfrc.init_timeout` instead
+            assert self._cond.wait_for(
+                lambda: self._robot_initialized, timeout=self._init_timeout
+            )
 
         try:
             # in this block you should tell the sim to do sim things
