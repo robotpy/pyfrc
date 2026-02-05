@@ -36,6 +36,7 @@ class PyFrcPlugin:
         robot_class: Type[wpilib.RobotBase],
         robot_file: pathlib.Path,
         isolated: bool,
+        init_timeout: float,
     ):
         self.isolated = isolated
 
@@ -60,6 +61,8 @@ class PyFrcPlugin:
 
         self._robot_file = robot_file
         self._robot_class = TestRobot
+
+        self._init_timeout = init_timeout
 
         self._physics = physics
 
@@ -164,7 +167,7 @@ class PyFrcPlugin:
         """
         A pytest fixture that provides control over your robot
         """
-        return TestController(reraise, robot)
+        return TestController(reraise, robot, self._init_timeout)
 
     @pytest.fixture()
     def robot_file(self) -> pathlib.Path:
