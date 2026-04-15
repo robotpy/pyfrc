@@ -429,7 +429,9 @@ def test_isolated_plugin_order_marker_enforces_sequencing(pytester):
     subprocesses would race and step 2 would likely fail.
     """
     _make_robot_module(pytester)
-    _configure_isolated_plugin(pytester, parallelism=4)  # high limit rules out throttling
+    _configure_isolated_plugin(
+        pytester, parallelism=4
+    )  # high limit rules out throttling
     pytester.makepyfile(test_order_marker_sequencing="""
 import pathlib
 import pytest
@@ -485,6 +487,6 @@ def test_robot_b(robot):
     b_start = float((root / "unordered_parallel_b_start.txt").read_text())
 
     # Parallel execution: B started before A finished
-    assert b_start < a_end, (
-        f"Expected parallel execution: b_start={b_start:.3f} a_end={a_end:.3f}"
-    )
+    assert (
+        b_start < a_end
+    ), f"Expected parallel execution: b_start={b_start:.3f} a_end={a_end:.3f}"
