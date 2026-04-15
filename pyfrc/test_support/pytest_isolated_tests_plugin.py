@@ -245,6 +245,12 @@ class IsolatedTestsPlugin:
                     deferred.append(item)
                     continue
 
+                # If this test has an order marker, drain all running subprocesses first
+                # so that ordered tests execute sequentially and never in parallel.
+                if item.get_closest_marker("order") is not None:
+                    while running:
+                        self._wait_for_jobs(running, session)
+
                 while len(running) >= self._parallelism:
                     self._wait_for_jobs(running, session)
 
