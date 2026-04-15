@@ -419,3 +419,118 @@ def test_state_transitions(robot, control):
     )
 
     result.assert_outcomes(passed=1)
+
+
+@pytest.mark.parametrize("marker_style", ["numeric", "after"])
+@pytest.mark.parametrize(
+    "first_type, middle_type, last_type",
+    [
+        ("ROBOT", "ROBOT", "PLAIN"),
+        ("ROBOT", "PLAIN", "ROBOT"),
+        ("PLAIN", "ROBOT", "ROBOT"),
+        ("ROBOT", "PLAIN", "PLAIN"),
+        ("PLAIN", "ROBOT", "PLAIN"),
+        ("PLAIN", "PLAIN", "ROBOT"),
+    ],
+)
+def test_order_marker_enforces_sequencing(
+    pytester, first_type, middle_type, last_type, marker_style
+):
+    """
+    Order markers enforce a first→middle→last chain across all mixed
+    robot/non-robot permutations.
+
+    test_first writes sentinel_1; test_middle reads sentinel_1 and writes
+    sentinel_2; test_last reads sentinel_2.  The file lists them in reverse
+    (last, middle, first) so collection order would fail — passing proves the
+    full chain was enforced.
+
+    ROBOT = robot fixture (isolated subprocess)  PLAIN = plain test (in-process)
+
+    numeric: first=order(1), middle=order(2), last=order(3)
+    after:   middle=order(after="test_first"), last=order(after="test_middle")
+    """
+    _make_robot_module(pytester)
+    _configure_isolated_plugin(pytester, parallelism=4)
+
+    def params(t):
+        return "(robot)" if t == "ROBOT" else "()"
+
+    if marker_style == "numeric":
+        first_mark = "@pytest.mark.order(1)\n"
+        middle_mark = "@pytest.mark.order(2)\n"
+        last_mark = "@pytest.mark.order(3)\n"
+    else:
+        first_mark = ""
+        middle_mark = '@pytest.mark.order(after="test_first")\n'
+        last_mark = '@pytest.mark.order(after="test_middle")\n'
+
+    pytester.makepyfile(test_order_sequence=f"""\
+import pathlib
+import pytest
+
+
+{last_mark}def test_last{params(last_type)}:
+    assert pathlib.Path("sentinel_2.txt").exists(), "test_middle must run before test_last"
+
+
+{middle_mark}def test_middle{params(middle_type)}:
+    assert pathlib.Path("sentinel_1.txt").exists(), "test_first must run before test_middle"
+    pathlib.Path("sentinel_2.txt").write_text("done")
+
+
+{first_mark}def test_first{params(first_type)}:
+    pathlib.Path("sentinel_1.txt").write_text("done")
+""")
+
+    result = pytester.runpytest_subprocess("-vv")
+    result.assert_outcomes(passed=3)
+
+
+@pytest.mark.parametrize(
+    "a_fixture, b_fixture",
+    [("robot", "robot"), ("robot", "")],
+    ids=["RR", "RN"],
+)
+def test_unordered_tests_still_run_in_parallel(pytester, a_fixture, b_fixture):
+    """
+    Tests WITHOUT @pytest.mark.order must not be serialised by order-marker
+    support.  With parallelism=2, two 1.5 s tests must overlap in wall-clock
+    time when the first test uses the robot fixture (starts async subprocess,
+    allowing the second test to run concurrently).
+
+    NR is omitted: a non-robot test runs in-process synchronously, so it
+    completes before the subsequent robot subprocess starts — serial by design.
+    """
+    _make_robot_module(pytester)
+    _configure_isolated_plugin(pytester, parallelism=2)
+
+    def params(f):
+        return f"({f})" if f else "()"
+
+    pytester.makepyfile(test_parallel_execution=f"""\
+import pathlib
+import time
+
+
+def test_a{params(a_fixture)}:
+    pathlib.Path("a_start.txt").write_text(str(time.monotonic()))
+    time.sleep(1.5)
+    pathlib.Path("a_end.txt").write_text(str(time.monotonic()))
+
+
+def test_b{params(b_fixture)}:
+    pathlib.Path("b_start.txt").write_text(str(time.monotonic()))
+    time.sleep(1.5)
+    pathlib.Path("b_end.txt").write_text(str(time.monotonic()))
+""")
+
+    result = pytester.runpytest_subprocess("-vv")
+    result.assert_outcomes(passed=2)
+
+    root = pathlib.Path(pytester.path)
+    a_end = float((root / "a_end.txt").read_text())
+    b_start = float((root / "b_start.txt").read_text())
+    assert (
+        b_start < a_end
+    ), f"Expected parallel: b_start={b_start:.3f} a_end={a_end:.3f}"
