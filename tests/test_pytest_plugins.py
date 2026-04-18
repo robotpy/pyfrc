@@ -75,7 +75,7 @@ from robot_module import {robot_class}
 
 def pytest_configure(config):
     robot_file = pathlib.Path(__file__).resolve()
-    config.pluginmanager.register(PyFrcPlugin({robot_class}, robot_file, False))
+    config.pluginmanager.register(PyFrcPlugin({robot_class}, robot_file, False, 2.0))
 """)
 
 
@@ -92,7 +92,7 @@ def pytest_configure(config):
         return
     robot_file = pathlib.Path(__file__).resolve()
     config.pluginmanager.register(
-        IsolatedTestsPlugin({robot_class}, robot_file, False, False, {parallelism})
+        IsolatedTestsPlugin({robot_class}, robot_file, False, False, {parallelism}, 2.0)
     )
 """)
 
