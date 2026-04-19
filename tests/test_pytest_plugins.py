@@ -554,6 +554,7 @@ def test_robot_b(robot):
         b_start < a_end
     ), f"Expected parallel execution: b_start={b_start:.3f} a_end={a_end:.3f}"
 
+
 def test_isolated_plugin_unordered_non_robot_tests_still_run_in_parallel(pytester):
     """
     non-robot tests WITHOUT @pytest.mark.order must not be serialised by the
