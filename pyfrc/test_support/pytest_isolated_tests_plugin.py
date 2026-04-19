@@ -247,6 +247,13 @@ class IsolatedTestsPlugin:
 
                 # If this test has an order marker, drain all running subprocesses first
                 # so that ordered tests execute sequentially and never in parallel.
+                # This works because the pytest-order plugin presorts the list of test
+                # before they reach this point in the code.
+                #
+                # The above code which defers code without a robot fixture will break
+                # @pytest.maker.order for order configurations which involve both robot
+                # fixture tests and non robot fixture tests.
+
                 if item.get_closest_marker("order") is not None:
                     while running:
                         self._wait_for_jobs(running, session)
