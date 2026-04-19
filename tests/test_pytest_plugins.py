@@ -421,25 +421,21 @@ def test_state_transitions(robot, control):
     result.assert_outcomes(passed=1)
 
 
-def test_isolated_plugin_order_marker_enforces_sequencing(pytester):
+def test_robot_isolated_plugin_order_marker_enforces_numeric_sequencing(pytester):
     """
-    Robot-fixture tests with @pytest.mark.order run sequentially even when
-    parallelism would otherwise allow them to overlap.  Step 1 writes a
-    sentinel file; step 2 asserts it exists.  Without the barrier the two
-    subprocesses would race and step 2 would likely fail.
+    Robot-fixture tests with @pytest.mark.order run sequentially with
+    even @pytest.mark.order(NUMERICAL_ORDER) when parallelism would
+    otherwise allow them to overlap.  Step 1 writes a sentinel file;
+    step 2 asserts it exists.  Without the barrier the two subprocesses
+    would race and step 2 would likely fail.
     """
     _make_robot_module(pytester)
     _configure_isolated_plugin(
         pytester, parallelism=4
     )  # high limit rules out throttling
-    pytester.makepyfile(test_order_marker_sequencing="""
+    pytester.makepyfile(test_robot_order_marker_sequencing="""
 import pathlib
 import pytest
-
-
-@pytest.mark.order(1)
-def test_step1_writes_sentinel(robot):
-    pathlib.Path("order_marker_sequencing_sentinel.txt").write_text("done")
 
 
 @pytest.mark.order(2)
@@ -447,6 +443,73 @@ def test_step2_reads_sentinel(robot):
     assert pathlib.Path("order_marker_sequencing_sentinel.txt").exists(), (
         "order_marker_sequencing_sentinel.txt must be written by step1 before step2 starts"
     )
+
+
+@pytest.mark.order(1)
+def test_step1_writes_sentinel(robot):
+    pathlib.Path("order_marker_sequencing_sentinel.txt").write_text("done")
+""")
+
+    result = pytester.runpytest_subprocess("-vv")
+    result.assert_outcomes(passed=2)
+
+
+def test_robot_isolated_plugin_order_marker_enforces_after_sequencing(pytester):
+    """
+    Robot-fixture tests with @pytest.mark.order run sequentially using
+    pytest.mark.order(after="TEST_NAME") even when parallelism would
+    otherwise allow them to overlap.  Step 1 writes a sentinel file;
+    step 2 asserts it exists.  Without the barrier the two subprocesses
+    would race and step 2 would likely fail.
+    """
+    _make_robot_module(pytester)
+    _configure_isolated_plugin(
+        pytester, parallelism=4
+    )  # high limit rules out throttling
+    pytester.makepyfile(test_robot_order_marker_after_sequencing="""
+import pathlib
+import pytest
+
+
+@pytest.mark.order(after="test_step1_writes_sentinel")
+def test_step2_reads_sentinel(robot):
+    assert pathlib.Path("order_marker_sequencing_after_sentinel.txt").exists(), (
+        "order_marker_sequencing_sentinel.txt must be written by step1 before step2 starts"
+    )
+
+
+def test_step1_writes_sentinel(robot):
+    pathlib.Path("order_marker_sequencing_after_sentinel.txt").write_text("done")
+""")
+
+    result = pytester.runpytest_subprocess("-vv")
+    result.assert_outcomes(passed=2)
+
+
+def test_nonrobot_isolated_plugin_order_marker_enforces_sequencing(pytester):
+    """
+    Non-robot tests with @pytest.mark.order run in the declared order.
+    Step 1 writes a sentinel file; step 2 asserts it exists.  Without
+    correct ordering, step 2 would run before step 1 and fail.
+    """
+    _make_robot_module(pytester)
+    _configure_isolated_plugin(
+        pytester, parallelism=4
+    )  # high limit rules out throttling
+    pytester.makepyfile(test_nonrobot_order_marker_after_sequencing="""
+import pathlib
+import pytest
+
+
+@pytest.mark.order(after="test_step1_writes_sentinel")
+def test_step2_reads_sentinel():
+    assert pathlib.Path("order_marker_sequencing_nonrobot_sentinel.txt").exists(), (
+        "order_marker_sequencing_sentinel.txt must be written by step1 before step2 starts"
+    )
+
+
+def test_step1_writes_sentinel():
+    pathlib.Path("order_marker_sequencing_nonrobot_sentinel.txt").write_text("done")
 """)
 
     result = pytester.runpytest_subprocess("-vv")
@@ -461,18 +524,56 @@ def test_isolated_plugin_unordered_robot_tests_still_run_in_parallel(pytester):
     """
     _make_robot_module(pytester)
     _configure_isolated_plugin(pytester, parallelism=2)
-    pytester.makepyfile(test_unordered_parallel_execution="""
+    pytester.makepyfile(test_unordered_robot_parallel_execution="""
 import pathlib
 import time
 
 
 def test_robot_a(robot):
+    pathlib.Path("unordered_robot_parallel_a_start.txt").write_text(str(time.monotonic()))
+    time.sleep(1.5)
+    pathlib.Path("unordered_robot_parallel_a_end.txt").write_text(str(time.monotonic()))
+
+
+def test_robot_b(robot):
+    pathlib.Path("unordered_robot_parallel_b_start.txt").write_text(str(time.monotonic()))
+    time.sleep(1.5)
+    pathlib.Path("unordered_robot_parallel_b_end.txt").write_text(str(time.monotonic()))
+""")
+
+    result = pytester.runpytest_subprocess("-vv")
+    result.assert_outcomes(passed=2)
+
+    root = pathlib.Path(pytester.path)
+    a_start = float((root / "unordered_robot_parallel_a_start.txt").read_text())
+    a_end = float((root / "unordered_robot_parallel_a_end.txt").read_text())
+    b_start = float((root / "unordered_robot_parallel_b_start.txt").read_text())
+
+    # Parallel execution: B started before A finished
+    assert (
+        b_start < a_end
+    ), f"Expected parallel execution: b_start={b_start:.3f} a_end={a_end:.3f}"
+
+def test_isolated_plugin_unordered_non_robot_tests_still_run_in_parallel(pytester):
+    """
+    non-robot tests WITHOUT @pytest.mark.order must not be serialised by the
+    fix.  With parallelism=2, two unordered tests sleep long enough that they
+    must overlap in wall-clock time if they run in parallel.
+    """
+    _make_robot_module(pytester)
+    _configure_isolated_plugin(pytester, parallelism=2)
+    pytester.makepyfile(test_unordered_parallel_execution="""
+import pathlib
+import time
+
+
+def test_a():
     pathlib.Path("unordered_parallel_a_start.txt").write_text(str(time.monotonic()))
     time.sleep(1.5)
     pathlib.Path("unordered_parallel_a_end.txt").write_text(str(time.monotonic()))
 
 
-def test_robot_b(robot):
+def test_b(robot):
     pathlib.Path("unordered_parallel_b_start.txt").write_text(str(time.monotonic()))
     time.sleep(1.5)
     pathlib.Path("unordered_parallel_b_end.txt").write_text(str(time.monotonic()))
