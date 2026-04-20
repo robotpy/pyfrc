@@ -262,7 +262,10 @@ class IsolatedTestsPlugin:
                 # so that ordered tests execute sequentially and never in parallel.
                 # This works because the pytest-order plugin presorts the list of test
                 # before they reach this point in the code.
-
+                # This handles the @pytest.mark.order(<ORDINAL>) and @pytest.mark.order(after="TEST_NAME")
+                # cases.
+                ordermarker = item.get_closest_marker("order")
+                ordermarker
                 if item.get_closest_marker("order") is not None:
                     while running:
                         self._wait_for_jobs(running, session)
@@ -274,6 +277,17 @@ class IsolatedTestsPlugin:
 
                     running.append(self._start_isolated_test(item))
                     self._maybe_raise(session)
+
+                    # If this test has an order marker, drain all running subprocesses after
+                    # so that ordered tests execute sequentially and never in parallel.
+                    # This works because the pytest-order plugin presorts the list of test
+                    # before they reach this point in the code.
+                    # This handles the @pytest.mark.order(before="TEST_NAME")
+                    # cases.
+                    if item.get_closest_marker("order") is not None:
+                        while running:
+                            self._wait_for_jobs(running, session)
+
                 else:
                     # This test runs in this process.
 
@@ -283,14 +297,14 @@ class IsolatedTestsPlugin:
                     nextitem = (
                         session.items[idx + 1] if idx + 1 < len(session.items) else None
                     )
-                    nextitem = (
+                    nextitemForRunTest = (
                         None
                         if nextitem is None or "robot" in nextitem.fixturenames
                         else nextitem
                     )
 
                     session.config.hook.pytest_runtest_protocol(
-                        item=item, nextitem=nextitem
+                        item=item, nextitem=nextitemForRunTest
                     )
                     self._maybe_raise(session)
 

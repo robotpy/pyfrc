@@ -421,10 +421,14 @@ def test_state_transitions(robot, control):
     result.assert_outcomes(passed=1)
 
 
-@pytest.mark.parametrize("marker_style", ["numeric", "after"])
+@pytest.mark.parametrize("marker_style", ["numeric", "after", "before"])
 @pytest.mark.parametrize(
     "first_type, middle_type, last_type",
     [
+        ("ROBOT", "ROBOT", None),
+        ("ROBOT", "PLAIN", None),
+        ("PLAIN", "ROBOT", None),
+        ("PLAIN", "PLAIN", None),
         ("ROBOT", "ROBOT", "PLAIN"),
         ("ROBOT", "PLAIN", "ROBOT"),
         ("PLAIN", "ROBOT", "ROBOT"),
@@ -460,31 +464,47 @@ def test_order_marker_enforces_sequencing(
         first_mark = "@pytest.mark.order(1)\n"
         middle_mark = "@pytest.mark.order(2)\n"
         last_mark = "@pytest.mark.order(3)\n"
+    elif marker_style == "before":
+        first_mark = '@pytest.mark.order(before="test_middle")\n'
+        middle_mark = '@pytest.mark.order(before="test_last")\n'
+        last_mark = ""
     else:
         first_mark = ""
         middle_mark = '@pytest.mark.order(after="test_first")\n'
         last_mark = '@pytest.mark.order(after="test_middle")\n'
 
-    pytester.makepyfile(test_order_sequence=f"""\
+    pytester.makepyfile(
+        test_order_sequence=(
+            f"""\
 import pathlib
 import pytest
 
 
-{last_mark}def test_last{params(last_type)}:
+"""
+            + (
+                f"""{last_mark}def test_last{params(last_type)}:
     assert pathlib.Path("sentinel_2.txt").exists(), "test_middle must run before test_last"
 
 
-{middle_mark}def test_middle{params(middle_type)}:
+"""
+                if last_type is not None
+                else ""
+            )
+            + f"""{middle_mark}def test_middle{params(middle_type)}:
     assert pathlib.Path("sentinel_1.txt").exists(), "test_first must run before test_middle"
     pathlib.Path("sentinel_2.txt").write_text("done")
 
 
 {first_mark}def test_first{params(first_type)}:
     pathlib.Path("sentinel_1.txt").write_text("done")
-""")
+"""
+        )
+    )
 
     result = pytester.runpytest_subprocess("-vv")
-    result.assert_outcomes(passed=3)
+    list_of_tests = [first_type, middle_type, last_type]
+    count_of_tests = sum(x is not None for x in list_of_tests)
+    result.assert_outcomes(passed=count_of_tests)
 
 
 @pytest.mark.parametrize(
