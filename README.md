@@ -1,3 +1,5 @@
+**NOTE:** robot testing and simulation have been folder into wpilib starting with the 2027 season
+
 pyfrc - RobotPy simulation and testing support
 ==============================================
 
