@@ -19,6 +19,7 @@ classifiers = [
 ]
 dependencies = [
   "pytest>=3.9",
+  "pytest-order",
   "pytest-reraise",
   "pint>=0.24.4",
   "wpilib>=2026.1.1b1,<2027",
